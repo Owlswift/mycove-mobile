@@ -27,8 +27,26 @@ class CommunityHubApi {
   Future<void> resetPassword({required String resetToken, required String newPassword}) =>
       _dio.post('/auth/reset-password', data: {'resetToken': resetToken, 'newPassword': newPassword});
 
-  Future<void> completeForceReset(String newPassword) =>
-      _dio.post('/auth/complete-force-reset', data: {'newPassword': newPassword});
+  Future<void> completeForceReset({
+    required String newPassword,
+    String? fullName,
+    String? house,
+    String? email,
+    String? emergencyContactName,
+    String? emergencyContactPhone,
+    List<String>? vehiclePlates,
+  }) => _dio.post(
+    '/auth/complete-force-reset',
+    data: {
+      'newPassword': newPassword,
+      'fullName': ?fullName,
+      'house': ?house,
+      'email': ?email,
+      'emergencyContactName': ?emergencyContactName,
+      'emergencyContactPhone': ?emergencyContactPhone,
+      'vehiclePlates': ?vehiclePlates,
+    },
+  );
 
   Future<void> logoutRequest(String? refreshToken) =>
       _dio.post('/auth/logout', data: {'refreshToken': refreshToken});

@@ -45,6 +45,15 @@ class ProfilePage extends ConsumerWidget {
                   child: Column(
                     children: [
                       _infoRow('Phone', user?.phone ?? '', showBorder: true),
+                      if (user?.email?.isNotEmpty ?? false) _infoRow('Email', user!.email!, showBorder: true),
+                      if (user?.emergencyContactName?.isNotEmpty ?? false)
+                        _infoRow(
+                          'Emergency contact',
+                          '${user!.emergencyContactName}${user.emergencyContactPhone != null ? ' · ${user.emergencyContactPhone}' : ''}',
+                          showBorder: true,
+                        ),
+                      if (user?.vehiclePlates.isNotEmpty ?? false)
+                        _infoRow('Vehicle(s)', user!.vehiclePlates.join(', '), showBorder: true),
                       _infoRow('Estate', 'Palm Court Estate'),
                     ],
                   ),

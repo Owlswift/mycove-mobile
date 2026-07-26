@@ -43,6 +43,12 @@ class AppState {
     this.newPass1 = '',
     this.newPass2 = '',
     this.resetMsg = '',
+    this.setupFullName = '',
+    this.setupHouse = '',
+    this.setupEmail = '',
+    this.setupEmergencyContactName = '',
+    this.setupEmergencyContactPhone = '',
+    this.setupVehiclePlates = '',
     this.vfName = '',
     this.vfPhone = '',
     this.vfPlate = '',
@@ -95,6 +101,13 @@ class AppState {
   final String newPass1;
   final String newPass2;
   final String resetMsg;
+
+  final String setupFullName;
+  final String setupHouse;
+  final String setupEmail;
+  final String setupEmergencyContactName;
+  final String setupEmergencyContactPhone;
+  final String setupVehiclePlates;
 
   final String vfName;
   final String vfPhone;
@@ -155,6 +168,12 @@ class AppState {
     String? newPass1,
     String? newPass2,
     String? resetMsg,
+    String? setupFullName,
+    String? setupHouse,
+    String? setupEmail,
+    String? setupEmergencyContactName,
+    String? setupEmergencyContactPhone,
+    String? setupVehiclePlates,
     String? vfName,
     String? vfPhone,
     String? vfPlate,
@@ -196,6 +215,12 @@ class AppState {
       newPass1: newPass1 ?? this.newPass1,
       newPass2: newPass2 ?? this.newPass2,
       resetMsg: resetMsg ?? this.resetMsg,
+      setupFullName: setupFullName ?? this.setupFullName,
+      setupHouse: setupHouse ?? this.setupHouse,
+      setupEmail: setupEmail ?? this.setupEmail,
+      setupEmergencyContactName: setupEmergencyContactName ?? this.setupEmergencyContactName,
+      setupEmergencyContactPhone: setupEmergencyContactPhone ?? this.setupEmergencyContactPhone,
+      setupVehiclePlates: setupVehiclePlates ?? this.setupVehiclePlates,
       vfName: vfName ?? this.vfName,
       vfPhone: vfPhone ?? this.vfPhone,
       vfPlate: vfPlate ?? this.vfPlate,

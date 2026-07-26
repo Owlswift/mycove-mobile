@@ -107,7 +107,15 @@ class AppNotifier extends StateNotifier<AppState> {
       state = state.copyWith(currentUser: user, isLoading: false);
 
       if (result['mustResetPassword'] == true) {
-        state = state.copyWith(authStage: AuthStage.forceReset);
+        state = state.copyWith(
+          authStage: AuthStage.forceReset,
+          setupFullName: user.fullName,
+          setupHouse: user.house ?? '',
+          setupEmail: user.email ?? '',
+          setupEmergencyContactName: user.emergencyContactName ?? '',
+          setupEmergencyContactPhone: user.emergencyContactPhone ?? '',
+          setupVehiclePlates: user.vehiclePlates.join(', '),
+        );
         return;
       }
       if (user.role == 'GUARD') {
@@ -165,6 +173,12 @@ class AppNotifier extends StateNotifier<AppState> {
 
   void onNewPass1(String v) => state = state.copyWith(newPass1: v);
   void onNewPass2(String v) => state = state.copyWith(newPass2: v);
+  void onSetupFullName(String v) => state = state.copyWith(setupFullName: v);
+  void onSetupHouse(String v) => state = state.copyWith(setupHouse: v);
+  void onSetupEmail(String v) => state = state.copyWith(setupEmail: v);
+  void onSetupEmergencyContactName(String v) => state = state.copyWith(setupEmergencyContactName: v);
+  void onSetupEmergencyContactPhone(String v) => state = state.copyWith(setupEmergencyContactPhone: v);
+  void onSetupVehiclePlates(String v) => state = state.copyWith(setupVehiclePlates: v);
 
   Future<void> submitNewPassword() async {
     if (state.newPass1.length < 6) {
@@ -201,13 +215,47 @@ class AppNotifier extends StateNotifier<AppState> {
       state = state.copyWith(resetMsg: 'Passwords do not match.');
       return;
     }
+    if (state.setupFullName.trim().isEmpty) {
+      state = state.copyWith(resetMsg: 'Full name is required.');
+      return;
+    }
+    if (state.setupHouse.trim().isEmpty) {
+      state = state.copyWith(resetMsg: 'House address is required.');
+      return;
+    }
     state = state.copyWith(isLoading: true, resetMsg: '');
     try {
-      await _api.completeForceReset(state.newPass1);
-      await _bootstrapResident();
+      final plates = state.setupVehiclePlates
+          .split(',')
+          .map((p) => p.trim())
+          .where((p) => p.isNotEmpty)
+          .toList();
+      await _api.completeForceReset(
+        newPassword: state.newPass1,
+        fullName: state.setupFullName.trim(),
+        house: state.setupHouse.trim(),
+        email: state.setupEmail.trim().isEmpty ? null : state.setupEmail.trim(),
+        emergencyContactName: state.setupEmergencyContactName.trim().isEmpty
+            ? null
+            : state.setupEmergencyContactName.trim(),
+        emergencyContactPhone: state.setupEmergencyContactPhone.trim().isEmpty
+            ? null
+            : state.setupEmergencyContactPhone.trim(),
+        vehiclePlates: plates,
+      );
+
+      // The role driving which bootstrap runs is whatever the admin set
+      // this account up as — not assumed to always be a resident, since
+      // guard accounts can need first-time setup too.
+      final role = state.currentUser?.role == 'GUARD' ? Role.guard : Role.resident;
+      if (role == Role.guard) {
+        await _bootstrapGuard();
+      } else {
+        await _bootstrapResident();
+      }
       state = state.copyWith(
         authStage: AuthStage.app,
-        role: Role.resident,
+        role: role,
         newPass1: '',
         newPass2: '',
         resetMsg: '',
