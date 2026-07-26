@@ -1,0 +1,116 @@
+import 'package:dio/dio.dart';
+import '../core/network/api_client.dart';
+
+/// One typed method per CommunityHub API endpoint. Returns decoded JSON;
+/// callers parse into models. See ~/dev/communityhub-api for the server.
+class CommunityHubApi {
+  CommunityHubApi([Dio? dio]) : _dio = dio ?? ApiClient.instance.dio;
+
+  final Dio _dio;
+
+  Map<String, dynamic> _map(Response r) => r.data as Map<String, dynamic>;
+  List<dynamic> _list(Response r) => r.data as List<dynamic>;
+
+  // ── Auth ──────────────────────────────────────────────────────────────
+  Future<Map<String, dynamic>> login({
+    required String phone,
+    required String password,
+    required String role,
+  }) async => _map(await _dio.post('/auth/login', data: {'phone': phone, 'password': password, 'role': role}));
+
+  Future<Map<String, dynamic>> forgotPassword(String phone) async =>
+      _map(await _dio.post('/auth/forgot-password', data: {'phone': phone}));
+
+  Future<Map<String, dynamic>> verifyOtp({required String phone, required String code}) async =>
+      _map(await _dio.post('/auth/verify-otp', data: {'phone': phone, 'code': code}));
+
+  Future<void> resetPassword({required String resetToken, required String newPassword}) =>
+      _dio.post('/auth/reset-password', data: {'resetToken': resetToken, 'newPassword': newPassword});
+
+  Future<void> completeForceReset(String newPassword) =>
+      _dio.post('/auth/complete-force-reset', data: {'newPassword': newPassword});
+
+  Future<void> logoutRequest() => _dio.post('/auth/logout');
+
+  Future<Map<String, dynamic>> me() async => _map(await _dio.get('/users/me'));
+
+  // ── Announcements ────────────────────────────────────────────────────
+  Future<List<dynamic>> announcements() async => _list(await _dio.get('/announcements'));
+  Future<Map<String, dynamic>> announcement(String id) async => _map(await _dio.get('/announcements/$id'));
+  Future<void> markAnnouncementRead(String id) => _dio.post('/announcements/$id/read');
+
+  // ── Meetings ──────────────────────────────────────────────────────────
+  Future<List<dynamic>> meetings() async => _list(await _dio.get('/meetings'));
+  Future<Map<String, dynamic>> meeting(String id) async => _map(await _dio.get('/meetings/$id'));
+  Future<void> addToCalendar(String id) => _dio.post('/meetings/$id/calendar');
+
+  // ── Dues & levies ─────────────────────────────────────────────────────
+  Future<Map<String, dynamic>> dues() async => _map(await _dio.get('/dues'));
+  Future<List<dynamic>> levies() async => _list(await _dio.get('/levies'));
+  Future<void> payLevy(String id) => _dio.post('/levies/$id/pay');
+
+  // ── Payments ──────────────────────────────────────────────────────────
+  Future<Map<String, dynamic>> initiatePayment({
+    required int amount,
+    required String purpose,
+    String? levyId,
+  }) async => _map(
+    await _dio.post('/payments/initiate', data: {'amount': amount, 'purpose': purpose, 'levyId': levyId}),
+  );
+
+  Future<Map<String, dynamic>> verifyPayment(String reference) async =>
+      _map(await _dio.get('/payments/verify/$reference'));
+
+  Future<Map<String, dynamic>> receipt(String reference) async =>
+      _map(await _dio.get('/payments/$reference/receipt'));
+
+  // ── Visitor passes (resident) ────────────────────────────────────────
+  Future<List<dynamic>> visitorPasses() async => _list(await _dio.get('/visitor-passes'));
+
+  Future<Map<String, dynamic>> createVisitorPass({
+    required String name,
+    required String phone,
+    String? plate,
+    required int validHours,
+  }) async => _map(
+    await _dio.post('/visitor-passes', data: {'name': name, 'phone': phone, 'plate': plate, 'validHours': validHours}),
+  );
+
+  Future<Map<String, dynamic>> visitorPass(String id) async => _map(await _dio.get('/visitor-passes/$id'));
+
+  // ── Visitor passes (guard) ───────────────────────────────────────────
+  Future<Map<String, dynamic>> guardVerify(String code) async =>
+      _map(await _dio.post('/visitor-passes/verify', data: {'code': code}));
+
+  Future<void> recordEntry(String visitorPassId) => _dio.post('/visitor-passes/$visitorPassId/entry');
+  Future<void> recordExit(String visitorPassId) => _dio.post('/visitor-passes/$visitorPassId/exit');
+  Future<List<dynamic>> accessLog() async => _list(await _dio.get('/access-log'));
+
+  // ── Projects ──────────────────────────────────────────────────────────
+  Future<List<dynamic>> projects() async => _list(await _dio.get('/projects'));
+  Future<Map<String, dynamic>> project(String id) async => _map(await _dio.get('/projects/$id'));
+  Future<void> donate({required String projectId, required int amount}) =>
+      _dio.post('/projects/$projectId/donations', data: {'amount': amount});
+
+  // ── Polls ─────────────────────────────────────────────────────────────
+  Future<List<dynamic>> polls() async => _list(await _dio.get('/polls'));
+  Future<void> vote({required String pollId, required String optionId}) =>
+      _dio.post('/polls/$pollId/vote', data: {'optionId': optionId});
+
+  // ── Notifications ────────────────────────────────────────────────────
+  Future<List<dynamic>> notifications() async => _list(await _dio.get('/notifications'));
+  Future<void> markAllNotificationsRead() => _dio.post('/notifications/read-all');
+
+  // ── Rules ─────────────────────────────────────────────────────────────
+  Future<List<dynamic>> rules() async => _list(await _dio.get('/rules'));
+
+  // ── Complaints ────────────────────────────────────────────────────────
+  Future<Map<String, dynamic>> submitComplaint({required String category, required String description}) async =>
+      _map(await _dio.post('/complaints', data: {'category': category, 'description': description}));
+
+  // ── Push notifications ───────────────────────────────────────────────
+  Future<void> registerDeviceToken(String token, String platform) =>
+      _dio.post('/push/register-token', data: {'token': token, 'platform': platform});
+  Future<void> unregisterDeviceToken(String token) =>
+      _dio.post('/push/unregister-token', data: {'token': token});
+}

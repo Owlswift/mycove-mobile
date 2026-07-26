@@ -1,0 +1,131 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+
+import '../../../../core/theme/ch_colors.dart';
+import '../../../../core/theme/ch_spacing.dart';
+import '../../../../core/theme/ch_text_styles.dart';
+import '../../../../core/widgets/ch_generic_header.dart';
+import '../../../../state/app_notifier.dart';
+
+class ProfilePage extends ConsumerWidget {
+  const ProfilePage({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final s = ref.watch(appStateProvider);
+    final notifier = ref.read(appStateProvider.notifier);
+    final user = s.currentUser;
+
+    return Column(
+      children: [
+        const ChGenericHeader(title: 'Profile'),
+        Expanded(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
+            child: Column(
+              children: [
+                Container(
+                  width: 72,
+                  height: 72,
+                  alignment: Alignment.center,
+                  margin: const EdgeInsets.only(bottom: 12),
+                  decoration: const BoxDecoration(color: ChColors.accent2, shape: BoxShape.circle),
+                  child: Text(
+                    user?.initials ?? '',
+                    style: ChTextStyles.body(fontSize: 24, fontWeight: FontWeight.w700, color: ChColors.bg),
+                  ),
+                ),
+                Text(user?.fullName ?? '', style: ChTextStyles.heading(fontSize: 18)),
+                Text(user?.house ?? '', style: ChTextStyles.body(fontSize: 13, color: ChColors.neutralN(600))),
+                const SizedBox(height: 20),
+                Container(
+                  width: double.infinity,
+                  decoration: BoxDecoration(color: ChColors.surface, borderRadius: BorderRadius.circular(ChRadii.md)),
+                  child: Column(
+                    children: [
+                      _infoRow('Phone', user?.phone ?? '', showBorder: true),
+                      _infoRow('Estate', 'Palm Court Estate'),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Container(
+                  width: double.infinity,
+                  decoration: BoxDecoration(color: ChColors.surface, borderRadius: BorderRadius.circular(ChRadii.md)),
+                  child: Column(
+                    children: [
+                      _linkRow(context, icon: Icons.poll_outlined, label: 'Polls', showBorder: true, onTap: () => context.push('/resident/polls')),
+                      _linkRow(context, icon: Icons.menu_book_outlined, label: 'Rules & Regulations', showBorder: true, onTap: () => context.push('/resident/rules')),
+                      _linkRow(context, icon: Icons.report_gmailerrorred_outlined, label: 'Submit a Complaint', onTap: () {
+                        notifier.resetComplaintForm();
+                        context.push('/resident/complaint');
+                      }),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 16),
+                GestureDetector(
+                  onTap: notifier.logout,
+                  child: Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(color: ChColors.surface, borderRadius: BorderRadius.circular(ChRadii.pill)),
+                    child: Text(
+                      'Log Out',
+                      style: ChTextStyles.body(fontSize: 14, fontWeight: FontWeight.w700, color: ChColors.danger),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _infoRow(String label, String value, {bool showBorder = false}) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      decoration: showBorder ? const BoxDecoration(border: Border(bottom: BorderSide(color: ChColors.divider))) : null,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(label, style: ChTextStyles.body(fontSize: 14, color: ChColors.neutralN(600))),
+          Text(value, style: ChTextStyles.body(fontSize: 14, fontWeight: FontWeight.w600)),
+        ],
+      ),
+    );
+  }
+
+  Widget _linkRow(
+    BuildContext context, {
+    required IconData icon,
+    required String label,
+    required VoidCallback onTap,
+    bool showBorder = false,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        decoration: showBorder ? const BoxDecoration(border: Border(bottom: BorderSide(color: ChColors.divider))) : null,
+        child: Row(
+          children: [
+            Container(
+              width: 32,
+              height: 32,
+              decoration: BoxDecoration(color: ChColors.accent2N(200), shape: BoxShape.circle),
+              child: Icon(icon, size: 15, color: ChColors.accent2N(800)),
+            ),
+            const SizedBox(width: 12),
+            Expanded(child: Text(label, style: ChTextStyles.body(fontSize: 14))),
+            Text('›', style: ChTextStyles.body(fontSize: 16, color: ChColors.neutralN(600))),
+          ],
+        ),
+      ),
+    );
+  }
+}
