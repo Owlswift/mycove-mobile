@@ -28,10 +28,27 @@ class ApiClient {
           return handler.next(options);
         },
         onError: (error, handler) async {
-          if (error.response?.statusCode == 401) {
-            await _tokenStorage.clear();
+          final isAuthEndpoint = error.requestOptions.path.startsWith('/auth/');
+          final alreadyRetried = error.requestOptions.extra['retriedAfterRefresh'] == true;
+          if (error.response?.statusCode != 401 || isAuthEndpoint || alreadyRetried) {
+            return handler.next(error);
           }
-          return handler.next(error);
+
+          final newAccessToken = await _refreshAccessToken();
+          if (newAccessToken == null) {
+            await _tokenStorage.clear();
+            return handler.next(error);
+          }
+
+          try {
+            final retryOptions = error.requestOptions;
+            retryOptions.extra['retriedAfterRefresh'] = true;
+            retryOptions.headers['Authorization'] = 'Bearer $newAccessToken';
+            final response = await dio.fetch<dynamic>(retryOptions);
+            return handler.resolve(response);
+          } catch (_) {
+            return handler.next(error);
+          }
         },
       ),
     );
@@ -41,4 +58,31 @@ class ApiClient {
 
   final _tokenStorage = const TokenStorage();
   late final Dio dio;
+
+  Future<String?>? _refreshing;
+
+  /// Shared across concurrent 401s so a burst of requests (e.g. the
+  /// resident bootstrap's `Future.wait` of 9 calls) triggers exactly one
+  /// refresh instead of racing to rotate the same refresh token N times.
+  Future<String?> _refreshAccessToken() {
+    return _refreshing ??= _doRefresh().whenComplete(() => _refreshing = null);
+  }
+
+  Future<String?> _doRefresh() async {
+    final refreshToken = await _tokenStorage.readRefreshToken();
+    if (refreshToken == null) return null;
+    try {
+      final response = await dio.post<Map<String, dynamic>>(
+        '/auth/refresh',
+        data: {'refreshToken': refreshToken},
+      );
+      final data = response.data!;
+      final newAccessToken = data['accessToken'] as String;
+      await _tokenStorage.save(newAccessToken);
+      await _tokenStorage.saveRefreshToken(data['refreshToken'] as String);
+      return newAccessToken;
+    } catch (_) {
+      return null;
+    }
+  }
 }

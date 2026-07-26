@@ -6,29 +6,40 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 class TokenStorage {
   const TokenStorage();
 
-  static const _key = 'access_token';
+  static const _accessKey = 'access_token';
+  static const _refreshKey = 'refresh_token';
   static const _storage = FlutterSecureStorage();
 
-  Future<String?> read() async {
+  Future<String?> read() => _readKey(_accessKey);
+  Future<void> save(String token) => _writeKey(_accessKey, token);
+
+  Future<String?> readRefreshToken() => _readKey(_refreshKey);
+  Future<void> saveRefreshToken(String token) => _writeKey(_refreshKey, token);
+
+  Future<void> clear() async {
+    await Future.wait([_deleteKey(_accessKey), _deleteKey(_refreshKey)]);
+  }
+
+  Future<String?> _readKey(String key) async {
     try {
-      return await _storage.read(key: _key);
+      return await _storage.read(key: key);
     } catch (_) {
       return null;
     }
   }
 
-  Future<void> save(String token) async {
+  Future<void> _writeKey(String key, String value) async {
     try {
-      await _storage.write(key: _key, value: token);
+      await _storage.write(key: key, value: value);
     } catch (_) {
       // Best-effort — this session still works even if the token can't
       // be persisted across restarts.
     }
   }
 
-  Future<void> clear() async {
+  Future<void> _deleteKey(String key) async {
     try {
-      await _storage.delete(key: _key);
+      await _storage.delete(key: key);
     } catch (_) {
       // Best-effort.
     }

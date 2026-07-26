@@ -30,7 +30,8 @@ class CommunityHubApi {
   Future<void> completeForceReset(String newPassword) =>
       _dio.post('/auth/complete-force-reset', data: {'newPassword': newPassword});
 
-  Future<void> logoutRequest() => _dio.post('/auth/logout');
+  Future<void> logoutRequest(String? refreshToken) =>
+      _dio.post('/auth/logout', data: {'refreshToken': refreshToken});
 
   Future<Map<String, dynamic>> me() async => _map(await _dio.get('/users/me'));
 

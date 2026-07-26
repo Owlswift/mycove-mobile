@@ -102,6 +102,7 @@ class AppNotifier extends StateNotifier<AppState> {
         role: _roleToApi(state.role),
       );
       await _tokenStorage.save(result['accessToken'] as String);
+      await _tokenStorage.saveRefreshToken(result['refreshToken'] as String);
       final user = CurrentUser.fromJson(await _api.me());
       state = state.copyWith(currentUser: user, isLoading: false);
 
@@ -222,7 +223,8 @@ class AppNotifier extends StateNotifier<AppState> {
   Future<void> logout() async {
     await _unregisterPushToken();
     try {
-      await _api.logoutRequest();
+      final refreshToken = await _tokenStorage.readRefreshToken();
+      await _api.logoutRequest(refreshToken);
     } catch (_) {
       // Best-effort — the token is discarded locally regardless.
     }
