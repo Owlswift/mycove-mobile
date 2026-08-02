@@ -32,7 +32,10 @@ class DuesPage extends ConsumerWidget {
       children: [
         const ChGenericHeader(title: 'Dues & Payments', showBack: false),
         Expanded(
-          child: ListView(
+          child: RefreshIndicator(
+            onRefresh: notifier.refreshResident,
+            child: ListView(
+            physics: const AlwaysScrollableScrollPhysics(),
             padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
             children: [
               Container(
@@ -162,6 +165,7 @@ class DuesPage extends ConsumerWidget {
                   ),
                 ),
             ],
+            ),
           ),
         ),
       ],

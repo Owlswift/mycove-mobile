@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/theme/ch_colors.dart';
 import '../../../../core/theme/ch_spacing.dart';
 import '../../../../core/theme/ch_text_styles.dart';
+import '../../../../core/widgets/ch_data_media.dart';
 import '../../../../core/widgets/ch_generic_header.dart';
 import '../../../../state/app_notifier.dart';
 
@@ -18,7 +19,10 @@ class ProjectsPage extends ConsumerWidget {
       children: [
         const ChGenericHeader(title: 'Projects'),
         Expanded(
-          child: ListView.builder(
+          child: RefreshIndicator(
+            onRefresh: ref.read(appStateProvider.notifier).refreshResident,
+            child: ListView.builder(
+            physics: const AlwaysScrollableScrollPhysics(),
             padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
             itemCount: s.projects.length,
             itemBuilder: (context, i) {
@@ -33,14 +37,24 @@ class ProjectsPage extends ConsumerWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Container(
-                          width: double.infinity,
-                          height: 90,
-                          alignment: Alignment.center,
-                          margin: const EdgeInsets.only(bottom: 10),
-                          decoration: BoxDecoration(color: ChColors.neutralN(200), borderRadius: BorderRadius.circular(ChRadii.sm)),
-                          child: Text('project photo', style: ChTextStyles.body(fontSize: 11, color: ChColors.neutralN(600))),
-                        ),
+                        if (p.mediaBase64 != null)
+                          Padding(
+                            padding: const EdgeInsets.only(bottom: 10),
+                            child: ChDataMedia(
+                              dataUrl: p.mediaBase64!,
+                              height: 90,
+                              borderRadius: BorderRadius.circular(ChRadii.sm),
+                            ),
+                          )
+                        else
+                          Container(
+                            width: double.infinity,
+                            height: 90,
+                            alignment: Alignment.center,
+                            margin: const EdgeInsets.only(bottom: 10),
+                            decoration: BoxDecoration(color: ChColors.neutralN(200), borderRadius: BorderRadius.circular(ChRadii.sm)),
+                            child: Text('project photo', style: ChTextStyles.body(fontSize: 11, color: ChColors.neutralN(600))),
+                          ),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
@@ -71,6 +85,7 @@ class ProjectsPage extends ConsumerWidget {
                 ),
               );
             },
+            ),
           ),
         ),
       ],

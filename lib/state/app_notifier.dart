@@ -13,11 +13,13 @@ import '../data/models/announcement.dart';
 import '../data/models/dues_entry.dart';
 import '../data/models/levy.dart';
 import '../data/models/meeting.dart';
+import '../data/models/my_pledge.dart';
 import '../data/models/notification_item.dart';
 import '../data/models/person.dart';
 import '../data/models/poll.dart';
 import '../data/models/project.dart';
 import '../data/models/rules_section.dart';
+import '../data/models/spotlight.dart';
 import '../data/models/visitor_pass.dart';
 import 'app_state.dart';
 
@@ -106,7 +108,11 @@ class AppNotifier extends StateNotifier<AppState> {
       final user = CurrentUser.fromJson(await _api.me());
       state = state.copyWith(currentUser: user, isLoading: false);
 
-      if (result['mustResetPassword'] == true) {
+      // Guards share a duty phone rather than a personal device, so there's
+      // no "first login, set up your own profile" moment for them — their
+      // password is set directly by an admin and they go straight in, even
+      // if an older account still has the resident-oriented flag set.
+      if (result['mustResetPassword'] == true && user.role != 'GUARD') {
         state = state.copyWith(
           authStage: AuthStage.forceReset,
           setupFullName: user.fullName,
@@ -280,6 +286,25 @@ class AppNotifier extends StateNotifier<AppState> {
     state = AppState(authStage: AuthStage.login);
   }
 
+  /// Pull-to-refresh for any resident list screen — re-runs the same
+  /// batched fetch bootstrap used at login, so every screen it feeds stays
+  /// in sync with whatever it refetches.
+  Future<void> refreshResident() => _bootstrapResident();
+
+  /// Re-fetches whenever the app comes back to the foreground (opened from
+  /// the app switcher, or from tapping a push notification) — otherwise the
+  /// screen just shows whatever was last fetched, possibly stale by then.
+  /// No-ops outside the logged-in app state (e.g. mid-login) since there's
+  /// nothing to refresh yet.
+  Future<void> refreshOnResume() async {
+    if (state.authStage != AuthStage.app) return;
+    if (state.role == Role.guard) {
+      await _bootstrapGuard();
+    } else {
+      await _bootstrapResident();
+    }
+  }
+
   // ── Bootstrap ─────────────────────────────────────────────────────────
   Future<void> _bootstrapResident() async {
     final results = await Future.wait([
@@ -292,6 +317,8 @@ class AppNotifier extends StateNotifier<AppState> {
       _api.polls(),
       _api.notifications(),
       _api.rules(),
+      _api.currentSpotlight(),
+      _api.myPledges(),
     ]);
 
     final announcements = (results[0] as List).map((j) => Announcement.fromJson(j as Map<String, dynamic>)).toList();
@@ -304,6 +331,9 @@ class AppNotifier extends StateNotifier<AppState> {
     final notificationsJson = results[7] as List;
     final notifications = notificationsJson.map((j) => NotificationItem.fromJson(j as Map<String, dynamic>)).toList();
     final rulesSections = (results[8] as List).map((j) => RulesSection.fromJson(j as Map<String, dynamic>)).toList();
+    final spotlightJson = results[9] as Map<String, dynamic>?;
+    final spotlight = spotlightJson == null ? null : Spotlight.fromJson(spotlightJson);
+    final myPledges = (results[10] as List).map((j) => MyPledge.fromJson(j as Map<String, dynamic>)).toList();
 
     state = state.copyWith(
       announcements: announcements,
@@ -317,6 +347,8 @@ class AppNotifier extends StateNotifier<AppState> {
       notifications: notifications,
       allNotifsRead: notificationsJson.every((j) => (j as Map<String, dynamic>)['readAt'] != null),
       rulesSections: rulesSections,
+      spotlight: spotlight,
+      myPledges: myPledges,
     );
   }
 
@@ -429,24 +461,30 @@ class AppNotifier extends StateNotifier<AppState> {
 
   void resetGuardResult() => state = state.copyWith(guardCode: '', guardResult: null);
 
-  Future<void> simulateScan() async {
+  /// Returns null on success (the result — matched or not — lands in
+  /// `guardResult`), or an error message if the check itself couldn't be
+  /// completed (expired session, no connection, server error). Those two
+  /// cases must stay distinguishable — collapsing an API failure into
+  /// "Code Not Recognized" told guards a perfectly valid code was fake.
+  Future<String?> simulateScan() async {
     final code = demoScanCodes[_random.nextInt(demoScanCodes.length)];
-    await _verifyCode(code);
+    return _verifyCode(code);
   }
 
-  Future<void> submitGuardCode() async {
-    await _verifyCode(state.guardCode);
+  Future<String?> submitGuardCode() async {
+    return _verifyCode(state.guardCode);
   }
 
-  Future<void> _verifyCode(String code) async {
+  Future<String?> _verifyCode(String code) async {
     try {
       final json = await _api.guardVerify(code);
       final passJson = json['pass'] as Map<String, dynamic>?;
       state = state.copyWith(
         guardResult: GuardResult(pass: passJson == null ? null : VisitorPass.fromJson(passJson), valid: json['valid'] as bool),
       );
-    } catch (_) {
-      state = state.copyWith(guardResult: const GuardResult(pass: null, valid: false));
+      return null;
+    } catch (e) {
+      return extractMessage(e);
     }
   }
 
@@ -484,6 +522,11 @@ class AppNotifier extends StateNotifier<AppState> {
     }
   }
 
+  Future<void> refreshPolls() async {
+    final polls = (await _api.polls()).map((j) => Poll.fromJson(j as Map<String, dynamic>)).toList();
+    state = state.copyWith(polls: polls);
+  }
+
   Future<String?> votePoll(String pollId, String optionId) async {
     try {
       await _api.vote(pollId: pollId, optionId: optionId);
@@ -496,9 +539,11 @@ class AppNotifier extends StateNotifier<AppState> {
   }
 
   // ── Projects ──────────────────────────────────────────────────────────
-  Future<String?> donate({required String projectId, required int amount}) async {
+  Future<String?> pledge({required String projectId, required int amount}) async {
     try {
-      await _api.donate(projectId: projectId, amount: amount);
+      await _api.pledge(projectId: projectId, amount: amount);
+      final myPledges = (await _api.myPledges()).map((j) => MyPledge.fromJson(j as Map<String, dynamic>)).toList();
+      state = state.copyWith(myPledges: myPledges);
       return null;
     } catch (e) {
       return extractMessage(e);

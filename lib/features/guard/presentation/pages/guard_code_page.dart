@@ -37,8 +37,13 @@ class GuardCodePage extends ConsumerWidget {
           ChButton(
             label: 'Validate',
             onPressed: () async {
-              await notifier.submitGuardCode();
-              if (context.mounted) context.push('/guard/result');
+              final error = await notifier.submitGuardCode();
+              if (!context.mounted) return;
+              if (error != null) {
+                ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(error)));
+                return;
+              }
+              context.push('/guard/result');
             },
           ),
           const SizedBox(height: 12),

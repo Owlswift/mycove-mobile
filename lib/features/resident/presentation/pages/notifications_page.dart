@@ -17,7 +17,10 @@ class NotificationsPage extends ConsumerWidget {
       children: [
         const ChGenericHeader(title: 'Notifications'),
         Expanded(
-          child: ListView.builder(
+          child: RefreshIndicator(
+            onRefresh: ref.read(appStateProvider.notifier).refreshResident,
+            child: ListView.builder(
+            physics: const AlwaysScrollableScrollPhysics(),
             padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
             itemCount: s.notifications.length,
             itemBuilder: (context, i) {
@@ -60,6 +63,7 @@ class NotificationsPage extends ConsumerWidget {
                 ),
               );
             },
+            ),
           ),
         ),
       ],

@@ -108,8 +108,15 @@ class CommunityHubApi {
   // ── Projects ──────────────────────────────────────────────────────────
   Future<List<dynamic>> projects() async => _list(await _dio.get('/projects'));
   Future<Map<String, dynamic>> project(String id) async => _map(await _dio.get('/projects/$id'));
-  Future<void> donate({required String projectId, required int amount}) =>
-      _dio.post('/projects/$projectId/donations', data: {'amount': amount});
+  Future<void> pledge({required String projectId, required int amount}) =>
+      _dio.post('/projects/$projectId/pledges', data: {'amount': amount});
+  Future<List<dynamic>> myPledges() async => _list(await _dio.get('/projects/my-pledges'));
+
+  // ── Spotlights ────────────────────────────────────────────────────────
+  Future<Map<String, dynamic>?> currentSpotlight() async {
+    final response = await _dio.get('/spotlights/current');
+    return response.data as Map<String, dynamic>?;
+  }
 
   // ── Polls ─────────────────────────────────────────────────────────────
   Future<List<dynamic>> polls() async => _list(await _dio.get('/polls'));

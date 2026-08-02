@@ -20,7 +20,10 @@ class AnnouncementsPage extends ConsumerWidget {
       children: [
         const ChGenericHeader(title: 'Announcements', showBack: false),
         Expanded(
-          child: ListView.builder(
+          child: RefreshIndicator(
+            onRefresh: ref.read(appStateProvider.notifier).refreshResident,
+            child: ListView.builder(
+            physics: const AlwaysScrollableScrollPhysics(),
             padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
             itemCount: s.announcements.length,
             itemBuilder: (context, i) {
@@ -75,6 +78,7 @@ class AnnouncementsPage extends ConsumerWidget {
                 ),
               );
             },
+            ),
           ),
         ),
       ],

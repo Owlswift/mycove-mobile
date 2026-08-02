@@ -45,8 +45,13 @@ class GuardScanPage extends ConsumerWidget {
             ),
           ),
           ChButton(label: 'Simulate Scan', onPressed: () async {
-            await notifier.simulateScan();
-            if (context.mounted) context.push('/guard/result');
+            final error = await notifier.simulateScan();
+            if (!context.mounted) return;
+            if (error != null) {
+              ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(error)));
+              return;
+            }
+            context.push('/guard/result');
           }),
           const SizedBox(height: 12),
           ChButton(

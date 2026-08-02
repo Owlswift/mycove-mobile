@@ -18,7 +18,10 @@ class MeetingsPage extends ConsumerWidget {
       children: [
         const ChGenericHeader(title: 'Meetings', showBack: false),
         Expanded(
-          child: ListView.builder(
+          child: RefreshIndicator(
+            onRefresh: ref.read(appStateProvider.notifier).refreshResident,
+            child: ListView.builder(
+            physics: const AlwaysScrollableScrollPhysics(),
             padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
             itemCount: s.meetings.length,
             itemBuilder: (context, i) {
@@ -63,6 +66,7 @@ class MeetingsPage extends ConsumerWidget {
                 ),
               );
             },
+            ),
           ),
         ),
       ],

@@ -3,11 +3,11 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../core/theme/ch_colors.dart';
 
-const _tabLabels = ['Home', 'Notices', 'Meetings', 'Dues', 'Pass'];
+const _tabLabels = ['Home', 'Notices', 'Projects', 'Dues', 'Pass'];
 const _tabIcons = [
   Icons.home_rounded,
   Icons.campaign_rounded,
-  Icons.event_rounded,
+  Icons.home_work_rounded,
   Icons.receipt_long_rounded,
   Icons.badge_rounded,
 ];

@@ -1,4 +1,4 @@
-package com.vastracktech.communityhub
+package com.zsolutions.communityhub
 
 import io.flutter.embedding.android.FlutterActivity
 

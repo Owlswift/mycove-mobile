@@ -108,10 +108,10 @@ final routerProvider = Provider<GoRouter>((ref) {
                     routes: [GoRoute(path: 'success', builder: (_, _) => const ComplaintSuccessPage())],
                   ),
                   GoRoute(
-                    path: 'projects',
-                    builder: (_, _) => const ProjectsPage(),
+                    path: 'meetings',
+                    builder: (_, _) => const MeetingsPage(),
                     routes: [
-                      GoRoute(path: ':id', builder: (_, s) => ProjectDetailPage(id: s.pathParameters['id']!)),
+                      GoRoute(path: ':id', builder: (_, s) => MeetingDetailPage(id: s.pathParameters['id']!)),
                     ],
                   ),
                 ],
@@ -132,10 +132,10 @@ final routerProvider = Provider<GoRouter>((ref) {
           StatefulShellBranch(
             routes: [
               GoRoute(
-                path: '/resident/meetings',
-                builder: (_, _) => const MeetingsPage(),
+                path: '/resident/projects',
+                builder: (_, _) => const ProjectsPage(),
                 routes: [
-                  GoRoute(path: ':id', builder: (_, s) => MeetingDetailPage(id: s.pathParameters['id']!)),
+                  GoRoute(path: ':id', builder: (_, s) => ProjectDetailPage(id: s.pathParameters['id']!)),
                 ],
               ),
             ],

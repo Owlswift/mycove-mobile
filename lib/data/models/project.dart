@@ -19,6 +19,7 @@ class Project {
     required this.title,
     required this.status,
     required this.progress,
+    required this.mediaBase64,
   });
 
   factory Project.fromJson(Map<String, dynamic> json) {
@@ -27,6 +28,7 @@ class Project {
       title: json['title'] as String,
       status: json['status'] == 'COMPLETED' ? 'Completed' : 'In Progress',
       progress: json['progress'] as int,
+      mediaBase64: json['mediaBase64'] as String?,
     );
   }
 
@@ -34,6 +36,7 @@ class Project {
   final String title;
   final String status; // 'In Progress' | 'Completed'
   final int progress; // 0-100
+  final String? mediaBase64;
 
   bool get isCompleted => status == 'Completed';
 }

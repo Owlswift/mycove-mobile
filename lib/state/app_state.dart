@@ -5,11 +5,13 @@ import '../data/models/announcement.dart';
 import '../data/models/dues_entry.dart';
 import '../data/models/levy.dart';
 import '../data/models/meeting.dart';
+import '../data/models/my_pledge.dart';
 import '../data/models/notification_item.dart';
 import '../data/models/person.dart';
 import '../data/models/poll.dart';
 import '../data/models/project.dart';
 import '../data/models/rules_section.dart';
+import '../data/models/spotlight.dart';
 import '../data/models/visitor_pass.dart';
 
 enum AuthStage { bootstrapping, login, forgot, otp, newPassword, forceReset, app }
@@ -74,6 +76,8 @@ class AppState {
     List<Poll>? polls,
     List<NotificationItem>? notifications,
     List<RulesSection>? rulesSections,
+    List<MyPledge>? myPledges,
+    this.spotlight,
   }) : visitorPasses = visitorPasses ?? [],
        duesHistory = duesHistory ?? [],
        accessLog = accessLog ?? [],
@@ -83,7 +87,8 @@ class AppState {
        projects = projects ?? [],
        polls = polls ?? [],
        notifications = notifications ?? [],
-       rulesSections = rulesSections ?? [];
+       rulesSections = rulesSections ?? [],
+       myPledges = myPledges ?? [];
 
   final AuthStage authStage;
   final Role role;
@@ -139,6 +144,8 @@ class AppState {
   final List<Project> projects;
   final List<Poll> polls;
   final List<RulesSection> rulesSections;
+  final List<MyPledge> myPledges;
+  final Spotlight? spotlight;
 
   DuesEntry? get lastPayment {
     for (final h in duesHistory) {
@@ -199,6 +206,8 @@ class AppState {
     List<Project>? projects,
     List<Poll>? polls,
     List<RulesSection>? rulesSections,
+    List<MyPledge>? myPledges,
+    Object? spotlight = _sentinel,
   }) {
     return AppState(
       authStage: authStage ?? this.authStage,
@@ -246,6 +255,8 @@ class AppState {
       projects: projects ?? this.projects,
       polls: polls ?? this.polls,
       rulesSections: rulesSections ?? this.rulesSections,
+      myPledges: myPledges ?? this.myPledges,
+      spotlight: identical(spotlight, _sentinel) ? this.spotlight : spotlight as Spotlight?,
     );
   }
 }

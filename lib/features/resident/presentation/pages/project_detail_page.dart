@@ -5,9 +5,9 @@ import '../../../../core/theme/ch_colors.dart';
 import '../../../../core/theme/ch_spacing.dart';
 import '../../../../core/theme/ch_text_styles.dart';
 import '../../../../core/widgets/ch_button.dart';
+import '../../../../core/widgets/ch_data_media.dart';
 import '../../../../core/widgets/ch_generic_header.dart';
-import '../../../../core/widgets/ch_pill_tabs.dart';
-import '../../../../data/ui_options.dart';
+import '../../../../core/widgets/ch_text_field.dart';
 import '../../../../state/app_notifier.dart';
 import '../../../../state/app_state.dart';
 import '../../../../state/detail_providers.dart';
@@ -42,12 +42,25 @@ class ProjectDetailPage extends ConsumerWidget {
               final goal = json['goal'] as int;
               final raised = json['raised'] as int;
               final raisedPct = json['raisedPct'] as int;
+              final myDonated = json['myDonated'] as int;
+              final pledged = json['pledged'] as int;
+              final myPledged = json['myPledged'] as int;
+              final mediaBase64 = json['mediaBase64'] as String?;
 
               return SingleChildScrollView(
                 padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    if (mediaBase64 != null)
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 14),
+                        child: ChDataMedia(
+                          dataUrl: mediaBase64,
+                          height: 160,
+                          borderRadius: BorderRadius.circular(ChRadii.card),
+                        ),
+                      ),
                     Row(
                       children: [
                         Expanded(child: Text(json['title'] as String, style: ChTextStyles.heading(fontSize: 20))),
@@ -133,10 +146,31 @@ class ProjectDetailPage extends ConsumerWidget {
                                 valueColor: const AlwaysStoppedAnimation(ChColors.accent2),
                               ),
                             ),
+                            if (pledged > 0) ...[
+                              const SizedBox(height: 10),
+                              Text(
+                                '${formatNaira(pledged)} pledged by residents',
+                                style: ChTextStyles.body(fontSize: 12.5, color: ChColors.neutralN(600)),
+                              ),
+                            ],
+                            if (myDonated > 0) ...[
+                              const SizedBox(height: 6),
+                              Text(
+                                'You donated ${formatNaira(myDonated)}',
+                                style: ChTextStyles.body(fontSize: 12.5, fontWeight: FontWeight.w600, color: ChColors.accent2N(700)),
+                              ),
+                            ],
+                            if (myPledged > 0) ...[
+                              const SizedBox(height: 6),
+                              Text(
+                                'You pledged ${formatNaira(myPledged)}',
+                                style: ChTextStyles.body(fontSize: 12.5, fontWeight: FontWeight.w600, color: ChColors.accent2N(700)),
+                              ),
+                            ],
                             const SizedBox(height: 14),
                             ChButton(
-                              label: 'Donate',
-                              onPressed: () => _showDonationSheet(context, ref, id, json['title'] as String),
+                              label: 'Pledge',
+                              onPressed: () => _showPledgeSheet(context, ref, id, json['title'] as String),
                             ),
                           ],
                         ),
@@ -167,6 +201,14 @@ class ProjectDetailPage extends ConsumerWidget {
                               ),
                               const SizedBox(height: 6),
                               Text(r['text'] as String, style: ChTextStyles.body(fontSize: 13)),
+                              if (r['mediaBase64'] != null) ...[
+                                const SizedBox(height: 10),
+                                ChDataMedia(
+                                  dataUrl: r['mediaBase64'] as String,
+                                  height: 140,
+                                  borderRadius: BorderRadius.circular(ChRadii.sm),
+                                ),
+                              ],
                             ],
                           ),
                         ),
@@ -181,33 +223,35 @@ class ProjectDetailPage extends ConsumerWidget {
     );
   }
 
-  void _showDonationSheet(BuildContext context, WidgetRef ref, String projectId, String projectTitle) {
+  void _showPledgeSheet(BuildContext context, WidgetRef ref, String projectId, String projectTitle) {
     showModalBottomSheet<void>(
       context: context,
       backgroundColor: ChColors.bg,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(ChRadii.card)),
       ),
-      builder: (sheetContext) => _DonationSheet(projectId: projectId, projectTitle: projectTitle),
+      builder: (sheetContext) => _PledgeSheet(projectId: projectId, projectTitle: projectTitle),
     );
   }
 }
 
-class _DonationSheet extends ConsumerStatefulWidget {
-  const _DonationSheet({required this.projectId, required this.projectTitle});
+class _PledgeSheet extends ConsumerStatefulWidget {
+  const _PledgeSheet({required this.projectId, required this.projectTitle});
 
   final String projectId;
   final String projectTitle;
 
   @override
-  ConsumerState<_DonationSheet> createState() => _DonationSheetState();
+  ConsumerState<_PledgeSheet> createState() => _PledgeSheetState();
 }
 
-class _DonationSheetState extends ConsumerState<_DonationSheet> {
-  int _amount = donationPresets.first;
+class _PledgeSheetState extends ConsumerState<_PledgeSheet> {
+  String _amountText = '';
   bool _submitting = false;
   bool _thanks = false;
   String? _error;
+
+  int? get _amount => int.tryParse(_amountText);
 
   @override
   Widget build(BuildContext context) {
@@ -217,9 +261,13 @@ class _DonationSheetState extends ConsumerState<_DonationSheet> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text('Thank you for your donation!', style: ChTextStyles.heading(fontSize: 18), textAlign: TextAlign.center),
+            Text('Thanks for your pledge!', style: ChTextStyles.heading(fontSize: 18), textAlign: TextAlign.center),
             const SizedBox(height: 8),
-            Text(formatNaira(_amount), style: ChTextStyles.body(fontSize: 14, color: ChColors.neutralN(600))),
+            Text(
+              'We\'ll remind you about it when it\'s time.',
+              style: ChTextStyles.body(fontSize: 13, color: ChColors.neutralN(600)),
+              textAlign: TextAlign.center,
+            ),
           ],
         ),
       );
@@ -231,17 +279,19 @@ class _DonationSheetState extends ConsumerState<_DonationSheet> {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Donate to ${widget.projectTitle}', style: ChTextStyles.heading(fontSize: 18)),
+          Text('Pledge to ${widget.projectTitle}', style: ChTextStyles.heading(fontSize: 18)),
+          const SizedBox(height: 6),
+          Text(
+            'A pledge is a commitment to donate. Pay the estate whenever you\'re ready — once received, it\'ll be marked as your donation.',
+            style: ChTextStyles.body(fontSize: 12.5, color: ChColors.neutralN(600)),
+          ),
           const SizedBox(height: 16),
-          ChPillTabs(
-            options: [
-              for (final preset in donationPresets)
-                ChPillTabOption(
-                  label: formatNaira(preset),
-                  selected: _amount == preset,
-                  onSelect: () => setState(() => _amount = preset),
-                ),
-            ],
+          ChTextField(
+            label: 'Amount (₦)',
+            value: _amountText,
+            onChanged: (v) => setState(() => _amountText = v),
+            placeholder: 'e.g. 15000',
+            keyboardType: TextInputType.number,
           ),
           if (_error != null) ...[
             const SizedBox(height: 12),
@@ -249,8 +299,8 @@ class _DonationSheetState extends ConsumerState<_DonationSheet> {
           ],
           const SizedBox(height: 20),
           ChButton(
-            label: 'Confirm ${formatNaira(_amount)}',
-            onPressed: _submitting
+            label: _amount != null && _amount! > 0 ? 'Pledge ${formatNaira(_amount!)}' : 'Pledge',
+            onPressed: _submitting || _amount == null || _amount! <= 0
                 ? null
                 : () async {
                     setState(() {
@@ -259,7 +309,7 @@ class _DonationSheetState extends ConsumerState<_DonationSheet> {
                     });
                     final error = await ref
                         .read(appStateProvider.notifier)
-                        .donate(projectId: widget.projectId, amount: _amount);
+                        .pledge(projectId: widget.projectId, amount: _amount!);
                     if (!context.mounted) return;
                     if (error != null) {
                       setState(() {

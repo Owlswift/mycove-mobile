@@ -36,7 +36,10 @@ class VisitorPage extends ConsumerWidget {
           ),
         ),
         Expanded(
-          child: ListView(
+          child: RefreshIndicator(
+            onRefresh: notifier.refreshResident,
+            child: ListView(
+            physics: const AlwaysScrollableScrollPhysics(),
             padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
             children: [
               for (final p in s.visitorPasses)
@@ -121,6 +124,7 @@ class VisitorPage extends ConsumerWidget {
                 ),
               ),
             ],
+            ),
           ),
         ),
       ],

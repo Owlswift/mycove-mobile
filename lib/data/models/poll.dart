@@ -16,6 +16,7 @@ class Poll {
     required this.question,
     required this.closesIn,
     required this.voted,
+    required this.selectedOptionId,
     required this.voteCountLabel,
     required this.options,
   });
@@ -26,6 +27,7 @@ class Poll {
       question: json['question'] as String,
       closesIn: json['closesIn'] as String,
       voted: json['voted'] as bool,
+      selectedOptionId: json['selectedOptionId'] as String?,
       voteCountLabel: json['voteCountLabel'] as String,
       options: (json['options'] as List).map((o) => PollOption.fromJson(o as Map<String, dynamic>)).toList(),
     );
@@ -35,6 +37,7 @@ class Poll {
   final String question;
   final String closesIn;
   final bool voted;
+  final String? selectedOptionId;
   final String voteCountLabel;
   final List<PollOption> options;
 }

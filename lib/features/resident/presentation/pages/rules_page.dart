@@ -16,7 +16,10 @@ class RulesPage extends ConsumerWidget {
       children: [
         const ChGenericHeader(title: 'Rules & Regulations'),
         Expanded(
-          child: ListView(
+          child: RefreshIndicator(
+            onRefresh: ref.read(appStateProvider.notifier).refreshResident,
+            child: ListView(
+            physics: const AlwaysScrollableScrollPhysics(),
             padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
             children: [
               for (final section in s.rulesSections)
@@ -57,6 +60,7 @@ class RulesPage extends ConsumerWidget {
                   ),
                 ),
             ],
+            ),
           ),
         ),
       ],

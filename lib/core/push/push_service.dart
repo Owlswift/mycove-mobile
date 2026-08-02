@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
@@ -73,9 +74,10 @@ class PushService {
 
       final initialMessage = await FirebaseMessaging.instance.getInitialMessage();
       if (initialMessage != null) _handleMessageTap(initialMessage);
-    } catch (_) {
+    } catch (e, st) {
       // Firebase isn't configured yet — push notifications stay disabled,
       // the rest of the app is unaffected.
+      debugPrint('PushService.initialize failed: $e\n$st');
     }
   }
 
@@ -90,19 +92,24 @@ class PushService {
     }
   }
 
-  void _showForegroundNotification(RemoteMessage message) {
+  Future<void> _showForegroundNotification(RemoteMessage message) async {
     final notification = message.notification;
+    debugPrint('PushService: onMessage fired, notification=${notification?.title}');
     if (notification == null) return;
-    _localNotifications.show(
-      id: DateTime.now().millisecondsSinceEpoch.remainder(100000),
-      title: notification.title,
-      body: notification.body,
-      notificationDetails: NotificationDetails(
-        android: AndroidNotificationDetails(_channel.id, _channel.name, importance: Importance.high),
-        iOS: const DarwinNotificationDetails(),
-      ),
-      payload: message.data['type'] as String?,
-    );
+    try {
+      await _localNotifications.show(
+        id: DateTime.now().millisecondsSinceEpoch.remainder(100000),
+        title: notification.title,
+        body: notification.body,
+        notificationDetails: NotificationDetails(
+          android: AndroidNotificationDetails(_channel.id, _channel.name, importance: Importance.high, priority: Priority.high),
+          iOS: const DarwinNotificationDetails(),
+        ),
+        payload: message.data['type'] as String?,
+      );
+    } catch (e, st) {
+      debugPrint('PushService: showing foreground notification failed: $e\n$st');
+    }
   }
 
   void _handleMessageTap(RemoteMessage message) {
