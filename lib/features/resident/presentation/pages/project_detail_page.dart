@@ -69,12 +69,19 @@ class ProjectDetailPage extends ConsumerWidget {
                       Row(
                         children: [
                           Expanded(child: Text(json['title'] as String, style: ChTextStyles.heading(fontSize: 20))),
-                          Text(
-                            statusLabel,
-                            style: ChTextStyles.body(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w700,
-                              color: isCompleted ? ChColors.accent2N(700) : ChColors.accentN(700),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: isCompleted ? ChColors.accent2N(100) : ChColors.warning.withValues(alpha: 0.14),
+                              borderRadius: BorderRadius.circular(ChRadii.pill),
+                            ),
+                            child: Text(
+                              statusLabel,
+                              style: ChTextStyles.body(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w700,
+                                color: isCompleted ? ChColors.accent2N(700) : ChColors.warning,
+                              ),
                             ),
                           ),
                         ],

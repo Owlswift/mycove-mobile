@@ -8,6 +8,7 @@ import '../../features/auth/presentation/pages/force_reset_page.dart';
 import '../../features/auth/presentation/pages/login_page.dart';
 import '../../features/auth/presentation/pages/new_password_page.dart';
 import '../../features/auth/presentation/pages/otp_page.dart';
+import '../../features/auth/presentation/pages/welcome_page.dart';
 import '../../features/guard/presentation/pages/guard_code_page.dart';
 import '../../features/guard/presentation/pages/guard_log_page.dart';
 import '../../features/guard/presentation/pages/guard_result_page.dart';
@@ -30,6 +31,7 @@ import '../../features/resident/presentation/pages/project_detail_page.dart';
 import '../../features/resident/presentation/pages/projects_page.dart';
 import '../../features/resident/presentation/pages/receipt_page.dart';
 import '../../features/resident/presentation/pages/rules_page.dart';
+import '../../features/resident/presentation/pages/sos_page.dart';
 import '../../features/resident/presentation/pages/visitor_create_page.dart';
 import '../../features/resident/presentation/pages/visitor_detail_page.dart';
 import '../../features/resident/presentation/pages/visitor_page.dart';
@@ -53,6 +55,7 @@ final _routerRefreshProvider = Provider<_RouterRefreshNotifier>((ref) {
 });
 
 const _authPaths = {
+  AuthStage.welcome: '/welcome',
   AuthStage.estateCode: '/estate-code',
   AuthStage.login: '/login',
   AuthStage.forgot: '/forgot-password',
@@ -65,7 +68,7 @@ final routerProvider = Provider<GoRouter>((ref) {
   final refresh = ref.watch(_routerRefreshProvider);
 
   return GoRouter(
-    initialLocation: '/login',
+    initialLocation: '/welcome',
     refreshListenable: refresh,
     redirect: (context, state) {
       final s = ref.read(appStateProvider);
@@ -81,6 +84,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       return null;
     },
     routes: [
+      GoRoute(path: '/welcome', builder: (_, _) => const WelcomePage()),
       GoRoute(path: '/estate-code', builder: (_, _) => const EstateCodePage()),
       GoRoute(path: '/login', builder: (_, _) => const LoginPage()),
       GoRoute(path: '/forgot-password', builder: (_, _) => const ForgotPasswordPage()),
@@ -106,6 +110,7 @@ final routerProvider = Provider<GoRouter>((ref) {
                   GoRoute(path: 'notifications', builder: (_, _) => const NotificationsPage()),
                   GoRoute(path: 'polls', builder: (_, _) => const PollsPage()),
                   GoRoute(path: 'rules', builder: (_, _) => const RulesPage()),
+                  GoRoute(path: 'sos', builder: (_, _) => const SosPage()),
                   GoRoute(
                     path: 'complaint',
                     builder: (_, _) => const ComplaintPage(),

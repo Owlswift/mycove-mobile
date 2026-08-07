@@ -5,29 +5,52 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/theme/ch_colors.dart';
 import '../../../../core/theme/ch_spacing.dart';
 import '../../../../core/theme/ch_text_styles.dart';
+import '../../../../core/widgets/ch_filter_chips.dart';
 import '../../../../core/widgets/ch_generic_header.dart';
 import '../../../../core/widgets/ch_tag.dart';
 import '../../../../state/app_notifier.dart';
 
-class AnnouncementsPage extends ConsumerWidget {
+class AnnouncementsPage extends ConsumerStatefulWidget {
   const AnnouncementsPage({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<AnnouncementsPage> createState() => _AnnouncementsPageState();
+}
+
+class _AnnouncementsPageState extends ConsumerState<AnnouncementsPage> {
+  String _category = 'All';
+
+  @override
+  Widget build(BuildContext context) {
     final s = ref.watch(appStateProvider);
+    final categories = ['All', ...{for (final a in s.announcements) a.category}];
+    final shown = _category == 'All' ? s.announcements : s.announcements.where((a) => a.category == _category).toList();
 
     return Column(
       children: [
-        const ChGenericHeader(title: 'Announcements', showBack: false),
+        const ChGenericHeader(title: 'Notices', showBack: false),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(20, 0, 20, 12),
+          child: ChFilterChips(
+            options: [
+              for (final c in categories)
+                ChFilterChipOption(
+                  label: c == 'All' ? 'All Notices' : c,
+                  selected: _category == c,
+                  onSelect: () => setState(() => _category = c),
+                ),
+            ],
+          ),
+        ),
         Expanded(
           child: RefreshIndicator(
             onRefresh: ref.read(appStateProvider.notifier).refreshResident,
             child: ListView.builder(
             physics: const AlwaysScrollableScrollPhysics(),
             padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
-            itemCount: s.announcements.length,
+            itemCount: shown.length,
             itemBuilder: (context, i) {
-              final item = s.announcements[i];
+              final item = shown[i];
               final unread = item.unread;
               return Padding(
                 padding: const EdgeInsets.only(bottom: 10),
@@ -38,15 +61,15 @@ class AnnouncementsPage extends ConsumerWidget {
                   },
                   child: Container(
                     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 15),
-                    decoration: BoxDecoration(color: ChColors.surface, borderRadius: BorderRadius.circular(ChRadii.md)),
+                    decoration: BoxDecoration(color: ChColors.surface, borderRadius: BorderRadius.circular(ChRadii.card)),
                     child: Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Container(
                           width: 36,
                           height: 36,
-                          decoration: BoxDecoration(color: ChColors.accent2N(200), shape: BoxShape.circle),
-                          child: const Icon(Icons.campaign_outlined, size: 16, color: ChColors.text),
+                          decoration: BoxDecoration(color: ChColors.accent2N(100), shape: BoxShape.circle),
+                          child: Icon(Icons.campaign_outlined, size: 16, color: ChColors.accent2N(700)),
                         ),
                         const SizedBox(width: 12),
                         Expanded(

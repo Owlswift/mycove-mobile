@@ -48,25 +48,32 @@ class GuardShell extends ConsumerWidget {
       ),
       // See ResidentShell: must be the real BottomNavigationBar widget, not a
       // custom Row of gesture widgets, or this shell's body renders blank.
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: navigationShell.currentIndex,
-        onTap: (i) {
-          // Clear any stale verification result when switching tabs — otherwise
-          // the preserved navigation stack can land back on /guard/result with
-          // the previous scan's outcome still in state (e.g. "Pass Already Used").
-          if (i != navigationShell.currentIndex) {
-            notifier.resetGuardResult();
-          }
-          navigationShell.goBranch(i, initialLocation: true);
-        },
-        type: BottomNavigationBarType.fixed,
-        backgroundColor: ChColors.bg,
-        selectedItemColor: ChColors.accent2,
-        unselectedItemColor: ChColors.neutralN(600),
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.qr_code_scanner_rounded), label: 'Scan'),
-          BottomNavigationBarItem(icon: Icon(Icons.list_alt_rounded), label: 'Log'),
-        ],
+      bottomNavigationBar: Container(
+        decoration: const BoxDecoration(
+          color: ChColors.surface,
+          border: Border(top: BorderSide(color: ChColors.divider)),
+        ),
+        child: BottomNavigationBar(
+          currentIndex: navigationShell.currentIndex,
+          onTap: (i) {
+            // Clear any stale verification result when switching tabs — otherwise
+            // the preserved navigation stack can land back on /guard/result with
+            // the previous scan's outcome still in state (e.g. "Pass Already Used").
+            if (i != navigationShell.currentIndex) {
+              notifier.resetGuardResult();
+            }
+            navigationShell.goBranch(i, initialLocation: true);
+          },
+          type: BottomNavigationBarType.fixed,
+          backgroundColor: ChColors.surface,
+          elevation: 0,
+          selectedItemColor: ChColors.accent2,
+          unselectedItemColor: ChColors.neutralN(500),
+          items: const [
+            BottomNavigationBarItem(icon: Icon(Icons.qr_code_scanner_rounded), label: 'Scan'),
+            BottomNavigationBarItem(icon: Icon(Icons.list_alt_rounded), label: 'Log'),
+          ],
+        ),
       ),
     );
   }

@@ -4,7 +4,7 @@ import '../theme/ch_colors.dart';
 import '../theme/ch_spacing.dart';
 import '../theme/ch_text_styles.dart';
 
-enum ChButtonVariant { primary, secondary }
+enum ChButtonVariant { primary, secondary, danger }
 
 class ChButton extends StatelessWidget {
   const ChButton({
@@ -24,35 +24,32 @@ class ChButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isPrimary = variant == ChButtonVariant.primary;
+    final Color fill;
+    final Color foreground;
+    switch (variant) {
+      case ChButtonVariant.primary:
+        fill = ChColors.accent2;
+        foreground = Colors.white;
+      case ChButtonVariant.secondary:
+        fill = ChColors.surfaceSunken;
+        foreground = ChColors.text;
+      case ChButtonVariant.danger:
+        fill = ChColors.danger;
+        foreground = Colors.white;
+    }
+
     final child = Container(
       width: expand ? double.infinity : null,
-      padding: const EdgeInsets.symmetric(vertical: 13),
+      padding: const EdgeInsets.symmetric(vertical: 14),
       alignment: Alignment.center,
-      decoration: BoxDecoration(
-        gradient: isPrimary
-            ? const LinearGradient(
-                colors: [ChColors.accent2, Color(0xff56633f)],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              )
-            : null,
-        color: isPrimary ? null : ChColors.surface,
-        borderRadius: BorderRadius.circular(ChRadii.pill),
-      ),
+      decoration: BoxDecoration(color: fill, borderRadius: BorderRadius.circular(ChRadii.button)),
       child: isLoading
-          ? const SizedBox(
+          ? SizedBox(
               height: 20,
               width: 20,
-              child: CircularProgressIndicator(
-                strokeWidth: 2,
-                valueColor: AlwaysStoppedAnimation<Color>(ChColors.bg),
-              ),
+              child: CircularProgressIndicator(strokeWidth: 2, valueColor: AlwaysStoppedAnimation<Color>(foreground)),
             )
-          : Text(
-              label,
-              style: ChTextStyles.heading(fontSize: 14, color: isPrimary ? ChColors.bg : ChColors.text),
-            ),
+          : Text(label, style: ChTextStyles.body(fontSize: 15, fontWeight: FontWeight.w600, color: foreground)),
     );
 
     return GestureDetector(

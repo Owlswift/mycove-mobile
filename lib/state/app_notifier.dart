@@ -57,12 +57,18 @@ class AppNotifier extends StateNotifier<AppState> {
   Future<void> _bootstrap() async {
     final estateName = await _estateStorage.readName();
     if (estateName == null) {
-      state = state.copyWith(authStage: AuthStage.estateCode);
+      state = state.copyWith(authStage: AuthStage.welcome);
       return;
     }
     state = state.copyWith(estateName: estateName);
     await _tryAutoLogin();
   }
+
+  /// From the welcome screen — "Find Your Estate" and "Log In" both need an
+  /// estate code entered first (the API itself is estate-scoped), so both
+  /// land here; "I'm a Security Guard" calls [setRoleGuard] first so the
+  /// guard tab is already selected once they reach the login screen.
+  void goToEstateCode() => state = state.copyWith(authStage: AuthStage.estateCode);
 
   /// A revoked account means this person no longer belongs to this
   /// estate — the token and estate code are both already cleared from

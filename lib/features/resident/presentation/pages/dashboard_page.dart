@@ -8,11 +8,9 @@ import '../../../../core/theme/ch_text_styles.dart';
 import '../../../../core/widgets/ch_data_media.dart';
 import '../../../../data/models/my_pledge.dart';
 import '../../../../data/models/poll.dart';
-import '../../../../data/models/project.dart';
 import '../../../../data/models/spotlight.dart';
 import '../../../../state/app_notifier.dart';
 import '../../../../state/app_state.dart';
-import '../widgets/poll_card.dart';
 
 class DashboardPage extends ConsumerWidget {
   const DashboardPage({super.key});
@@ -22,11 +20,13 @@ class DashboardPage extends ConsumerWidget {
     final s = ref.watch(appStateProvider);
     final notifier = ref.read(appStateProvider.notifier);
     final ongoingProjects = s.projects.where((p) => !p.isCompleted).toList();
+    final featuredProject = ongoingProjects.isEmpty ? null : ongoingProjects.first;
     // Prefer a poll that's still open — otherwise a closed poll can sit here
     // indefinitely and hide newer ones a resident hasn't seen yet.
     final Poll? poll = s.polls.isEmpty
         ? null
         : s.polls.firstWhere((p) => p.closesIn != 'Closed', orElse: () => s.polls.first);
+    final pendingComplaints = s.complaints.where((c) => c.status != 'RESOLVED').length;
 
     return RefreshIndicator(
       onRefresh: notifier.refreshResident,
@@ -54,7 +54,7 @@ class DashboardPage extends ConsumerWidget {
                   width: 38,
                   height: 38,
                   margin: const EdgeInsets.only(right: 10),
-                  decoration: const BoxDecoration(color: ChColors.surface, shape: BoxShape.circle),
+                  decoration: const BoxDecoration(color: ChColors.surfaceSunken, shape: BoxShape.circle),
                   child: Stack(
                     children: [
                       const Center(child: Icon(Icons.notifications_outlined, size: 18, color: ChColors.text)),
@@ -65,7 +65,7 @@ class DashboardPage extends ConsumerWidget {
                           child: Container(
                             width: 8,
                             height: 8,
-                            decoration: const BoxDecoration(color: ChColors.accent2, shape: BoxShape.circle),
+                            decoration: const BoxDecoration(color: ChColors.danger, shape: BoxShape.circle),
                           ),
                         ),
                     ],
@@ -81,13 +81,13 @@ class DashboardPage extends ConsumerWidget {
                   decoration: const BoxDecoration(color: ChColors.accent2, shape: BoxShape.circle),
                   child: Text(
                     s.currentUser?.initials ?? '',
-                    style: ChTextStyles.body(fontSize: 15, fontWeight: FontWeight.w700, color: ChColors.bg),
+                    style: ChTextStyles.body(fontSize: 15, fontWeight: FontWeight.w700, color: Colors.white),
                   ),
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 14),
+          const SizedBox(height: 16),
 
           // Dues card (+ spotlight, if the estate is currently celebrating/promoting someone)
           Row(
@@ -101,8 +101,8 @@ class DashboardPage extends ConsumerWidget {
                     padding: const EdgeInsets.all(20),
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(ChRadii.card),
-                      gradient: const LinearGradient(
-                        colors: [ChColors.accent2, Color(0xff3d472b)],
+                      gradient: LinearGradient(
+                        colors: [ChColors.accent2, ChColors.accent2N(900)],
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
                       ),
@@ -110,19 +110,19 @@ class DashboardPage extends ConsumerWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('Outstanding dues', style: ChTextStyles.body(fontSize: 13, color: ChColors.bg.withValues(alpha: 0.85))),
+                        Text('Outstanding dues', style: ChTextStyles.body(fontSize: 13, color: Colors.white.withValues(alpha: 0.8))),
                         const SizedBox(height: 6),
-                        Text(s.duesBalanceLabel, style: ChTextStyles.heading(fontSize: 28, color: ChColors.bg)),
-                        const SizedBox(height: 12),
+                        Text(s.duesBalanceLabel, style: ChTextStyles.heading(fontSize: 28, color: Colors.white)),
+                        const SizedBox(height: 14),
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 9),
+                          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
                           decoration: BoxDecoration(
-                            color: ChColors.bg.withValues(alpha: 0.25),
-                            borderRadius: BorderRadius.circular(ChRadii.pill),
+                            color: ChColors.accent,
+                            borderRadius: BorderRadius.circular(ChRadii.button),
                           ),
                           child: Text(
                             'Pay Now →',
-                            style: ChTextStyles.body(fontSize: 13, fontWeight: FontWeight.w700, color: ChColors.bg),
+                            style: ChTextStyles.body(fontSize: 13, fontWeight: FontWeight.w700, color: ChColors.accentN(900)),
                           ),
                         ),
                       ],
@@ -136,60 +136,73 @@ class DashboardPage extends ConsumerWidget {
               ],
             ],
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 14),
 
-          // Meetings + Visitor tiles
+          // Stat tiles: next meeting, visitor passes, active poll, complaints
           Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Expanded(
-                child: GestureDetector(
+                child: _StatTile(
+                  icon: Icons.event_rounded,
+                  label: 'Next Meeting',
+                  value: s.meetings.isNotEmpty ? s.meetings.first.title : 'None',
                   onTap: () => context.push('/resident/meetings'),
-                  child: _DashboardTile(
-                    icon: Icons.event_rounded,
-                    label: 'Next meeting',
-                    title: s.meetings.isNotEmpty ? s.meetings.first.title : 'None scheduled',
-                    sub: s.meetings.isNotEmpty ? s.meetings.first.countdown : '',
-                  ),
                 ),
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: 8),
               Expanded(
-                child: GestureDetector(
+                child: _StatTile(
+                  icon: Icons.badge_rounded,
+                  label: 'Visitor Passes',
+                  value: '${s.activePassCount} active',
                   onTap: () => context.go('/resident/visitor'),
-                  child: _DashboardTile(
-                    icon: Icons.badge_rounded,
-                    label: 'Visitor passes',
-                    title: '${s.activePassCount}',
-                    titleIsHeading: true,
-                    sub: 'active now',
-                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: _StatTile(
+                  icon: Icons.bar_chart_rounded,
+                  label: 'Active Poll',
+                  value: poll == null ? 'None' : poll.closesIn,
+                  onTap: () => context.push('/resident/polls'),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: _StatTile(
+                  icon: Icons.shield_outlined,
+                  label: 'Complaints',
+                  value: '$pendingComplaints pending',
+                  onTap: () {
+                    notifier.loadComplaints();
+                    context.push('/resident/complaint/log');
+                  },
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 14),
 
           // Latest announcement
           GestureDetector(
             onTap: () => context.go('/resident/announcements'),
             child: Container(
               padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(color: ChColors.surface, borderRadius: BorderRadius.circular(ChRadii.card)),
+              decoration: BoxDecoration(color: ChColors.accentN(100), borderRadius: BorderRadius.circular(ChRadii.card)),
               child: Row(
                 children: [
                   Container(
                     width: 34,
                     height: 34,
-                    decoration: BoxDecoration(color: ChColors.neutralN(200), shape: BoxShape.circle),
-                    child: const Icon(Icons.campaign_outlined, size: 16, color: ChColors.text),
+                    decoration: BoxDecoration(color: ChColors.accentN(200), shape: BoxShape.circle),
+                    child: Icon(Icons.campaign_outlined, size: 16, color: ChColors.accentN(800)),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('Latest announcement', style: ChTextStyles.body(fontSize: 12, color: ChColors.neutralN(600))),
+                        Text('Latest announcement', style: ChTextStyles.body(fontSize: 12, color: ChColors.accentN(800))),
                         const SizedBox(height: 4),
                         Text(
                           s.announcements.isNotEmpty ? s.announcements.first.title : 'No announcements yet',
@@ -198,50 +211,144 @@ class DashboardPage extends ConsumerWidget {
                       ],
                     ),
                   ),
+                  Text('Read →', style: ChTextStyles.body(fontSize: 12.5, fontWeight: FontWeight.w700, color: ChColors.accentN(800))),
                 ],
               ),
             ),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 14),
 
-          // Ongoing projects
-          GestureDetector(
-            onTap: () => context.go('/resident/projects'),
-            child: Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(color: ChColors.surface, borderRadius: BorderRadius.circular(ChRadii.card)),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Container(
-                        width: 26,
-                        height: 26,
-                        decoration: const BoxDecoration(color: ChColors.accent2, shape: BoxShape.circle),
-                        child: const Icon(Icons.home_work_outlined, size: 13, color: ChColors.bg),
+          // Ongoing projects — spotlight the lead project, link out to the rest
+          if (featuredProject != null)
+            GestureDetector(
+              onTap: () => context.go('/resident/projects'),
+              child: Container(
+                decoration: BoxDecoration(color: ChColors.surface, borderRadius: BorderRadius.circular(ChRadii.card)),
+                clipBehavior: Clip.antiAlias,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 14, 16, 0),
+                      child: Row(
+                        children: [
+                          Container(
+                            width: 26,
+                            height: 26,
+                            decoration: const BoxDecoration(color: ChColors.accent2, shape: BoxShape.circle),
+                            child: const Icon(Icons.home_work_outlined, size: 13, color: Colors.white),
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              'Ongoing projects',
+                              overflow: TextOverflow.ellipsis,
+                              style: ChTextStyles.body(fontSize: 12, color: ChColors.neutralN(600)),
+                            ),
+                          ),
+                          Text(
+                            'See all ›',
+                            style: ChTextStyles.body(fontSize: 12, fontWeight: FontWeight.w600, color: ChColors.accent2N(700)),
+                          ),
+                        ],
                       ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Text(
-                          'Ongoing projects',
-                          overflow: TextOverflow.ellipsis,
-                          style: ChTextStyles.body(fontSize: 12, color: ChColors.neutralN(600)),
-                        ),
+                    ),
+                    const SizedBox(height: 12),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: Row(
+                        children: [
+                          if (featuredProject.mediaBase64 != null)
+                            ClipRRect(
+                              borderRadius: BorderRadius.circular(ChRadii.sm),
+                              child: ChDataMedia(dataUrl: featuredProject.mediaBase64!, height: 56, fit: BoxFit.cover),
+                            ),
+                          if (featuredProject.mediaBase64 != null) const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(featuredProject.title, style: ChTextStyles.body(fontSize: 14, fontWeight: FontWeight.w600)),
+                                const SizedBox(height: 6),
+                                ClipRRect(
+                                  borderRadius: BorderRadius.circular(ChRadii.pill),
+                                  child: LinearProgressIndicator(
+                                    value: featuredProject.progress / 100,
+                                    minHeight: 6,
+                                    backgroundColor: ChColors.neutralN(300),
+                                    valueColor: const AlwaysStoppedAnimation(ChColors.accent2),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          Text('${featuredProject.progress}%', style: ChTextStyles.body(fontSize: 13, fontWeight: FontWeight.w700, color: ChColors.accent2N(700))),
+                        ],
                       ),
-                      Text(
-                        'See all ›',
-                        style: ChTextStyles.body(fontSize: 12, fontWeight: FontWeight.w600, color: ChColors.accent2N(700)),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 10),
-                  for (final p in ongoingProjects) _ProjectProgressRow(project: p),
-                ],
+                    ),
+                    const SizedBox(height: 14),
+                  ],
+                ),
               ),
             ),
-          ),
+          const SizedBox(height: 18),
+
+          Text('Quick Actions', style: ChTextStyles.heading(fontSize: 15)),
           const SizedBox(height: 12),
+          Row(
+            children: [
+              Expanded(
+                child: _QuickAction(
+                  icon: Icons.qr_code_2_rounded,
+                  label: 'Visitor Pass',
+                  tint: ChColors.accent2N(100),
+                  iconColor: ChColors.accent2N(700),
+                  onTap: () => context.go('/resident/visitor'),
+                ),
+              ),
+              Expanded(
+                child: _QuickAction(
+                  icon: Icons.credit_card_rounded,
+                  label: 'Pay Dues',
+                  tint: ChColors.accentN(100),
+                  iconColor: ChColors.accentN(800),
+                  onTap: () => context.go('/resident/dues'),
+                ),
+              ),
+              Expanded(
+                child: _QuickAction(
+                  icon: Icons.chat_bubble_outline_rounded,
+                  label: 'Submit\nComplaint',
+                  tint: const Color(0xffece7f6),
+                  iconColor: const Color(0xff6b5b95),
+                  onTap: () {
+                    notifier.resetComplaintForm();
+                    context.push('/resident/complaint');
+                  },
+                ),
+              ),
+              Expanded(
+                child: _QuickAction(
+                  icon: Icons.how_to_vote_outlined,
+                  label: 'Vote in Poll',
+                  tint: ChColors.accentN(100),
+                  iconColor: ChColors.accentN(800),
+                  onTap: () => context.push('/resident/polls'),
+                ),
+              ),
+              Expanded(
+                child: _QuickAction(
+                  icon: Icons.menu_book_outlined,
+                  label: 'Rules',
+                  tint: const Color(0xffe2ecf5),
+                  iconColor: const Color(0xff3f6f92),
+                  onTap: () => context.push('/resident/rules'),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 18),
 
           // Your pledges
           if (s.myPledges.isNotEmpty) ...[
@@ -257,7 +364,7 @@ class DashboardPage extends ConsumerWidget {
                         width: 26,
                         height: 26,
                         decoration: const BoxDecoration(color: ChColors.accent2, shape: BoxShape.circle),
-                        child: const Icon(Icons.volunteer_activism_outlined, size: 13, color: ChColors.bg),
+                        child: const Icon(Icons.volunteer_activism_outlined, size: 13, color: Colors.white),
                       ),
                       const SizedBox(width: 8),
                       Expanded(
@@ -278,44 +385,182 @@ class DashboardPage extends ConsumerWidget {
                 ],
               ),
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 18),
           ],
 
-          // Active poll
-          if (poll != null) ...[
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
-                  decoration: BoxDecoration(color: ChColors.accent2, borderRadius: BorderRadius.circular(ChRadii.pill)),
-                  child: Text(
-                    'ACTIVE POLL',
-                    style: ChTextStyles.body(fontSize: 10.5, fontWeight: FontWeight.w700, color: ChColors.bg),
-                  ),
-                ),
-                GestureDetector(
-                  onTap: () => context.push('/resident/polls'),
-                  child: Text(
-                    'See all ›',
-                    style: ChTextStyles.body(fontSize: 12, fontWeight: FontWeight.w600, color: ChColors.accent2N(700)),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            PollCard(
-              poll: poll,
-              onVote: (optionId) async {
-                final error = await notifier.votePoll(poll.id, optionId);
-                if (error != null && context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(error)));
-                }
-              },
+          // Recent activity — the freshest visitor arrival and dues payment
+          // already sitting in state, no extra fetch needed.
+          if (s.visitorPasses.any((p) => p.hasEntered) || s.lastPayment != null) ...[
+            Text('Recent Activity', style: ChTextStyles.heading(fontSize: 15)),
+            const SizedBox(height: 12),
+            Container(
+              decoration: BoxDecoration(color: ChColors.surface, borderRadius: BorderRadius.circular(ChRadii.card)),
+              child: Column(
+                children: [
+                  for (final entry in _recentActivity(s)) entry,
+                ],
+              ),
             ),
           ],
         ],
       ),
+      ),
+    );
+  }
+
+  List<Widget> _recentActivity(AppState s) {
+    final items = <Widget>[];
+    final lastArrival = s.visitorPasses.where((p) => p.hasEntered).toList();
+    if (lastArrival.isNotEmpty) {
+      final p = lastArrival.first;
+      items.add(_ActivityRow(
+        icon: Icons.person_outline_rounded,
+        iconColor: ChColors.accent2N(700),
+        iconBg: ChColors.accent2N(100),
+        title: '${p.name} arrived',
+        subtitle: 'via visitor pass',
+        showBorder: s.lastPayment != null,
+      ));
+    }
+    final payment = s.lastPayment;
+    if (payment != null) {
+      items.add(_ActivityRow(
+        icon: Icons.receipt_long_outlined,
+        iconColor: ChColors.accentN(800),
+        iconBg: ChColors.accentN(100),
+        title: payment.desc,
+        subtitle: formatNaira(payment.amount),
+        showBorder: false,
+      ));
+    }
+    return items;
+  }
+}
+
+class _StatTile extends StatelessWidget {
+  const _StatTile({required this.icon, required this.label, required this.value, required this.onTap});
+
+  final IconData icon;
+  final String label;
+  final String value;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 14),
+        decoration: BoxDecoration(color: ChColors.surface, borderRadius: BorderRadius.circular(ChRadii.md)),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Icon(icon, size: 18, color: ChColors.accent2N(700)),
+            const SizedBox(height: 8),
+            Text(
+              label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: ChTextStyles.body(fontSize: 10.5, color: ChColors.neutralN(600)),
+            ),
+            const SizedBox(height: 3),
+            Text(
+              value,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: ChTextStyles.body(fontSize: 12, fontWeight: FontWeight.w700, color: ChColors.accent2N(700)),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _QuickAction extends StatelessWidget {
+  const _QuickAction({
+    required this.icon,
+    required this.label,
+    required this.tint,
+    required this.iconColor,
+    required this.onTap,
+  });
+
+  final IconData icon;
+  final String label;
+  final Color tint;
+  final Color iconColor;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Column(
+        children: [
+          Container(
+            width: 48,
+            height: 48,
+            decoration: BoxDecoration(color: tint, shape: BoxShape.circle),
+            child: Icon(icon, size: 20, color: iconColor),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            label,
+            textAlign: TextAlign.center,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: ChTextStyles.body(fontSize: 10.5, fontWeight: FontWeight.w600),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ActivityRow extends StatelessWidget {
+  const _ActivityRow({
+    required this.icon,
+    required this.iconColor,
+    required this.iconBg,
+    required this.title,
+    required this.subtitle,
+    required this.showBorder,
+  });
+
+  final IconData icon;
+  final Color iconColor;
+  final Color iconBg;
+  final String title;
+  final String subtitle;
+  final bool showBorder;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      decoration: BoxDecoration(border: showBorder ? const Border(bottom: BorderSide(color: ChColors.divider)) : null),
+      child: Row(
+        children: [
+          Container(
+            width: 34,
+            height: 34,
+            decoration: BoxDecoration(color: iconBg, shape: BoxShape.circle),
+            child: Icon(icon, size: 16, color: iconColor),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(title, style: ChTextStyles.body(fontSize: 13.5, fontWeight: FontWeight.w600)),
+                const SizedBox(height: 2),
+                Text(subtitle, style: ChTextStyles.body(fontSize: 12, color: ChColors.neutralN(600))),
+              ],
+            ),
+          ),
+          Icon(Icons.chevron_right, size: 18, color: ChColors.neutralN(500)),
+        ],
       ),
     );
   }
@@ -329,7 +574,7 @@ class _SpotlightCard extends StatelessWidget {
   void _showDetails(BuildContext context) {
     showModalBottomSheet<void>(
       context: context,
-      backgroundColor: ChColors.bg,
+      backgroundColor: ChColors.surface,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(ChRadii.card))),
       builder: (_) => Padding(
         padding: const EdgeInsets.fromLTRB(20, 24, 20, 32),
@@ -389,7 +634,7 @@ class _SpotlightCard extends StatelessWidget {
           children: [
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-              decoration: BoxDecoration(color: ChColors.accent2N(200), borderRadius: BorderRadius.circular(ChRadii.pill)),
+              decoration: BoxDecoration(color: ChColors.accent2N(100), borderRadius: BorderRadius.circular(ChRadii.pill)),
               child: Text(
                 spotlight.isBusiness ? 'BUSINESS' : 'SPOTLIGHT',
                 style: ChTextStyles.body(fontSize: 9.5, fontWeight: FontWeight.w700, color: ChColors.accent2N(800)),
@@ -446,49 +691,6 @@ class _SpotlightAvatar extends StatelessWidget {
   }
 }
 
-class _DashboardTile extends StatelessWidget {
-  const _DashboardTile({
-    required this.icon,
-    required this.label,
-    required this.title,
-    required this.sub,
-    this.titleIsHeading = false,
-  });
-
-  final IconData icon;
-  final String label;
-  final String title;
-  final String sub;
-  final bool titleIsHeading;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(color: ChColors.accent2N(100), borderRadius: BorderRadius.circular(ChRadii.card)),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            width: 34,
-            height: 34,
-            margin: const EdgeInsets.only(bottom: 10),
-            decoration: BoxDecoration(color: ChColors.accent2N(200), shape: BoxShape.circle),
-            child: Icon(icon, size: 16, color: ChColors.accent2N(800)),
-          ),
-          Text(label, style: ChTextStyles.body(fontSize: 12, color: ChColors.accent2N(800))),
-          const SizedBox(height: 6),
-          titleIsHeading
-              ? Text(title, style: ChTextStyles.heading(fontSize: 24, color: ChColors.accent2N(900)))
-              : Text(title, style: ChTextStyles.body(fontSize: 14, fontWeight: FontWeight.w600, color: ChColors.accent2N(900))),
-          const SizedBox(height: 2),
-          Text(sub, style: ChTextStyles.body(fontSize: 12, fontWeight: FontWeight.w700, color: ChColors.accent2N(700))),
-        ],
-      ),
-    );
-  }
-}
-
 class _PledgeRow extends StatelessWidget {
   const _PledgeRow({required this.pledge});
 
@@ -517,35 +719,6 @@ class _PledgeRow extends StatelessWidget {
             ),
           ],
         ),
-      ),
-    );
-  }
-}
-
-class _ProjectProgressRow extends StatelessWidget {
-  const _ProjectProgressRow({required this.project});
-
-  final Project project;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(project.title, style: ChTextStyles.body(fontSize: 13, fontWeight: FontWeight.w600)),
-          const SizedBox(height: 4),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(ChRadii.pill),
-            child: LinearProgressIndicator(
-              value: project.progress / 100,
-              minHeight: 6,
-              backgroundColor: ChColors.neutralN(300),
-              valueColor: const AlwaysStoppedAnimation(ChColors.accent2),
-            ),
-          ),
-        ],
       ),
     );
   }

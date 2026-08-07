@@ -31,17 +31,26 @@ class ResidentShell extends StatelessWidget {
       // Expanded+InkWell here collapses this Scaffold's body to zero height
       // (Scaffold's body renders blank, nav bar pinned under the status bar)
       // whenever this shell sits inside a ShellRoute's nested Navigator.
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: navigationShell.currentIndex,
-        onTap: (i) => navigationShell.goBranch(i, initialLocation: i == navigationShell.currentIndex),
-        type: BottomNavigationBarType.fixed,
-        backgroundColor: ChColors.bg,
-        selectedItemColor: ChColors.accent2,
-        unselectedItemColor: ChColors.neutralN(600),
-        items: [
-          for (var i = 0; i < _tabLabels.length; i++)
-            BottomNavigationBarItem(icon: Icon(_tabIcons[i]), label: _tabLabels[i]),
-        ],
+      bottomNavigationBar: Container(
+        decoration: const BoxDecoration(
+          color: ChColors.surface,
+          border: Border(top: BorderSide(color: ChColors.divider)),
+        ),
+        child: BottomNavigationBar(
+          currentIndex: navigationShell.currentIndex,
+          onTap: (i) => navigationShell.goBranch(i, initialLocation: i == navigationShell.currentIndex),
+          type: BottomNavigationBarType.fixed,
+          backgroundColor: ChColors.surface,
+          elevation: 0,
+          selectedItemColor: ChColors.accent2,
+          unselectedItemColor: ChColors.neutralN(500),
+          selectedLabelStyle: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.w600),
+          unselectedLabelStyle: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.w500),
+          items: [
+            for (var i = 0; i < _tabLabels.length; i++)
+              BottomNavigationBarItem(icon: Icon(_tabIcons[i], size: 22), label: _tabLabels[i]),
+          ],
+        ),
       ),
     );
   }

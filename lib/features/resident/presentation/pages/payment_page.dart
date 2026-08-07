@@ -129,7 +129,7 @@ class _Success extends StatelessWidget {
           width: 64,
           height: 64,
           decoration: const BoxDecoration(color: ChColors.accent2, shape: BoxShape.circle),
-          child: const Icon(Icons.check, color: ChColors.bg, size: 30),
+          child: const Icon(Icons.check, color: Colors.white, size: 30),
         ),
         const SizedBox(height: 18),
         Text('Payment successful', style: ChTextStyles.heading(fontSize: 18)),

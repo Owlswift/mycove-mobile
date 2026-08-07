@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/theme/ch_colors.dart';
+import '../../../../core/theme/ch_text_styles.dart';
 import '../../../../core/widgets/ch_button.dart';
 import '../../../../core/widgets/ch_generic_header.dart';
 import '../../../../core/widgets/ch_text_field.dart';
@@ -43,7 +44,7 @@ class VisitorCreatePage extends ConsumerWidget {
                 ),
                 const SizedBox(height: 20),
                 if (s.vfError.isNotEmpty) ...[
-                  Text(s.vfError, style: TextStyle(fontSize: 13, color: ChColors.danger)),
+                  Text(s.vfError, style: ChTextStyles.body(fontSize: 13, color: ChColors.danger)),
                   const SizedBox(height: 12),
                 ],
                 ChButton(

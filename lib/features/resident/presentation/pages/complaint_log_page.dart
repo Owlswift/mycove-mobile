@@ -1,27 +1,63 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../../core/theme/ch_colors.dart';
 import '../../../../core/theme/ch_spacing.dart';
 import '../../../../core/theme/ch_text_styles.dart';
 import '../../../../core/widgets/ch_generic_header.dart';
+import '../../../../core/widgets/ch_underline_tabs.dart';
 import '../../../../state/app_notifier.dart';
 
-class ComplaintLogPage extends ConsumerWidget {
+class ComplaintLogPage extends ConsumerStatefulWidget {
   const ComplaintLogPage({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<ComplaintLogPage> createState() => _ComplaintLogPageState();
+}
+
+class _ComplaintLogPageState extends ConsumerState<ComplaintLogPage> {
+  bool _mineOnly = true;
+
+  @override
+  Widget build(BuildContext context) {
     final s = ref.watch(appStateProvider);
     final notifier = ref.read(appStateProvider.notifier);
+    // The API already scopes complaints to the signed-in resident — "All"
+    // just drops the client-side status/date narrowing "My Complaints"
+    // otherwise doesn't apply, so both tabs show the same list for now.
+    final shown = s.complaints;
 
     return Column(
       children: [
-        const ChGenericHeader(title: 'My Complaints'),
+        ChGenericHeader(
+          title: 'Complaints',
+          trailing: GestureDetector(
+            onTap: () {
+              notifier.resetComplaintForm();
+              context.push('/resident/complaint');
+            },
+            child: Container(
+              width: 32,
+              height: 32,
+              decoration: const BoxDecoration(color: ChColors.accent2, shape: BoxShape.circle),
+              child: const Icon(Icons.add, size: 18, color: Colors.white),
+            ),
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20),
+          child: ChUnderlineTabs(
+            options: [
+              ChUnderlineTabOption(label: 'My Complaints (${s.complaints.length})', selected: _mineOnly, onSelect: () => setState(() => _mineOnly = true)),
+              ChUnderlineTabOption(label: 'All', selected: !_mineOnly, onSelect: () => setState(() => _mineOnly = false)),
+            ],
+          ),
+        ),
         Expanded(
           child: RefreshIndicator(
             onRefresh: notifier.loadComplaints,
-            child: s.complaints.isEmpty
+            child: shown.isEmpty
                 ? ListView(
                     physics: const AlwaysScrollableScrollPhysics(),
                     padding: const EdgeInsets.fromLTRB(20, 40, 20, 24),
@@ -43,17 +79,17 @@ class ComplaintLogPage extends ConsumerWidget {
                   )
                 : ListView.builder(
                     physics: const AlwaysScrollableScrollPhysics(),
-                    padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
-                    itemCount: s.complaints.length,
+                    padding: const EdgeInsets.fromLTRB(20, 14, 20, 24),
+                    itemCount: shown.length,
                     itemBuilder: (context, i) {
-                      final c = s.complaints[i];
+                      final c = shown[i];
                       return Padding(
                         padding: const EdgeInsets.only(bottom: 10),
                         child: Container(
                           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                           decoration: BoxDecoration(
                             color: ChColors.surface,
-                            borderRadius: BorderRadius.circular(ChRadii.md),
+                            borderRadius: BorderRadius.circular(ChRadii.card),
                           ),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -115,9 +151,9 @@ class _StatusBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final (label, color, bg) = switch (status) {
-      'SUBMITTED' => ('Submitted', ChColors.accentN(700), ChColors.accentN(200)),
-      'IN_REVIEW' => ('In Review', ChColors.accent2N(800), ChColors.accent2N(200)),
-      'RESOLVED' => ('Resolved', ChColors.accent2N(800), ChColors.accent2N(200)),
+      'SUBMITTED' => ('Submitted', ChColors.warning, ChColors.warning.withValues(alpha: 0.14)),
+      'IN_REVIEW' => ('In Review', ChColors.warning, ChColors.warning.withValues(alpha: 0.14)),
+      'RESOLVED' => ('Resolved', ChColors.accent2N(700), ChColors.accent2N(100)),
       _ => (status, ChColors.neutralN(600), ChColors.neutralN(200)),
     };
 

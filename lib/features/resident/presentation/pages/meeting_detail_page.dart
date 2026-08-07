@@ -107,9 +107,9 @@ class MeetingDetailPage extends ConsumerWidget {
                           },
                           style: ElevatedButton.styleFrom(
                             backgroundColor: ChColors.accent2,
-                            foregroundColor: ChColors.bg,
+                            foregroundColor: Colors.white,
                             padding: const EdgeInsets.symmetric(vertical: 12),
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(ChRadii.pill)),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(ChRadii.button)),
                           ),
                           child: Text('Add to Calendar', style: ChTextStyles.heading(fontSize: 14)),
                         ),

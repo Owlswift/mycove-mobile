@@ -5,7 +5,6 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/theme/ch_colors.dart';
 import '../../../../core/theme/ch_spacing.dart';
 import '../../../../core/theme/ch_text_styles.dart';
-import '../../../../core/widgets/ch_button.dart';
 import '../../../../core/widgets/ch_generic_header.dart';
 import '../../../../data/models/dues_entry.dart';
 import '../../../../data/models/levy.dart';
@@ -39,33 +38,41 @@ class DuesPage extends ConsumerWidget {
             padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
             children: [
               Container(
-                padding: const EdgeInsets.all(18),
-                decoration: BoxDecoration(color: ChColors.surface, borderRadius: BorderRadius.circular(ChRadii.card)),
+                width: double.infinity,
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(ChRadii.card),
+                  gradient: LinearGradient(
+                    colors: [ChColors.accent2, ChColors.accent2N(900)],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                ),
                 child: Column(
                   children: [
-                    Container(
-                      width: 44,
-                      height: 44,
-                      decoration: BoxDecoration(color: ChColors.accentN(100), shape: BoxShape.circle),
-                      child: Icon(Icons.receipt_long_outlined, size: 20, color: ChColors.accentN(800)),
-                    ),
-                    const SizedBox(height: 10),
-                    Text('Outstanding balance', style: ChTextStyles.body(fontSize: 13, color: ChColors.neutralN(600))),
+                    Text('Outstanding balance', style: ChTextStyles.body(fontSize: 13, color: Colors.white.withValues(alpha: 0.8))),
                     const SizedBox(height: 6),
-                    Text(s.duesBalanceLabel, style: ChTextStyles.heading(fontSize: 28)),
-                    const SizedBox(height: 14),
+                    Text(s.duesBalanceLabel, style: ChTextStyles.heading(fontSize: 30, color: Colors.white)),
+                    const SizedBox(height: 16),
                     if (hasBalance)
-                      ChButton(
-                        label: 'Pay Now',
-                        onPressed: () {
+                      GestureDetector(
+                        onTap: () {
                           notifier.resetPayment();
                           context.push('/resident/payment');
                         },
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 12),
+                          decoration: BoxDecoration(color: ChColors.accent, borderRadius: BorderRadius.circular(ChRadii.button)),
+                          child: Text(
+                            'Pay Now',
+                            style: ChTextStyles.body(fontSize: 14, fontWeight: FontWeight.w700, color: ChColors.accentN(900)),
+                          ),
+                        ),
                       )
                     else
                       Text(
                         '✓ Fully paid up',
-                        style: ChTextStyles.body(fontSize: 14, fontWeight: FontWeight.w600, color: ChColors.accent2N(700)),
+                        style: ChTextStyles.body(fontSize: 14, fontWeight: FontWeight.w600, color: Colors.white),
                       ),
                   ],
                 ),
@@ -119,13 +126,13 @@ class DuesPage extends ConsumerWidget {
                 Container(
                   margin: const EdgeInsets.only(bottom: 10),
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                  decoration: BoxDecoration(color: ChColors.surface, borderRadius: BorderRadius.circular(ChRadii.md)),
+                  decoration: BoxDecoration(color: ChColors.surface, borderRadius: BorderRadius.circular(ChRadii.card)),
                   child: Row(
                     children: [
                       Container(
                         width: 32,
                         height: 32,
-                        decoration: BoxDecoration(color: ChColors.neutralN(200), shape: BoxShape.circle),
+                        decoration: const BoxDecoration(color: ChColors.surfaceSunken, shape: BoxShape.circle),
                         child: const Icon(Icons.payments_outlined, size: 15, color: ChColors.text),
                       ),
                       const SizedBox(width: 12),
@@ -146,13 +153,10 @@ class DuesPage extends ConsumerWidget {
                           onTap: () => pay(lv.id),
                           child: Container(
                             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                            decoration: BoxDecoration(
-                              gradient: const LinearGradient(colors: [ChColors.accent2, Color(0xff56633f)]),
-                              borderRadius: BorderRadius.circular(ChRadii.pill),
-                            ),
+                            decoration: BoxDecoration(color: ChColors.accent2, borderRadius: BorderRadius.circular(ChRadii.pill)),
                             child: Text(
                               'Pay',
-                              style: ChTextStyles.body(fontSize: 12.5, fontWeight: FontWeight.w600, color: ChColors.bg),
+                              style: ChTextStyles.body(fontSize: 12.5, fontWeight: FontWeight.w600, color: Colors.white),
                             ),
                           ),
                         )

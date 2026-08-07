@@ -83,26 +83,26 @@ class LoginPage extends ConsumerWidget {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
                 decoration: BoxDecoration(
-                  color: ChColors.surface,
+                  color: ChColors.surfaceSunken,
                   borderRadius: BorderRadius.circular(ChRadii.md),
                 ),
                 child: RichText(
                   text: TextSpan(
-                    style: ChTextStyles.body(fontSize: 12.5, color: ChColors.text.withValues(alpha: 0.65)),
+                    style: ChTextStyles.body(fontSize: 12.5, color: ChColors.neutralN(700)),
                     children: [
                       TextSpan(text: 'Demo credentials — ${isResident ? 'resident' : 'security guard'}\n'),
-                      TextSpan(text: 'Phone '),
+                      const TextSpan(text: 'Phone '),
                       TextSpan(
                         text: isResident ? _demoResidentPhone : _demoGuardPhone,
-                        style: const TextStyle(color: ChColors.text, fontWeight: FontWeight.w700),
+                        style: ChTextStyles.body(fontSize: 12.5, fontWeight: FontWeight.w700, color: ChColors.text),
                       ),
                       const TextSpan(text: ' · Password '),
                       TextSpan(
                         text: isResident ? 'estate123' : 'guard123',
-                        style: const TextStyle(color: ChColors.text, fontWeight: FontWeight.w700),
+                        style: ChTextStyles.body(fontSize: 12.5, fontWeight: FontWeight.w700, color: ChColors.text),
                       ),
                       const TextSpan(text: '\nTry '),
-                      const TextSpan(text: 'temp1234', style: TextStyle(color: ChColors.text, fontWeight: FontWeight.w700)),
+                      TextSpan(text: 'temp1234', style: ChTextStyles.body(fontSize: 12.5, fontWeight: FontWeight.w700, color: ChColors.text)),
                       const TextSpan(text: ' to preview first-time setup.'),
                     ],
                   ),
@@ -123,9 +123,9 @@ class _LoginBanner extends StatelessWidget {
       borderRadius: BorderRadius.circular(ChRadii.md),
       child: Container(
         height: 118,
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           gradient: LinearGradient(
-            colors: [ChColors.accent2, Color(0xffe1eecc)],
+            colors: [ChColors.accent2, ChColors.accent2N(200)],
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
           ),

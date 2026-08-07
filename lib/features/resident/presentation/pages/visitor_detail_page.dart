@@ -144,7 +144,7 @@ class _VisitorDetailPageState extends ConsumerState<VisitorDetailPage> {
                         const SizedBox(height: 18),
                         Container(
                           padding: const EdgeInsets.all(14),
-                          decoration: BoxDecoration(color: ChColors.bg, borderRadius: BorderRadius.circular(ChRadii.md)),
+                          decoration: BoxDecoration(color: ChColors.surfaceSunken, borderRadius: BorderRadius.circular(ChRadii.md)),
                           child: SizedBox(
                             width: 8 * 12,
                             height: 8 * 12,
@@ -171,7 +171,7 @@ class _VisitorDetailPageState extends ConsumerState<VisitorDetailPage> {
                               onTap: () => _copyCode(pass.code),
                               child: Container(
                                 padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 9),
-                                decoration: BoxDecoration(color: ChColors.bg, borderRadius: BorderRadius.circular(ChRadii.pill)),
+                                decoration: BoxDecoration(color: ChColors.surfaceSunken, borderRadius: BorderRadius.circular(ChRadii.pill)),
                                 child: Text(
                                   _copied ? 'Copied!' : 'Copy Code',
                                   style: ChTextStyles.body(fontSize: 13, fontWeight: FontWeight.w600),
@@ -183,15 +183,15 @@ class _VisitorDetailPageState extends ConsumerState<VisitorDetailPage> {
                               onTap: () => _sharePass(pass),
                               child: Container(
                                 padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 9),
-                                decoration: BoxDecoration(color: ChColors.accent, borderRadius: BorderRadius.circular(ChRadii.pill)),
+                                decoration: BoxDecoration(color: ChColors.accent2, borderRadius: BorderRadius.circular(ChRadii.pill)),
                                 child: Row(
                                   mainAxisSize: MainAxisSize.min,
                                   children: [
-                                    const Icon(Icons.share, size: 15, color: ChColors.bg),
+                                    const Icon(Icons.share, size: 15, color: Colors.white),
                                     const SizedBox(width: 6),
                                     Text(
                                       'Share',
-                                      style: ChTextStyles.body(fontSize: 13, fontWeight: FontWeight.w600, color: ChColors.bg),
+                                      style: ChTextStyles.body(fontSize: 13, fontWeight: FontWeight.w600, color: Colors.white),
                                     ),
                                   ],
                                 ),
@@ -221,11 +221,11 @@ class _VisitorDetailPageState extends ConsumerState<VisitorDetailPage> {
                           alignment: Alignment.center,
                           decoration: BoxDecoration(
                             color: ChColors.danger,
-                            borderRadius: BorderRadius.circular(ChRadii.pill),
+                            borderRadius: BorderRadius.circular(ChRadii.button),
                           ),
                           child: Text(
                             'Revoke Pass',
-                            style: ChTextStyles.body(fontSize: 14, fontWeight: FontWeight.w600, color: ChColors.bg),
+                            style: ChTextStyles.body(fontSize: 14, fontWeight: FontWeight.w600, color: Colors.white),
                           ),
                         ),
                       ),

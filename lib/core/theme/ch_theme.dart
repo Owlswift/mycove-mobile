@@ -35,29 +35,29 @@ class ChTheme {
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: ChColors.surface,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        fillColor: ChColors.surfaceSunken,
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 13),
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(ChRadii.sm),
-          borderSide: BorderSide(color: ChColors.divider),
+          borderRadius: BorderRadius.circular(ChRadii.button),
+          borderSide: BorderSide.none,
         ),
         enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(ChRadii.sm),
-          borderSide: BorderSide(color: ChColors.divider),
+          borderRadius: BorderRadius.circular(ChRadii.button),
+          borderSide: BorderSide.none,
         ),
         focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(ChRadii.sm),
-          borderSide: const BorderSide(color: ChColors.accent),
+          borderRadius: BorderRadius.circular(ChRadii.button),
+          borderSide: const BorderSide(color: ChColors.accent2, width: 1.5),
         ),
         hintStyle: ChTextStyles.body(color: ChColors.neutralN(600)),
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
           backgroundColor: ChColors.accent2,
-          foregroundColor: ChColors.bg,
+          foregroundColor: Colors.white,
           padding: const EdgeInsets.symmetric(vertical: 14),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(ChRadii.pill)),
-          textStyle: ChTextStyles.heading(fontSize: 15, color: ChColors.bg),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(ChRadii.button)),
+          textStyle: ChTextStyles.heading(fontSize: 15, color: Colors.white, fontWeight: FontWeight.w600),
         ),
       ),
       textTheme: TextTheme(

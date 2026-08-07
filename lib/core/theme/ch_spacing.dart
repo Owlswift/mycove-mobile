@@ -14,10 +14,14 @@ class ChRadii {
 
   static const double sm = 8;
   static const double md = 16;
-  static const double lg = 28;
+  static const double lg = 22;
 
-  /// The mockup's ".rounded frame" override: cards/dialogs get rounder,
-  /// buttons/tags/inputs go fully pill-shaped.
-  static const double card = lg * 1.15;
+  /// Cards and hero panels — rounded rectangles, not the old near-pill look.
+  static const double card = 18;
+
+  /// Buttons — rounded rectangle, distinct from the fully-pill small chips.
+  static const double button = 14;
+
+  /// Small status chips/tags/segmented controls stay fully pill-shaped.
   static const double pill = 999;
 }

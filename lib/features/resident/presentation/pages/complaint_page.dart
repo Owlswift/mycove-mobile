@@ -27,7 +27,7 @@ class ComplaintPage extends ConsumerWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Category', style: TextStyle(fontSize: 12, color: ChColors.text.withValues(alpha: 0.7))),
+                Text('Category', style: ChTextStyles.body(fontSize: 12, color: ChColors.neutralN(600))),
                 const SizedBox(height: 8),
                 Wrap(
                   spacing: 8,
@@ -42,7 +42,7 @@ class ComplaintPage extends ConsumerWidget {
                   ],
                 ),
                 const SizedBox(height: 16),
-                Text('Details', style: TextStyle(fontSize: 12, color: ChColors.text.withValues(alpha: 0.7))),
+                Text('Details', style: ChTextStyles.body(fontSize: 12, color: ChColors.neutralN(600))),
                 const SizedBox(height: 5),
                 TextField(
                   minLines: 5,
@@ -52,7 +52,7 @@ class ComplaintPage extends ConsumerWidget {
                 ),
                 const SizedBox(height: 14),
                 if (s.complaintError.isNotEmpty) ...[
-                  Text(s.complaintError, style: const TextStyle(fontSize: 13, color: ChColors.danger)),
+                  Text(s.complaintError, style: ChTextStyles.body(fontSize: 13, color: ChColors.danger)),
                   const SizedBox(height: 12),
                 ],
                 ChButton(
@@ -87,11 +87,11 @@ class _CategoryChip extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
         decoration: BoxDecoration(
-          gradient: selected ? const LinearGradient(colors: [ChColors.accent2, Color(0xff56633f)]) : null,
+          color: selected ? ChColors.accent2 : null,
           border: selected ? null : Border.all(color: ChColors.divider),
           borderRadius: BorderRadius.circular(ChRadii.pill),
         ),
-        child: Text(label, style: ChTextStyles.body(fontSize: 13, color: selected ? ChColors.bg : ChColors.text)),
+        child: Text(label, style: ChTextStyles.body(fontSize: 13, fontWeight: FontWeight.w600, color: selected ? Colors.white : ChColors.text)),
       ),
     );
   }

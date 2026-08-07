@@ -36,9 +36,7 @@ class ChPillTabs extends StatelessWidget {
                 child: Container(
                   decoration: BoxDecoration(
                     border: i > 0 ? Border(left: BorderSide(color: ChColors.divider)) : null,
-                    gradient: options[i].selected
-                        ? const LinearGradient(colors: [ChColors.accent2, Color(0xff56633f)])
-                        : null,
+                    color: options[i].selected ? ChColors.accent2 : null,
                   ),
                   child: GestureDetector(
                     onTap: options[i].onSelect,
@@ -50,7 +48,8 @@ class ChPillTabs extends StatelessWidget {
                         overflow: TextOverflow.ellipsis,
                         style: ChTextStyles.body(
                           fontSize: 13,
-                          color: options[i].selected ? ChColors.bg : ChColors.neutralN(600),
+                          fontWeight: options[i].selected ? FontWeight.w600 : FontWeight.w400,
+                          color: options[i].selected ? Colors.white : ChColors.neutralN(600),
                         ),
                       ),
                     ),

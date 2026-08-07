@@ -3,8 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/theme/ch_colors.dart';
-import '../../../../core/theme/ch_spacing.dart';
 import '../../../../core/theme/ch_text_styles.dart';
+import '../../../../core/widgets/ch_button.dart';
 import '../../../../state/app_notifier.dart';
 
 class ComplaintSuccessPage extends ConsumerWidget {
@@ -22,7 +22,7 @@ class ComplaintSuccessPage extends ConsumerWidget {
             width: 64,
             height: 64,
             decoration: const BoxDecoration(color: ChColors.accent2, shape: BoxShape.circle),
-            child: const Icon(Icons.check, color: ChColors.bg, size: 30),
+            child: const Icon(Icons.check, color: Colors.white, size: 30),
           ),
           const SizedBox(height: 18),
           Text('Complaint submitted', style: ChTextStyles.heading(fontSize: 18)),
@@ -33,32 +33,18 @@ class ComplaintSuccessPage extends ConsumerWidget {
             style: ChTextStyles.body(fontSize: 13, color: ChColors.neutralN(600)),
           ),
           const SizedBox(height: 22),
-          GestureDetector(
-            onTap: () {
+          ChButton(
+            label: 'View My Complaints',
+            onPressed: () {
               ref.read(appStateProvider.notifier).loadComplaints();
               context.go('/resident/complaint/log');
             },
-            child: Container(
-              width: double.infinity,
-              padding: const EdgeInsets.symmetric(vertical: 12),
-              alignment: Alignment.center,
-              decoration: BoxDecoration(
-                gradient: const LinearGradient(colors: [ChColors.accent2, Color(0xff56633f)]),
-                borderRadius: BorderRadius.circular(ChRadii.pill),
-              ),
-              child: Text('View My Complaints', style: ChTextStyles.heading(fontSize: 14, color: ChColors.bg)),
-            ),
           ),
           const SizedBox(height: 10),
-          GestureDetector(
-            onTap: () => context.go('/resident/profile'),
-            child: Container(
-              width: double.infinity,
-              padding: const EdgeInsets.symmetric(vertical: 12),
-              alignment: Alignment.center,
-              decoration: BoxDecoration(color: ChColors.surface, borderRadius: BorderRadius.circular(ChRadii.pill)),
-              child: Text('Done', style: ChTextStyles.heading(fontSize: 14)),
-            ),
+          ChButton(
+            label: 'Done',
+            variant: ChButtonVariant.secondary,
+            onPressed: () => context.go('/resident/profile'),
           ),
         ],
       ),

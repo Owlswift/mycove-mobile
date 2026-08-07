@@ -48,7 +48,7 @@ class NotificationsPage extends ConsumerWidget {
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                   decoration: BoxDecoration(
                     color: ChColors.surface,
-                    borderRadius: BorderRadius.circular(ChRadii.md),
+                    borderRadius: BorderRadius.circular(ChRadii.card),
                     border: n.read ? null : Border.all(color: ChColors.accentN(300), width: 1),
                   ),
                   child: Row(

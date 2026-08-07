@@ -32,14 +32,14 @@ class MeetingsPage extends ConsumerWidget {
                   onTap: () => context.push('/resident/meetings/${item.id}'),
                   child: Container(
                     padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(color: ChColors.surface, borderRadius: BorderRadius.circular(ChRadii.md)),
+                    decoration: BoxDecoration(color: ChColors.surface, borderRadius: BorderRadius.circular(ChRadii.card)),
                     child: Row(
                       children: [
                         Container(
                           width: 36,
                           height: 36,
-                          decoration: BoxDecoration(color: ChColors.accent2N(200), shape: BoxShape.circle),
-                          child: const Icon(Icons.event_outlined, size: 16, color: ChColors.text),
+                          decoration: BoxDecoration(color: ChColors.accent2N(100), shape: BoxShape.circle),
+                          child: Icon(Icons.event_outlined, size: 16, color: ChColors.accent2N(700)),
                         ),
                         const SizedBox(width: 12),
                         Expanded(

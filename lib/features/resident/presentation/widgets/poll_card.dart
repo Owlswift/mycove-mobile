@@ -21,7 +21,7 @@ class PollCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(color: ChColors.surface, borderRadius: BorderRadius.circular(ChRadii.md)),
+      decoration: BoxDecoration(color: ChColors.surface, borderRadius: BorderRadius.circular(ChRadii.card)),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -69,7 +69,7 @@ class PollCard extends StatelessWidget {
                         widthFactor: option.pct / 100,
                         child: Container(
                           height: 38,
-                          decoration: BoxDecoration(color: ChColors.accentN(200), borderRadius: BorderRadius.circular(ChRadii.pill)),
+                          decoration: BoxDecoration(color: ChColors.accent2N(200), borderRadius: BorderRadius.circular(ChRadii.pill)),
                         ),
                       ),
                     Positioned.fill(
@@ -93,7 +93,7 @@ class PollCard extends StatelessWidget {
                         child: Container(
                           height: 38,
                           decoration: BoxDecoration(
-                            border: Border.all(color: ChColors.accent, width: 2),
+                            border: Border.all(color: ChColors.accent2, width: 2),
                             borderRadius: BorderRadius.circular(ChRadii.pill),
                           ),
                         ),

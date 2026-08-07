@@ -15,7 +15,7 @@ import '../data/models/rules_section.dart';
 import '../data/models/spotlight.dart';
 import '../data/models/visitor_pass.dart';
 
-enum AuthStage { bootstrapping, estateCode, login, forgot, otp, newPassword, forceReset, app }
+enum AuthStage { bootstrapping, welcome, estateCode, login, forgot, otp, newPassword, forceReset, app }
 
 enum Role { resident, guard }
 

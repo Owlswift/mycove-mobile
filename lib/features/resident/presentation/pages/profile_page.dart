@@ -33,7 +33,7 @@ class ProfilePage extends ConsumerWidget {
                   decoration: const BoxDecoration(color: ChColors.accent2, shape: BoxShape.circle),
                   child: Text(
                     user?.initials ?? '',
-                    style: ChTextStyles.body(fontSize: 24, fontWeight: FontWeight.w700, color: ChColors.bg),
+                    style: ChTextStyles.body(fontSize: 24, fontWeight: FontWeight.w700, color: Colors.white),
                   ),
                 ),
                 Text(user?.fullName ?? '', style: ChTextStyles.heading(fontSize: 18)),
@@ -41,7 +41,7 @@ class ProfilePage extends ConsumerWidget {
                 const SizedBox(height: 20),
                 Container(
                   width: double.infinity,
-                  decoration: BoxDecoration(color: ChColors.surface, borderRadius: BorderRadius.circular(ChRadii.md)),
+                  decoration: BoxDecoration(color: ChColors.surface, borderRadius: BorderRadius.circular(ChRadii.card)),
                   child: Column(
                     children: [
                       _infoRow('Phone', user?.phone ?? '', showBorder: true),
@@ -61,7 +61,7 @@ class ProfilePage extends ConsumerWidget {
                 const SizedBox(height: 16),
                 Container(
                   width: double.infinity,
-                  decoration: BoxDecoration(color: ChColors.surface, borderRadius: BorderRadius.circular(ChRadii.md)),
+                  decoration: BoxDecoration(color: ChColors.surface, borderRadius: BorderRadius.circular(ChRadii.card)),
                   child: Column(
                     children: [
                       _linkRow(context, icon: Icons.poll_outlined, label: 'Polls', showBorder: true, onTap: () => context.push('/resident/polls')),
@@ -70,10 +70,18 @@ class ProfilePage extends ConsumerWidget {
                         notifier.resetComplaintForm();
                         context.push('/resident/complaint');
                       }),
-                      _linkRow(context, icon: Icons.history_outlined, label: 'My Complaints', onTap: () {
+                      _linkRow(context, icon: Icons.history_outlined, label: 'My Complaints', showBorder: true, onTap: () {
                         notifier.loadComplaints();
                         context.push('/resident/complaint/log');
                       }),
+                      _linkRow(
+                        context,
+                        icon: Icons.shield_outlined,
+                        label: 'Emergency SOS',
+                        iconColor: ChColors.danger,
+                        iconBg: ChColors.danger.withValues(alpha: 0.12),
+                        onTap: () => context.push('/resident/sos'),
+                      ),
                     ],
                   ),
                 ),
@@ -82,9 +90,9 @@ class ProfilePage extends ConsumerWidget {
                   onTap: notifier.logout,
                   child: Container(
                     width: double.infinity,
-                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    padding: const EdgeInsets.symmetric(vertical: 13),
                     alignment: Alignment.center,
-                    decoration: BoxDecoration(color: ChColors.surface, borderRadius: BorderRadius.circular(ChRadii.pill)),
+                    decoration: BoxDecoration(color: ChColors.surface, borderRadius: BorderRadius.circular(ChRadii.button)),
                     child: Text(
                       'Log Out',
                       style: ChTextStyles.body(fontSize: 14, fontWeight: FontWeight.w700, color: ChColors.danger),
@@ -119,6 +127,8 @@ class ProfilePage extends ConsumerWidget {
     required String label,
     required VoidCallback onTap,
     bool showBorder = false,
+    Color? iconColor,
+    Color? iconBg,
   }) {
     return InkWell(
       onTap: onTap,
@@ -130,8 +140,8 @@ class ProfilePage extends ConsumerWidget {
             Container(
               width: 32,
               height: 32,
-              decoration: BoxDecoration(color: ChColors.accent2N(200), shape: BoxShape.circle),
-              child: Icon(icon, size: 15, color: ChColors.accent2N(800)),
+              decoration: BoxDecoration(color: iconBg ?? ChColors.accent2N(100), shape: BoxShape.circle),
+              child: Icon(icon, size: 15, color: iconColor ?? ChColors.accent2N(700)),
             ),
             const SizedBox(width: 12),
             Expanded(child: Text(label, style: ChTextStyles.body(fontSize: 14))),
