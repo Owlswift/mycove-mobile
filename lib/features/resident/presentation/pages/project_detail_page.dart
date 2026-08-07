@@ -38,6 +38,9 @@ class ProjectDetailPage extends ConsumerWidget {
               final statusLabel = isCompleted ? 'Completed' : 'In Progress';
               final progress = json['progress'] as int;
               final budget = (json['budget'] as List).cast<Map<String, dynamic>>();
+              final allocated = json['allocated'] as int;
+              final spent = json['spent'] as int;
+              final remaining = json['remaining'] as int;
               final reports = (json['reports'] as List).cast<Map<String, dynamic>>();
               final goal = json['goal'] as int;
               final raised = json['raised'] as int;
@@ -47,173 +50,219 @@ class ProjectDetailPage extends ConsumerWidget {
               final myPledged = json['myPledged'] as int;
               final mediaBase64 = json['mediaBase64'] as String?;
 
-              return SingleChildScrollView(
-                padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    if (mediaBase64 != null)
-                      Padding(
-                        padding: const EdgeInsets.only(bottom: 14),
-                        child: ChDataMedia(
-                          dataUrl: mediaBase64,
-                          height: 160,
-                          borderRadius: BorderRadius.circular(ChRadii.card),
-                        ),
-                      ),
-                    Row(
-                      children: [
-                        Expanded(child: Text(json['title'] as String, style: ChTextStyles.heading(fontSize: 20))),
-                        Text(
-                          statusLabel,
-                          style: ChTextStyles.body(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w700,
-                            color: isCompleted ? ChColors.accent2N(700) : ChColors.accentN(700),
+              return RefreshIndicator(
+                onRefresh: () async => ref.read(appStateProvider.notifier).refreshResident(),
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      if (mediaBase64 != null)
+                        Padding(
+                          padding: const EdgeInsets.only(bottom: 14),
+                          child: ChDataMedia(
+                            dataUrl: mediaBase64,
+                            height: 160,
+                            borderRadius: BorderRadius.circular(ChRadii.card),
                           ),
                         ),
-                      ],
-                    ),
-                    const SizedBox(height: 10),
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(ChRadii.pill),
-                      child: LinearProgressIndicator(
-                        value: progress / 100,
-                        minHeight: 6,
-                        backgroundColor: ChColors.neutralN(300),
-                        valueColor: const AlwaysStoppedAnimation(ChColors.accent2),
+                      Row(
+                        children: [
+                          Expanded(child: Text(json['title'] as String, style: ChTextStyles.heading(fontSize: 20))),
+                          Text(
+                            statusLabel,
+                            style: ChTextStyles.body(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w700,
+                              color: isCompleted ? ChColors.accent2N(700) : ChColors.accentN(700),
+                            ),
+                          ),
+                        ],
                       ),
-                    ),
-                    const SizedBox(height: 14),
-                    Text(json['description'] as String, style: ChTextStyles.body(fontSize: 14)),
-                    const SizedBox(height: 18),
-                    Text(
-                      'BUDGET',
-                      style: ChTextStyles.body(fontSize: 11, fontWeight: FontWeight.w700, color: ChColors.neutralN(600))
-                          .copyWith(letterSpacing: 1),
-                    ),
-                    const SizedBox(height: 8),
-                    for (final b in budget)
-                      Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 6),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(b['label'] as String, style: ChTextStyles.body(fontSize: 13)),
-                            Text(formatNaira(b['amount'] as int), style: ChTextStyles.body(fontSize: 13, fontWeight: FontWeight.w600)),
-                          ],
+                      const SizedBox(height: 10),
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(ChRadii.pill),
+                        child: LinearProgressIndicator(
+                          value: progress / 100,
+                          minHeight: 6,
+                          backgroundColor: ChColors.neutralN(300),
+                          valueColor: const AlwaysStoppedAnimation(ChColors.accent2),
                         ),
                       ),
-                    const Divider(height: 20),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text('Total Budget', style: ChTextStyles.body(fontSize: 14, fontWeight: FontWeight.w700)),
-                        Text(
-                          formatNaira(json['totalBudget'] as int),
-                          style: ChTextStyles.body(fontSize: 14, fontWeight: FontWeight.w700),
-                        ),
-                      ],
-                    ),
-                    if (goal > 0) ...[
-                      const SizedBox(height: 20),
+                      const SizedBox(height: 14),
+                      Text(json['description'] as String, style: ChTextStyles.body(fontSize: 14)),
+                      const SizedBox(height: 18),
                       Text(
-                        'COMMUNITY FUNDRAISING',
+                        'BUDGET',
                         style: ChTextStyles.body(fontSize: 11, fontWeight: FontWeight.w700, color: ChColors.neutralN(600))
                             .copyWith(letterSpacing: 1),
                       ),
                       const SizedBox(height: 8),
-                      Container(
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(color: ChColors.surface, borderRadius: BorderRadius.circular(ChRadii.card)),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text('${formatNaira(raised)} raised', style: ChTextStyles.body(fontSize: 14, fontWeight: FontWeight.w700)),
-                                Text('of ${formatNaira(goal)}', style: ChTextStyles.body(fontSize: 12, color: ChColors.neutralN(600))),
-                              ],
-                            ),
-                            const SizedBox(height: 8),
-                            ClipRRect(
-                              borderRadius: BorderRadius.circular(ChRadii.pill),
-                              child: LinearProgressIndicator(
-                                value: raisedPct / 100,
-                                minHeight: 8,
-                                backgroundColor: ChColors.neutralN(300),
-                                valueColor: const AlwaysStoppedAnimation(ChColors.accent2),
-                              ),
-                            ),
-                            if (pledged > 0) ...[
-                              const SizedBox(height: 10),
-                              Text(
-                                '${formatNaira(pledged)} pledged by residents',
-                                style: ChTextStyles.body(fontSize: 12.5, color: ChColors.neutralN(600)),
-                              ),
+                      for (final b in budget)
+                        Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 6),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(b['label'] as String, style: ChTextStyles.body(fontSize: 13)),
+                              Text(formatNaira(b['amount'] as int), style: ChTextStyles.body(fontSize: 13, fontWeight: FontWeight.w600)),
                             ],
-                            if (myDonated > 0) ...[
-                              const SizedBox(height: 6),
-                              Text(
-                                'You donated ${formatNaira(myDonated)}',
-                                style: ChTextStyles.body(fontSize: 12.5, fontWeight: FontWeight.w600, color: ChColors.accent2N(700)),
-                              ),
-                            ],
-                            if (myPledged > 0) ...[
-                              const SizedBox(height: 6),
-                              Text(
-                                'You pledged ${formatNaira(myPledged)}',
-                                style: ChTextStyles.body(fontSize: 12.5, fontWeight: FontWeight.w600, color: ChColors.accent2N(700)),
-                              ),
-                            ],
-                            const SizedBox(height: 14),
-                            ChButton(
-                              label: 'Pledge',
-                              onPressed: () => _showPledgeSheet(context, ref, id, json['title'] as String),
-                            ),
-                          ],
+                          ),
                         ),
+                      const Divider(height: 20),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text('Total Budget', style: ChTextStyles.body(fontSize: 14, fontWeight: FontWeight.w700)),
+                          Text(
+                            formatNaira(json['totalBudget'] as int),
+                            style: ChTextStyles.body(fontSize: 14, fontWeight: FontWeight.w700),
+                          ),
+                        ],
                       ),
-                    ],
-                    const SizedBox(height: 20),
-                    Text(
-                      'UPDATES',
-                      style: ChTextStyles.body(fontSize: 11, fontWeight: FontWeight.w700, color: ChColors.neutralN(600))
-                          .copyWith(letterSpacing: 1),
-                    ),
-                    const SizedBox(height: 8),
-                    for (final r in reports)
-                      Padding(
-                        padding: const EdgeInsets.only(bottom: 10),
-                        child: Container(
-                          padding: const EdgeInsets.all(14),
-                          decoration: BoxDecoration(color: ChColors.surface, borderRadius: BorderRadius.circular(ChRadii.md)),
+                      if (allocated > 0) ...[
+                        const SizedBox(height: 20),
+                        Text(
+                          'ESTATE FUNDING',
+                          style: ChTextStyles.body(fontSize: 11, fontWeight: FontWeight.w700, color: ChColors.neutralN(600))
+                              .copyWith(letterSpacing: 1),
+                        ),
+                        const SizedBox(height: 8),
+                        Container(
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(color: ChColors.surface, borderRadius: BorderRadius.circular(ChRadii.card)),
+                          child: Column(
+                            children: [
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text('Allocated from treasury', style: ChTextStyles.body(fontSize: 13)),
+                                  Text(formatNaira(allocated), style: ChTextStyles.body(fontSize: 13, fontWeight: FontWeight.w600)),
+                                ],
+                              ),
+                              const SizedBox(height: 8),
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text('Spent (approved invoices)', style: ChTextStyles.body(fontSize: 13)),
+                                  Text(formatNaira(spent), style: ChTextStyles.body(fontSize: 13, fontWeight: FontWeight.w600)),
+                                ],
+                              ),
+                              const Divider(height: 20),
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text('Remaining', style: ChTextStyles.body(fontSize: 14, fontWeight: FontWeight.w700)),
+                                  Text(
+                                    formatNaira(remaining),
+                                    style: ChTextStyles.body(fontSize: 14, fontWeight: FontWeight.w700, color: ChColors.accent2N(700)),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                      if (goal > 0) ...[
+                        const SizedBox(height: 20),
+                        Text(
+                          'COMMUNITY FUNDRAISING',
+                          style: ChTextStyles.body(fontSize: 11, fontWeight: FontWeight.w700, color: ChColors.neutralN(600))
+                              .copyWith(letterSpacing: 1),
+                        ),
+                        const SizedBox(height: 8),
+                        Container(
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(color: ChColors.surface, borderRadius: BorderRadius.circular(ChRadii.card)),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Row(
                                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                 children: [
-                                  Text(r['author'] as String, style: ChTextStyles.body(fontSize: 12.5, fontWeight: FontWeight.w600)),
-                                  Text(r['date'] as String, style: ChTextStyles.body(fontSize: 12, color: ChColors.neutralN(600))),
+                                  Text('${formatNaira(raised)} raised', style: ChTextStyles.body(fontSize: 14, fontWeight: FontWeight.w700)),
+                                  Text('of ${formatNaira(goal)}', style: ChTextStyles.body(fontSize: 12, color: ChColors.neutralN(600))),
                                 ],
                               ),
-                              const SizedBox(height: 6),
-                              Text(r['text'] as String, style: ChTextStyles.body(fontSize: 13)),
-                              if (r['mediaBase64'] != null) ...[
+                              const SizedBox(height: 8),
+                              ClipRRect(
+                                borderRadius: BorderRadius.circular(ChRadii.pill),
+                                child: LinearProgressIndicator(
+                                  value: raisedPct / 100,
+                                  minHeight: 8,
+                                  backgroundColor: ChColors.neutralN(300),
+                                  valueColor: const AlwaysStoppedAnimation(ChColors.accent2),
+                                ),
+                              ),
+                              if (pledged > 0) ...[
                                 const SizedBox(height: 10),
-                                ChDataMedia(
-                                  dataUrl: r['mediaBase64'] as String,
-                                  height: 140,
-                                  borderRadius: BorderRadius.circular(ChRadii.sm),
+                                Text(
+                                  '${formatNaira(pledged)} pledged by residents',
+                                  style: ChTextStyles.body(fontSize: 12.5, color: ChColors.neutralN(600)),
                                 ),
                               ],
+                              if (myDonated > 0) ...[
+                                const SizedBox(height: 6),
+                                Text(
+                                  'You donated ${formatNaira(myDonated)}',
+                                  style: ChTextStyles.body(fontSize: 12.5, fontWeight: FontWeight.w600, color: ChColors.accent2N(700)),
+                                ),
+                              ],
+                              if (myPledged > 0) ...[
+                                const SizedBox(height: 6),
+                                Text(
+                                  'You pledged ${formatNaira(myPledged)}',
+                                  style: ChTextStyles.body(fontSize: 12.5, fontWeight: FontWeight.w600, color: ChColors.accent2N(700)),
+                                ),
+                              ],
+                              const SizedBox(height: 14),
+                              ChButton(
+                                label: 'Pledge',
+                                onPressed: () => _showPledgeSheet(context, ref, id, json['title'] as String),
+                              ),
                             ],
                           ),
                         ),
+                      ],
+                      const SizedBox(height: 20),
+                      Text(
+                        'UPDATES',
+                        style: ChTextStyles.body(fontSize: 11, fontWeight: FontWeight.w700, color: ChColors.neutralN(600))
+                            .copyWith(letterSpacing: 1),
                       ),
-                  ],
+                      const SizedBox(height: 8),
+                      for (final r in reports)
+                        Padding(
+                          padding: const EdgeInsets.only(bottom: 10),
+                          child: Container(
+                            padding: const EdgeInsets.all(14),
+                            decoration: BoxDecoration(color: ChColors.surface, borderRadius: BorderRadius.circular(ChRadii.md)),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Text(r['author'] as String, style: ChTextStyles.body(fontSize: 12.5, fontWeight: FontWeight.w600)),
+                                    Text(r['date'] as String, style: ChTextStyles.body(fontSize: 12, color: ChColors.neutralN(600))),
+                                  ],
+                                ),
+                                const SizedBox(height: 6),
+                                Text(r['text'] as String, style: ChTextStyles.body(fontSize: 13)),
+                                if (r['mediaBase64'] != null) ...[
+                                  const SizedBox(height: 10),
+                                  ChDataMedia(
+                                    dataUrl: r['mediaBase64'] as String,
+                                    height: 140,
+                                    borderRadius: BorderRadius.circular(ChRadii.sm),
+                                  ),
+                                ],
+                              ],
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
                 ),
               );
             },

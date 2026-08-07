@@ -50,7 +50,15 @@ class GuardShell extends ConsumerWidget {
       // custom Row of gesture widgets, or this shell's body renders blank.
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: navigationShell.currentIndex,
-        onTap: (i) => navigationShell.goBranch(i, initialLocation: i == navigationShell.currentIndex),
+        onTap: (i) {
+          // Clear any stale verification result when switching tabs — otherwise
+          // the preserved navigation stack can land back on /guard/result with
+          // the previous scan's outcome still in state (e.g. "Pass Already Used").
+          if (i != navigationShell.currentIndex) {
+            notifier.resetGuardResult();
+          }
+          navigationShell.goBranch(i, initialLocation: true);
+        },
         type: BottomNavigationBarType.fixed,
         backgroundColor: ChColors.bg,
         selectedItemColor: ChColors.accent2,

@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../features/auth/presentation/pages/estate_code_page.dart';
 import '../../features/auth/presentation/pages/forgot_password_page.dart';
 import '../../features/auth/presentation/pages/force_reset_page.dart';
 import '../../features/auth/presentation/pages/login_page.dart';
@@ -14,6 +15,7 @@ import '../../features/guard/presentation/pages/guard_scan_page.dart';
 import '../../features/guard/presentation/widgets/guard_shell.dart';
 import '../../features/resident/presentation/pages/announcement_detail_page.dart';
 import '../../features/resident/presentation/pages/announcements_page.dart';
+import '../../features/resident/presentation/pages/complaint_log_page.dart';
 import '../../features/resident/presentation/pages/complaint_page.dart';
 import '../../features/resident/presentation/pages/complaint_success_page.dart';
 import '../../features/resident/presentation/pages/dashboard_page.dart';
@@ -51,6 +53,7 @@ final _routerRefreshProvider = Provider<_RouterRefreshNotifier>((ref) {
 });
 
 const _authPaths = {
+  AuthStage.estateCode: '/estate-code',
   AuthStage.login: '/login',
   AuthStage.forgot: '/forgot-password',
   AuthStage.otp: '/otp',
@@ -78,6 +81,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       return null;
     },
     routes: [
+      GoRoute(path: '/estate-code', builder: (_, _) => const EstateCodePage()),
       GoRoute(path: '/login', builder: (_, _) => const LoginPage()),
       GoRoute(path: '/forgot-password', builder: (_, _) => const ForgotPasswordPage()),
       GoRoute(path: '/otp', builder: (_, _) => const OtpPage()),
@@ -105,7 +109,10 @@ final routerProvider = Provider<GoRouter>((ref) {
                   GoRoute(
                     path: 'complaint',
                     builder: (_, _) => const ComplaintPage(),
-                    routes: [GoRoute(path: 'success', builder: (_, _) => const ComplaintSuccessPage())],
+                    routes: [
+                      GoRoute(path: 'success', builder: (_, _) => const ComplaintSuccessPage()),
+                      GoRoute(path: 'log', builder: (_, _) => const ComplaintLogPage()),
+                    ],
                   ),
                   GoRoute(
                     path: 'meetings',

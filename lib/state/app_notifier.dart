@@ -4,12 +4,15 @@ import 'dart:math';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../core/network/api_client.dart';
 import '../core/network/api_exception.dart';
+import '../core/network/estate_storage.dart';
 import '../core/network/token_storage.dart';
 import '../core/push/push_service.dart';
 import '../data/community_hub_api.dart';
 import '../data/models/access_log_entry.dart';
 import '../data/models/announcement.dart';
+import '../data/models/complaint_item.dart';
 import '../data/models/dues_entry.dart';
 import '../data/models/levy.dart';
 import '../data/models/meeting.dart';
@@ -35,14 +38,64 @@ String _roleToApi(Role role) => role == Role.guard ? 'GUARD' : 'RESIDENT';
 String _digitsOnly(String v) => v.replaceAll(RegExp(r'\D'), '');
 
 class AppNotifier extends StateNotifier<AppState> {
-  AppNotifier(this._api, this._tokenStorage, this._ref) : super(AppState()) {
-    _tryAutoLogin();
+  AppNotifier(this._api, this._tokenStorage, this._estateStorage, this._ref) : super(AppState()) {
+    ApiClient.instance.onAccountDeactivated = _handleAccountDeactivated;
+    _bootstrap();
   }
 
   final CommunityHubApi _api;
   final TokenStorage _tokenStorage;
+  final EstateStorage _estateStorage;
   final Ref _ref;
   final _random = Random();
+
+  /// Gate on a validated estate code before anything else — this app is
+  /// shared across estates, so a fresh install doesn't know which estate's
+  /// backend data it should even be logging into. Once an estate has been
+  /// validated once, it's remembered and this step is skipped on future
+  /// launches (see submitEstateCode).
+  Future<void> _bootstrap() async {
+    final estateName = await _estateStorage.readName();
+    if (estateName == null) {
+      state = state.copyWith(authStage: AuthStage.estateCode);
+      return;
+    }
+    state = state.copyWith(estateName: estateName);
+    await _tryAutoLogin();
+  }
+
+  /// A revoked account means this person no longer belongs to this
+  /// estate — the token and estate code are both already cleared from
+  /// storage by ApiClient by the time this fires, so this just resets
+  /// in-memory state and sends them back to "Find your estate" with an
+  /// explanation, ready to enter a different estate's code if they've
+  /// joined one.
+  void _handleAccountDeactivated() {
+    state = AppState(
+      authStage: AuthStage.estateCode,
+      estateCodeError: 'Your access was revoked by your estate admin. Enter an estate code to continue.',
+    );
+  }
+
+  void onEstateCodeChange(String v) => state = state.copyWith(estateCodeInput: v, estateCodeError: '');
+
+  Future<void> submitEstateCode() async {
+    final code = state.estateCodeInput.trim();
+    if (code.isEmpty) {
+      state = state.copyWith(estateCodeError: 'Enter your estate code.');
+      return;
+    }
+    state = state.copyWith(estateCodeLoading: true, estateCodeError: '');
+    try {
+      final result = await _api.lookupEstate(code);
+      final name = result['name'] as String;
+      await _estateStorage.save(code: code, name: name);
+      state = state.copyWith(estateName: name, estateCodeLoading: false);
+      await _tryAutoLogin();
+    } catch (e) {
+      state = state.copyWith(estateCodeLoading: false, estateCodeError: extractMessage(e));
+    }
+  }
 
   Future<void> _registerPushToken() async {
     if (!Platform.isAndroid && !Platform.isIOS) return;
@@ -291,6 +344,11 @@ class AppNotifier extends StateNotifier<AppState> {
   /// in sync with whatever it refetches.
   Future<void> refreshResident() => _bootstrapResident();
 
+  /// Pull-to-refresh for the guard access-log screen — re-runs the same
+  /// fetch bootstrap used at guard login, so the log stays in sync with
+  /// whatever it refetches.
+  Future<void> refreshGuard() => _bootstrapGuard();
+
   /// Re-fetches whenever the app comes back to the foreground (opened from
   /// the app switcher, or from tapping a push notification) — otherwise the
   /// screen just shows whatever was last fetched, possibly stale by then.
@@ -423,7 +481,6 @@ class AppNotifier extends StateNotifier<AppState> {
   void onVfName(String v) => state = state.copyWith(vfName: v);
   void onVfPhone(String v) => state = state.copyWith(vfPhone: v);
   void onVfPlate(String v) => state = state.copyWith(vfPlate: v);
-  void selectValidity(int hours) => state = state.copyWith(vfHours: hours);
 
   /// Returns the new pass's id on success, or null if it failed.
   Future<String?> createVisitorPass() async {
@@ -436,7 +493,6 @@ class AppNotifier extends StateNotifier<AppState> {
         name: state.vfName.trim(),
         phone: state.vfPhone.trim(),
         plate: state.vfPlate.trim().isEmpty ? null : state.vfPlate.trim(),
-        validHours: state.vfHours,
       );
       final pass = VisitorPass.fromJson(json);
       state = state.copyWith(
@@ -450,6 +506,23 @@ class AppNotifier extends StateNotifier<AppState> {
     } catch (e) {
       state = state.copyWith(vfError: extractMessage(e));
       return null;
+    }
+  }
+
+  /// Revokes a visitor pass. The resident can no longer use this pass code.
+  Future<String?> revokeVisitorPass(String id) async {
+    try {
+      final json = await _api.revokeVisitorPass(id);
+      final pass = VisitorPass.fromJson(json);
+      state = state.copyWith(
+        visitorPasses: [
+          for (final p in state.visitorPasses)
+            if (p.id == id) pass else p,
+        ],
+      );
+      return null;
+    } catch (e) {
+      return extractMessage(e);
     }
   }
 
@@ -480,7 +553,11 @@ class AppNotifier extends StateNotifier<AppState> {
       final json = await _api.guardVerify(code);
       final passJson = json['pass'] as Map<String, dynamic>?;
       state = state.copyWith(
-        guardResult: GuardResult(pass: passJson == null ? null : VisitorPass.fromJson(passJson), valid: json['valid'] as bool),
+        guardResult: GuardResult(
+          pass: passJson == null ? null : VisitorPass.fromJson(passJson),
+          valid: json['valid'] as bool,
+          reason: json['reason'] as String?,
+        ),
       );
       return null;
     } catch (e) {
@@ -488,35 +565,62 @@ class AppNotifier extends StateNotifier<AppState> {
     }
   }
 
+  /// Deliberately leaves `guardResult` in state — the caller is still on
+  /// the result page while this runs, and clearing it here would flip that
+  /// page to its "no pass" (Code Not Recognized) branch before navigation
+  /// away has happened. Callers must navigate off the result page first,
+  /// then call `resetGuardResult()`.
   Future<void> recordEntry() async {
     final pass = state.guardResult?.pass;
     if (pass == null) return;
     try {
       await _api.recordEntry(pass.id);
     } catch (_) {
-      // Fall through — still clear the result and refresh the log below.
+      // Fall through — still refresh the log below.
     }
-    state = state.copyWith(guardCode: '', guardResult: null);
     await _bootstrapGuard();
   }
 
+  /// See `recordEntry` — same reasoning for leaving `guardResult` untouched.
   Future<void> recordExit() async {
     final pass = state.guardResult?.pass;
     if (pass == null) return;
     try {
       await _api.recordExit(pass.id);
     } catch (_) {
-      // Fall through — still clear the result and refresh the log below.
+      // Fall through — still refresh the log below.
     }
-    state = state.copyWith(guardCode: '', guardResult: null);
     await _bootstrapGuard();
   }
 
   // ── Notifications / polls / rules / complaints ──────────────────────
+  Future<void> loadComplaints() async {
+    try {
+      final complaints = (await _api.complaints())
+          .map((j) => ComplaintItem.fromJson(j as Map<String, dynamic>))
+          .toList();
+      state = state.copyWith(complaints: complaints);
+    } catch (_) {
+      // Non-critical — the complaint log just stays empty on failure.
+    }
+  }
+
   Future<void> markNotificationsRead() async {
     try {
       await _api.markAllNotificationsRead();
-      state = state.copyWith(allNotifsRead: true);
+      state = state.copyWith(
+        allNotifsRead: true,
+        notifications: [
+          for (final n in state.notifications)
+            NotificationItem(
+              id: n.id,
+              title: n.title,
+              time: n.time,
+              type: n.type,
+              read: true,
+            ),
+        ],
+      );
     } catch (_) {
       // Non-critical.
     }
@@ -568,6 +672,7 @@ class AppNotifier extends StateNotifier<AppState> {
       final result = await _api.submitComplaint(category: state.complaintCategory, description: state.complaintDesc);
       final ref = result['ref'] as String;
       state = state.copyWith(complaintRef: ref, complaintError: '');
+      await loadComplaints();
       return ref;
     } catch (e) {
       state = state.copyWith(complaintError: extractMessage(e));
@@ -577,5 +682,5 @@ class AppNotifier extends StateNotifier<AppState> {
 }
 
 final appStateProvider = StateNotifierProvider<AppNotifier, AppState>(
-  (ref) => AppNotifier(CommunityHubApi(), const TokenStorage(), ref),
+  (ref) => AppNotifier(CommunityHubApi(), const TokenStorage(), const EstateStorage(), ref),
 );

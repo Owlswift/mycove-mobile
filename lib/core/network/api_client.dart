@@ -1,12 +1,22 @@
 import 'dart:io';
 
 import 'package:dio/dio.dart';
+import 'api_exception.dart';
+import 'estate_storage.dart';
 import 'token_storage.dart';
 
 /// iOS Simulator shares the Mac's localhost, so it reaches the API
 /// directly. Android emulators don't — 10.0.2.2 is the standard alias an
-/// Android emulator uses to reach the host machine's localhost.
-String get _baseUrl => Platform.isAndroid ? 'http://10.0.2.2:3000/api' : 'http://localhost:3000/api';
+/// Android emulator uses to reach the host machine's localhost. Neither
+/// alias reaches the dev machine from a physical device on the same
+/// Wi-Fi — pass the Mac's LAN IP explicitly for those, e.g.:
+/// flutter run --dart-define=API_BASE_URL=http://192.168.1.23:3000/api
+const _baseUrlOverride = String.fromEnvironment('API_BASE_URL');
+
+String get _baseUrl {
+  if (_baseUrlOverride.isNotEmpty) return _baseUrlOverride;
+  return Platform.isAndroid ? 'http://10.0.2.2:3000/api' : 'http://localhost:3000/api';
+}
 
 class ApiClient {
   ApiClient._internal() {
@@ -28,6 +38,21 @@ class ApiClient {
           return handler.next(options);
         },
         onError: (error, handler) async {
+          // A revoked/deactivated account is a dead end, not a "try to
+          // refresh" case — the resident (or guard) may no longer belong
+          // to this estate at all, so the local session and the
+          // remembered estate both get wiped. This check runs first and
+          // unconditionally (even for /auth/login and /auth/refresh
+          // themselves) so it's caught however it's discovered: a live
+          // in-app request, a silent background refresh, or a fresh
+          // login attempt.
+          if (extractErrorCode(error) == 'ACCOUNT_DEACTIVATED') {
+            await _tokenStorage.clear();
+            await _estateStorage.clear();
+            onAccountDeactivated?.call();
+            return handler.next(error);
+          }
+
           final isAuthEndpoint = error.requestOptions.path.startsWith('/auth/');
           final alreadyRetried = error.requestOptions.extra['retriedAfterRefresh'] == true;
           if (error.response?.statusCode != 401 || isAuthEndpoint || alreadyRetried) {
@@ -57,7 +82,13 @@ class ApiClient {
   static final ApiClient instance = ApiClient._internal();
 
   final _tokenStorage = const TokenStorage();
+  final _estateStorage = const EstateStorage();
   late final Dio dio;
+
+  /// Set by AppNotifier so it can react in-memory (route back to the
+  /// estate-code screen) the instant a deactivation is detected, instead
+  /// of only taking effect on the next app launch.
+  void Function()? onAccountDeactivated;
 
   Future<String?>? _refreshing;
 

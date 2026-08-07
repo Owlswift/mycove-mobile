@@ -2,6 +2,7 @@ import 'package:intl/intl.dart';
 
 import '../data/models/access_log_entry.dart';
 import '../data/models/announcement.dart';
+import '../data/models/complaint_item.dart';
 import '../data/models/dues_entry.dart';
 import '../data/models/levy.dart';
 import '../data/models/meeting.dart';
@@ -14,7 +15,7 @@ import '../data/models/rules_section.dart';
 import '../data/models/spotlight.dart';
 import '../data/models/visitor_pass.dart';
 
-enum AuthStage { bootstrapping, login, forgot, otp, newPassword, forceReset, app }
+enum AuthStage { bootstrapping, estateCode, login, forgot, otp, newPassword, forceReset, app }
 
 enum Role { resident, guard }
 
@@ -23,10 +24,11 @@ enum PaymentStep { idle, processing, success }
 String formatNaira(int amount) => '₦${NumberFormat('#,##0').format(amount)}';
 
 class GuardResult {
-  const GuardResult({required this.pass, required this.valid});
+  const GuardResult({required this.pass, required this.valid, this.reason});
 
   final VisitorPass? pass;
   final bool valid;
+  final String? reason;
 }
 
 class AppState {
@@ -35,6 +37,10 @@ class AppState {
     this.role = Role.resident,
     this.isLoading = false,
     this.currentUser,
+    this.estateName,
+    this.estateCodeInput = '',
+    this.estateCodeError = '',
+    this.estateCodeLoading = false,
     this.loginPhone = '',
     this.loginPassword = '',
     this.loginError = '',
@@ -54,7 +60,6 @@ class AppState {
     this.vfName = '',
     this.vfPhone = '',
     this.vfPlate = '',
-    this.vfHours = 4,
     this.vfError = '',
     List<VisitorPass>? visitorPasses,
     this.paymentStep = PaymentStep.idle,
@@ -77,6 +82,7 @@ class AppState {
     List<NotificationItem>? notifications,
     List<RulesSection>? rulesSections,
     List<MyPledge>? myPledges,
+    List<ComplaintItem>? complaints,
     this.spotlight,
   }) : visitorPasses = visitorPasses ?? [],
        duesHistory = duesHistory ?? [],
@@ -88,12 +94,18 @@ class AppState {
        polls = polls ?? [],
        notifications = notifications ?? [],
        rulesSections = rulesSections ?? [],
-       myPledges = myPledges ?? [];
+       myPledges = myPledges ?? [],
+       complaints = complaints ?? [];
 
   final AuthStage authStage;
   final Role role;
   final bool isLoading;
   final CurrentUser? currentUser;
+
+  final String? estateName;
+  final String estateCodeInput;
+  final String estateCodeError;
+  final bool estateCodeLoading;
 
   final String loginPhone;
   final String loginPassword;
@@ -117,7 +129,6 @@ class AppState {
   final String vfName;
   final String vfPhone;
   final String vfPlate;
-  final int vfHours;
   final String vfError;
   final List<VisitorPass> visitorPasses;
 
@@ -145,6 +156,7 @@ class AppState {
   final List<Poll> polls;
   final List<RulesSection> rulesSections;
   final List<MyPledge> myPledges;
+  final List<ComplaintItem> complaints;
   final Spotlight? spotlight;
 
   DuesEntry? get lastPayment {
@@ -158,13 +170,17 @@ class AppState {
   String get duesBalanceLabelPre => formatNaira(lastPayment?.amount ?? duesBalance);
   String get receiptAmountLabel => formatNaira(lastPayment?.amount ?? 0);
   String get receiptRef => 'PSK-${lastPayment?.id.toUpperCase() ?? 'N/A'}';
-  int get activePassCount => visitorPasses.where((p) => p.status == VisitorPassStatus.active).length;
+  int get activePassCount => visitorPasses.where((p) => p.isInside).length;
 
   AppState copyWith({
     AuthStage? authStage,
     Role? role,
     bool? isLoading,
     Object? currentUser = _sentinel,
+    Object? estateName = _sentinel,
+    String? estateCodeInput,
+    String? estateCodeError,
+    bool? estateCodeLoading,
     String? loginPhone,
     String? loginPassword,
     String? loginError,
@@ -184,7 +200,6 @@ class AppState {
     String? vfName,
     String? vfPhone,
     String? vfPlate,
-    int? vfHours,
     String? vfError,
     List<VisitorPass>? visitorPasses,
     PaymentStep? paymentStep,
@@ -207,6 +222,7 @@ class AppState {
     List<Poll>? polls,
     List<RulesSection>? rulesSections,
     List<MyPledge>? myPledges,
+    List<ComplaintItem>? complaints,
     Object? spotlight = _sentinel,
   }) {
     return AppState(
@@ -214,6 +230,10 @@ class AppState {
       role: role ?? this.role,
       isLoading: isLoading ?? this.isLoading,
       currentUser: identical(currentUser, _sentinel) ? this.currentUser : currentUser as CurrentUser?,
+      estateName: identical(estateName, _sentinel) ? this.estateName : estateName as String?,
+      estateCodeInput: estateCodeInput ?? this.estateCodeInput,
+      estateCodeError: estateCodeError ?? this.estateCodeError,
+      estateCodeLoading: estateCodeLoading ?? this.estateCodeLoading,
       loginPhone: loginPhone ?? this.loginPhone,
       loginPassword: loginPassword ?? this.loginPassword,
       loginError: loginError ?? this.loginError,
@@ -233,7 +253,6 @@ class AppState {
       vfName: vfName ?? this.vfName,
       vfPhone: vfPhone ?? this.vfPhone,
       vfPlate: vfPlate ?? this.vfPlate,
-      vfHours: vfHours ?? this.vfHours,
       vfError: vfError ?? this.vfError,
       visitorPasses: visitorPasses ?? this.visitorPasses,
       paymentStep: paymentStep ?? this.paymentStep,
@@ -256,6 +275,7 @@ class AppState {
       polls: polls ?? this.polls,
       rulesSections: rulesSections ?? this.rulesSections,
       myPledges: myPledges ?? this.myPledges,
+      complaints: complaints ?? this.complaints,
       spotlight: identical(spotlight, _sentinel) ? this.spotlight : spotlight as Spotlight?,
     );
   }

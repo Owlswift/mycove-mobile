@@ -34,6 +34,23 @@ class ComplaintSuccessPage extends ConsumerWidget {
           ),
           const SizedBox(height: 22),
           GestureDetector(
+            onTap: () {
+              ref.read(appStateProvider.notifier).loadComplaints();
+              context.go('/resident/complaint/log');
+            },
+            child: Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(vertical: 12),
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(colors: [ChColors.accent2, Color(0xff56633f)]),
+                borderRadius: BorderRadius.circular(ChRadii.pill),
+              ),
+              child: Text('View My Complaints', style: ChTextStyles.heading(fontSize: 14, color: ChColors.bg)),
+            ),
+          ),
+          const SizedBox(height: 10),
+          GestureDetector(
             onTap: () => context.go('/resident/profile'),
             child: Container(
               width: double.infinity,

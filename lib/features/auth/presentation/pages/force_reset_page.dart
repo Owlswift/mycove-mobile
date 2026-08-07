@@ -109,6 +109,7 @@ class ForceResetPage extends ConsumerWidget {
               ChButton(
                 label: 'Save & Continue',
                 onPressed: s.isLoading ? null : notifier.completeForceReset,
+                isLoading: s.isLoading,
               ),
             ],
           ),

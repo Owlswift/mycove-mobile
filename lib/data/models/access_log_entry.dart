@@ -6,7 +6,13 @@ String _formatLogTime(String? iso) {
 }
 
 class AccessLogEntry {
-  const AccessLogEntry({required this.id, required this.visitor, required this.entry, this.exit});
+  AccessLogEntry({
+    required this.id,
+    required this.visitor,
+    required this.entry,
+    this.exit,
+    DateTime? entryAt,
+  }) : entryAt = entryAt ?? DateTime.now();
 
   factory AccessLogEntry.fromJson(Map<String, dynamic> json) {
     return AccessLogEntry(
@@ -14,6 +20,7 @@ class AccessLogEntry {
       visitor: json['visitor'] as String,
       entry: _formatLogTime(json['entryAt'] as String?),
       exit: json['exitAt'] == null ? null : _formatLogTime(json['exitAt'] as String),
+      entryAt: json['entryAt'] != null ? DateTime.parse(json['entryAt'] as String) : null,
     );
   }
 
@@ -21,4 +28,5 @@ class AccessLogEntry {
   final String visitor;
   final String entry;
   final String? exit;
+  final DateTime entryAt;
 }

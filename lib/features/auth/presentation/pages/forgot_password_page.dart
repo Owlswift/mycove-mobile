@@ -42,7 +42,7 @@ class ForgotPasswordPage extends ConsumerWidget {
                 keyboardType: TextInputType.phone,
               ),
               const SizedBox(height: 18),
-              ChButton(label: 'Send Code', onPressed: s.isLoading ? null : notifier.sendOtp),
+              ChButton(label: 'Send Code', onPressed: s.isLoading ? null : notifier.sendOtp, isLoading: s.isLoading),
             ],
           ),
         ),

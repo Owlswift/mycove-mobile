@@ -17,11 +17,23 @@ class GuardResultPage extends ConsumerWidget {
     final result = s.guardResult;
     final valid = result?.valid ?? false;
     final pass = result?.pass;
+    final reason = result?.reason;
 
-    final title = pass == null ? 'Code Not Recognized' : (valid ? 'Pass Valid' : 'Pass Expired');
-    final subtitle = pass != null ? '${pass.name} · ${pass.window}' : 'No matching visitor pass found.';
+    final isUsed = reason == 'USED';
+    final title = pass == null
+        ? 'Code Not Recognized'
+        : (valid
+            ? 'Pass Valid'
+            : (isUsed ? 'Pass Already Used' : 'Pass Expired'));
+    final subtitle = pass != null
+        ? '${pass.name} · ${pass.visitLabel}'
+        : 'No matching visitor pass found.';
     final bg = valid ? ChColors.accent2 : ChColors.danger;
     final icon = valid ? Icons.check : Icons.close;
+
+    // First time a code is scanned → show "Record Entry".
+    // If the visitor is already checked in → show "Record Exit" instead.
+    final checkedIn = pass?.checkedIn ?? false;
 
     void backToScanner() {
       notifier.resetGuardResult();
@@ -53,41 +65,42 @@ class GuardResultPage extends ConsumerWidget {
               ],
             ),
           ),
-          if (valid)
+          if (valid && !checkedIn)
             Padding(
               padding: const EdgeInsets.only(bottom: 12),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: GestureDetector(
-                      onTap: () async {
-                        await notifier.recordEntry();
-                        if (context.mounted) context.go('/guard');
-                      },
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                        alignment: Alignment.center,
-                        decoration: BoxDecoration(color: ChColors.accent2, borderRadius: BorderRadius.circular(ChRadii.pill)),
-                        child: Text('Record Entry', style: ChTextStyles.heading(fontSize: 14, color: ChColors.bg)),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: GestureDetector(
-                      onTap: () async {
-                        await notifier.recordExit();
-                        if (context.mounted) context.go('/guard');
-                      },
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                        alignment: Alignment.center,
-                        decoration: BoxDecoration(color: ChColors.surface, borderRadius: BorderRadius.circular(ChRadii.pill)),
-                        child: Text('Record Exit', style: ChTextStyles.heading(fontSize: 14)),
-                      ),
-                    ),
-                  ),
-                ],
+              child: GestureDetector(
+                onTap: () async {
+                  await notifier.recordEntry();
+                  if (!context.mounted) return;
+                  context.go('/guard');
+                  notifier.resetGuardResult();
+                },
+                child: Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(color: ChColors.accent2, borderRadius: BorderRadius.circular(ChRadii.pill)),
+                  child: Text('Record Entry', style: ChTextStyles.heading(fontSize: 14, color: ChColors.bg)),
+                ),
+              ),
+            ),
+          if (valid && checkedIn)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: GestureDetector(
+                onTap: () async {
+                  await notifier.recordExit();
+                  if (!context.mounted) return;
+                  context.go('/guard');
+                  notifier.resetGuardResult();
+                },
+                child: Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(color: ChColors.accent2, borderRadius: BorderRadius.circular(ChRadii.pill)),
+                  child: Text('Record Exit', style: ChTextStyles.heading(fontSize: 14, color: ChColors.bg)),
+                ),
               ),
             ),
           GestureDetector(

@@ -13,12 +13,14 @@ class ChButton extends StatelessWidget {
     required this.onPressed,
     this.variant = ChButtonVariant.primary,
     this.expand = true,
+    this.isLoading = false,
   });
 
   final String label;
   final VoidCallback? onPressed;
   final ChButtonVariant variant;
   final bool expand;
+  final bool isLoading;
 
   @override
   Widget build(BuildContext context) {
@@ -38,14 +40,23 @@ class ChButton extends StatelessWidget {
         color: isPrimary ? null : ChColors.surface,
         borderRadius: BorderRadius.circular(ChRadii.pill),
       ),
-      child: Text(
-        label,
-        style: ChTextStyles.heading(fontSize: 14, color: isPrimary ? ChColors.bg : ChColors.text),
-      ),
+      child: isLoading
+          ? const SizedBox(
+              height: 20,
+              width: 20,
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                valueColor: AlwaysStoppedAnimation<Color>(ChColors.bg),
+              ),
+            )
+          : Text(
+              label,
+              style: ChTextStyles.heading(fontSize: 14, color: isPrimary ? ChColors.bg : ChColors.text),
+            ),
     );
 
     return GestureDetector(
-      onTap: onPressed,
+      onTap: isLoading ? null : onPressed,
       child: Opacity(opacity: onPressed == null ? 0.45 : 1, child: child),
     );
   }

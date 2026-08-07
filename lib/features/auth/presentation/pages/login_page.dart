@@ -35,7 +35,10 @@ class LoginPage extends ConsumerWidget {
               const SizedBox(height: 20),
               Text('CommunityHub', style: ChTextStyles.heading(fontSize: 28)),
               const SizedBox(height: 4),
-              Text('Palm Court Estate', style: ChTextStyles.body(fontSize: 14, color: ChColors.neutralN(600))),
+              Text(
+                s.estateName ?? 'Palm Court Estate',
+                style: ChTextStyles.body(fontSize: 14, color: ChColors.neutralN(600)),
+              ),
               const SizedBox(height: 24),
               ChPillTabs(
                 options: [
@@ -75,7 +78,7 @@ class LoginPage extends ConsumerWidget {
                 Text(s.loginError, style: ChTextStyles.body(fontSize: 13, color: ChColors.danger)),
                 const SizedBox(height: 12),
               ],
-              ChButton(label: 'Log In', onPressed: s.isLoading ? null : notifier.doLogin),
+              ChButton(label: 'Log In', onPressed: s.isLoading ? null : notifier.doLogin, isLoading: s.isLoading),
               const SizedBox(height: 18),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),

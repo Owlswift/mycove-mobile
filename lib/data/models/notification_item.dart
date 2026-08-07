@@ -15,6 +15,7 @@ class NotificationItem {
     required this.title,
     required this.time,
     required this.type,
+    required this.read,
   });
 
   factory NotificationItem.fromJson(Map<String, dynamic> json) {
@@ -23,6 +24,7 @@ class NotificationItem {
       title: json['title'] as String,
       time: relativeTime(DateTime.parse(json['createdAt'] as String)),
       type: json['type'] as String,
+      read: json['readAt'] != null,
     );
   }
 
@@ -30,4 +32,5 @@ class NotificationItem {
   final String title;
   final String time;
   final String type; // announcement | meeting | visitor | project | payment
+  final bool read;
 }

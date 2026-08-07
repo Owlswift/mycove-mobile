@@ -66,9 +66,13 @@ class ProfilePage extends ConsumerWidget {
                     children: [
                       _linkRow(context, icon: Icons.poll_outlined, label: 'Polls', showBorder: true, onTap: () => context.push('/resident/polls')),
                       _linkRow(context, icon: Icons.menu_book_outlined, label: 'Rules & Regulations', showBorder: true, onTap: () => context.push('/resident/rules')),
-                      _linkRow(context, icon: Icons.report_gmailerrorred_outlined, label: 'Submit a Complaint', onTap: () {
+                      _linkRow(context, icon: Icons.report_gmailerrorred_outlined, label: 'Submit a Complaint', showBorder: true, onTap: () {
                         notifier.resetComplaintForm();
                         context.push('/resident/complaint');
+                      }),
+                      _linkRow(context, icon: Icons.history_outlined, label: 'My Complaints', onTap: () {
+                        notifier.loadComplaints();
+                        context.push('/resident/complaint/log');
                       }),
                     ],
                   ),

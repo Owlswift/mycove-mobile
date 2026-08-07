@@ -47,7 +47,7 @@ class NewPasswordPage extends ConsumerWidget {
                 Text(s.resetMsg, style: ChTextStyles.body(fontSize: 13, color: ChColors.danger)),
                 const SizedBox(height: 12),
               ],
-              ChButton(label: 'Reset Password', onPressed: s.isLoading ? null : notifier.submitNewPassword),
+              ChButton(label: 'Reset Password', onPressed: s.isLoading ? null : notifier.submitNewPassword, isLoading: s.isLoading),
             ],
           ),
         ),

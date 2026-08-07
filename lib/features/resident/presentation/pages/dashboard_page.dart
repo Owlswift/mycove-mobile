@@ -49,10 +49,7 @@ class DashboardPage extends ConsumerWidget {
                 ),
               ),
               GestureDetector(
-                onTap: () {
-                  notifier.markNotificationsRead();
-                  context.push('/resident/notifications');
-                },
+                onTap: () => context.push('/resident/notifications'),
                 child: Container(
                   width: 38,
                   height: 38,

@@ -11,6 +11,9 @@ class CommunityHubApi {
   Map<String, dynamic> _map(Response r) => r.data as Map<String, dynamic>;
   List<dynamic> _list(Response r) => r.data as List<dynamic>;
 
+  // ── Estate (pre-login) ───────────────────────────────────────────────
+  Future<Map<String, dynamic>> lookupEstate(String code) async => _map(await _dio.get('/estates/$code'));
+
   // ── Auth ──────────────────────────────────────────────────────────────
   Future<Map<String, dynamic>> login({
     required String phone,
@@ -90,12 +93,15 @@ class CommunityHubApi {
     required String name,
     required String phone,
     String? plate,
-    required int validHours,
+    int? validHours,
   }) async => _map(
-    await _dio.post('/visitor-passes', data: {'name': name, 'phone': phone, 'plate': plate, 'validHours': validHours}),
+    await _dio.post('/visitor-passes', data: {'name': name, 'phone': phone, 'plate': plate, 'validHours': ?validHours}),
   );
 
   Future<Map<String, dynamic>> visitorPass(String id) async => _map(await _dio.get('/visitor-passes/$id'));
+
+  Future<Map<String, dynamic>> revokeVisitorPass(String id) async =>
+      _map(await _dio.patch('/visitor-passes/$id/revoke'));
 
   // ── Visitor passes (guard) ───────────────────────────────────────────
   Future<Map<String, dynamic>> guardVerify(String code) async =>
@@ -131,6 +137,7 @@ class CommunityHubApi {
   Future<List<dynamic>> rules() async => _list(await _dio.get('/rules'));
 
   // ── Complaints ────────────────────────────────────────────────────────
+  Future<List<dynamic>> complaints() async => _list(await _dio.get('/complaints'));
   Future<Map<String, dynamic>> submitComplaint({required String category, required String description}) async =>
       _map(await _dio.post('/complaints', data: {'category': category, 'description': description}));
 

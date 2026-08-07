@@ -13,9 +13,25 @@ class NotificationsPage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final s = ref.watch(appStateProvider);
+    final notifier = ref.read(appStateProvider.notifier);
+    final hasUnread = s.notifications.any((n) => !n.read);
+    
     return Column(
       children: [
-        const ChGenericHeader(title: 'Notifications'),
+        ChGenericHeader(
+          title: 'Notifications',
+          trailing: hasUnread
+              ? GestureDetector(
+                  onTap: () async {
+                    await notifier.markNotificationsRead();
+                  },
+                  child: Text(
+                    'Mark all as read',
+                    style: ChTextStyles.body(fontSize: 13, fontWeight: FontWeight.w600, color: ChColors.accentN(700)),
+                  ),
+                )
+              : null,
+        ),
         Expanded(
           child: RefreshIndicator(
             onRefresh: ref.read(appStateProvider.notifier).refreshResident,
@@ -30,7 +46,11 @@ class NotificationsPage extends ConsumerWidget {
                 padding: const EdgeInsets.only(bottom: 10),
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                  decoration: BoxDecoration(color: ChColors.surface, borderRadius: BorderRadius.circular(ChRadii.md)),
+                  decoration: BoxDecoration(
+                    color: ChColors.surface,
+                    borderRadius: BorderRadius.circular(ChRadii.md),
+                    border: n.read ? null : Border.all(color: ChColors.accentN(300), width: 1),
+                  ),
                   child: Row(
                     children: [
                       Container(
@@ -52,12 +72,26 @@ class NotificationsPage extends ConsumerWidget {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(n.title, style: ChTextStyles.body(fontSize: 14, fontWeight: FontWeight.w600)),
+                            Text(
+                              n.title,
+                              style: ChTextStyles.body(
+                                fontSize: 14,
+                                fontWeight: n.read ? FontWeight.w500 : FontWeight.w700,
+                                color: n.read ? ChColors.neutralN(600) : ChColors.text,
+                              ),
+                            ),
                             const SizedBox(height: 3),
                             Text(n.time, style: ChTextStyles.body(fontSize: 12.5, color: ChColors.neutralN(600))),
                           ],
                         ),
                       ),
+                      if (!n.read)
+                        Container(
+                          width: 8,
+                          height: 8,
+                          margin: const EdgeInsets.only(left: 8),
+                          decoration: const BoxDecoration(color: ChColors.accent, shape: BoxShape.circle),
+                        ),
                     ],
                   ),
                 ),

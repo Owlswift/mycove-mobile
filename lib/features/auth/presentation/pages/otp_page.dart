@@ -51,7 +51,7 @@ class OtpPage extends ConsumerWidget {
                 Text(s.resetMsg, style: ChTextStyles.body(fontSize: 13, color: ChColors.danger)),
                 const SizedBox(height: 12),
               ],
-              ChButton(label: 'Verify Code', onPressed: s.isLoading ? null : notifier.verifyOtp),
+              ChButton(label: 'Verify Code', onPressed: s.isLoading ? null : notifier.verifyOtp, isLoading: s.isLoading),
             ],
           ),
         ),

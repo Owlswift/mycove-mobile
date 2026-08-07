@@ -38,15 +38,15 @@ class ChTheme {
         fillColor: ChColors.surface,
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(ChRadii.pill),
+          borderRadius: BorderRadius.circular(ChRadii.sm),
           borderSide: BorderSide(color: ChColors.divider),
         ),
         enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(ChRadii.pill),
+          borderRadius: BorderRadius.circular(ChRadii.sm),
           borderSide: BorderSide(color: ChColors.divider),
         ),
         focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(ChRadii.pill),
+          borderRadius: BorderRadius.circular(ChRadii.sm),
           borderSide: const BorderSide(color: ChColors.accent),
         ),
         hintStyle: ChTextStyles.body(color: ChColors.neutralN(600)),

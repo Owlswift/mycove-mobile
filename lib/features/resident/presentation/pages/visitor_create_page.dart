@@ -5,11 +5,8 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/theme/ch_colors.dart';
 import '../../../../core/widgets/ch_button.dart';
 import '../../../../core/widgets/ch_generic_header.dart';
-import '../../../../core/widgets/ch_pill_tabs.dart';
 import '../../../../core/widgets/ch_text_field.dart';
 import '../../../../state/app_notifier.dart';
-
-const _validityChoices = [(hours: 4, label: '4 hrs'), (hours: 24, label: '1 day'), (hours: 72, label: '3 days')];
 
 class VisitorCreatePage extends ConsumerWidget {
   const VisitorCreatePage({super.key});
@@ -43,19 +40,6 @@ class VisitorCreatePage extends ConsumerWidget {
                   value: s.vfPlate,
                   onChanged: notifier.onVfPlate,
                   placeholder: 'e.g. LND 442 KJ',
-                ),
-                const SizedBox(height: 8),
-                Text('Valid for', style: TextStyle(fontSize: 12, color: ChColors.text.withValues(alpha: 0.7))),
-                const SizedBox(height: 8),
-                ChPillTabs(
-                  options: [
-                    for (final v in _validityChoices)
-                      ChPillTabOption(
-                        label: v.label,
-                        selected: s.vfHours == v.hours,
-                        onSelect: () => notifier.selectValidity(v.hours),
-                      ),
-                  ],
                 ),
                 const SizedBox(height: 20),
                 if (s.vfError.isNotEmpty) ...[
