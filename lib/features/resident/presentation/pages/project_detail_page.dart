@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/theme/ch_colors.dart';
+import '../../../../core/theme/ch_responsive.dart';
 import '../../../../core/theme/ch_spacing.dart';
 import '../../../../core/theme/ch_text_styles.dart';
 import '../../../../core/widgets/ch_button.dart';
@@ -30,7 +31,7 @@ class ProjectDetailPage extends ConsumerWidget {
             error: (e, _) => Center(
               child: Text(
                 'Could not load this project.',
-                style: ChTextStyles.body(fontSize: 14, color: ChColors.neutralN(600)),
+                style: ChTextStyles.body(fontSize: 14, color: ChColors.bodyText),
               ),
             ),
             data: (json) {
@@ -62,7 +63,7 @@ class ProjectDetailPage extends ConsumerWidget {
                           padding: const EdgeInsets.only(bottom: 14),
                           child: ChDataMedia(
                             dataUrl: mediaBase64,
-                            height: 160,
+                            height: context.rs(160),
                             borderRadius: BorderRadius.circular(ChRadii.card),
                           ),
                         ),
@@ -101,7 +102,7 @@ class ProjectDetailPage extends ConsumerWidget {
                       const SizedBox(height: 18),
                       Text(
                         'BUDGET',
-                        style: ChTextStyles.body(fontSize: 11, fontWeight: FontWeight.w700, color: ChColors.neutralN(600))
+                        style: ChTextStyles.body(fontSize: 11, fontWeight: FontWeight.w700, color: ChColors.bodyText)
                             .copyWith(letterSpacing: 1),
                       ),
                       const SizedBox(height: 8),
@@ -131,7 +132,7 @@ class ProjectDetailPage extends ConsumerWidget {
                         const SizedBox(height: 20),
                         Text(
                           'ESTATE FUNDING',
-                          style: ChTextStyles.body(fontSize: 11, fontWeight: FontWeight.w700, color: ChColors.neutralN(600))
+                          style: ChTextStyles.body(fontSize: 11, fontWeight: FontWeight.w700, color: ChColors.bodyText)
                               .copyWith(letterSpacing: 1),
                         ),
                         const SizedBox(height: 8),
@@ -174,7 +175,7 @@ class ProjectDetailPage extends ConsumerWidget {
                         const SizedBox(height: 20),
                         Text(
                           'COMMUNITY FUNDRAISING',
-                          style: ChTextStyles.body(fontSize: 11, fontWeight: FontWeight.w700, color: ChColors.neutralN(600))
+                          style: ChTextStyles.body(fontSize: 11, fontWeight: FontWeight.w700, color: ChColors.bodyText)
                               .copyWith(letterSpacing: 1),
                         ),
                         const SizedBox(height: 8),
@@ -188,7 +189,7 @@ class ProjectDetailPage extends ConsumerWidget {
                                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                 children: [
                                   Text('${formatNaira(raised)} raised', style: ChTextStyles.body(fontSize: 14, fontWeight: FontWeight.w700)),
-                                  Text('of ${formatNaira(goal)}', style: ChTextStyles.body(fontSize: 12, color: ChColors.neutralN(600))),
+                                  Text('of ${formatNaira(goal)}', style: ChTextStyles.body(fontSize: 12, color: ChColors.bodyText)),
                                 ],
                               ),
                               const SizedBox(height: 8),
@@ -205,7 +206,7 @@ class ProjectDetailPage extends ConsumerWidget {
                                 const SizedBox(height: 10),
                                 Text(
                                   '${formatNaira(pledged)} pledged by residents',
-                                  style: ChTextStyles.body(fontSize: 12.5, color: ChColors.neutralN(600)),
+                                  style: ChTextStyles.body(fontSize: 12.5, color: ChColors.bodyText),
                                 ),
                               ],
                               if (myDonated > 0) ...[
@@ -234,7 +235,7 @@ class ProjectDetailPage extends ConsumerWidget {
                       const SizedBox(height: 20),
                       Text(
                         'UPDATES',
-                        style: ChTextStyles.body(fontSize: 11, fontWeight: FontWeight.w700, color: ChColors.neutralN(600))
+                        style: ChTextStyles.body(fontSize: 11, fontWeight: FontWeight.w700, color: ChColors.bodyText)
                             .copyWith(letterSpacing: 1),
                       ),
                       const SizedBox(height: 8),
@@ -251,7 +252,7 @@ class ProjectDetailPage extends ConsumerWidget {
                                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                   children: [
                                     Text(r['author'] as String, style: ChTextStyles.body(fontSize: 12.5, fontWeight: FontWeight.w600)),
-                                    Text(r['date'] as String, style: ChTextStyles.body(fontSize: 12, color: ChColors.neutralN(600))),
+                                    Text(r['date'] as String, style: ChTextStyles.body(fontSize: 12, color: ChColors.bodyText)),
                                   ],
                                 ),
                                 const SizedBox(height: 6),
@@ -260,7 +261,7 @@ class ProjectDetailPage extends ConsumerWidget {
                                   const SizedBox(height: 10),
                                   ChDataMedia(
                                     dataUrl: r['mediaBase64'] as String,
-                                    height: 140,
+                                    height: context.rs(140),
                                     borderRadius: BorderRadius.circular(ChRadii.sm),
                                   ),
                                 ],
@@ -321,7 +322,7 @@ class _PledgeSheetState extends ConsumerState<_PledgeSheet> {
             const SizedBox(height: 8),
             Text(
               'We\'ll remind you about it when it\'s time.',
-              style: ChTextStyles.body(fontSize: 13, color: ChColors.neutralN(600)),
+              style: ChTextStyles.body(fontSize: 13, color: ChColors.bodyText),
               textAlign: TextAlign.center,
             ),
           ],
@@ -339,7 +340,7 @@ class _PledgeSheetState extends ConsumerState<_PledgeSheet> {
           const SizedBox(height: 6),
           Text(
             'A pledge is a commitment to donate. Pay the estate whenever you\'re ready — once received, it\'ll be marked as your donation.',
-            style: ChTextStyles.body(fontSize: 12.5, color: ChColors.neutralN(600)),
+            style: ChTextStyles.body(fontSize: 12.5, color: ChColors.bodyText),
           ),
           const SizedBox(height: 16),
           ChTextField(

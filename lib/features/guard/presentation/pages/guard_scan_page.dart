@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/theme/ch_colors.dart';
+import '../../../../core/theme/ch_responsive.dart';
 import '../../../../core/theme/ch_spacing.dart';
 import '../../../../core/theme/ch_text_styles.dart';
 import '../../../../core/widgets/ch_button.dart';
@@ -20,7 +21,7 @@ class GuardScanPage extends ConsumerWidget {
       child: Column(
         children: [
           Container(
-            height: 220,
+            height: context.rs(220),
             width: double.infinity,
             alignment: Alignment.center,
             margin: const EdgeInsets.only(bottom: 18),
@@ -29,8 +30,8 @@ class GuardScanPage extends ConsumerWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Container(
-                  width: 150,
-                  height: 150,
+                  width: context.rs(150),
+                  height: context.rs(150),
                   decoration: BoxDecoration(
                     border: Border.all(color: ChColors.accentN(400), width: 2.5),
                     borderRadius: BorderRadius.circular(ChRadii.md),

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../theme/ch_responsive.dart';
 import '../theme/ch_spacing.dart';
 import '../theme/ch_text_styles.dart';
 
@@ -20,7 +21,10 @@ class ChTag extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+      padding: EdgeInsets.symmetric(
+        horizontal: context.rs(10),
+        vertical: context.rs(3),
+      ),
       decoration: BoxDecoration(color: background, borderRadius: BorderRadius.circular(ChRadii.pill)),
       child: Text(
         uppercase ? label.toUpperCase() : label,

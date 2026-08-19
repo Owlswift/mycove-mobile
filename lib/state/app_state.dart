@@ -12,10 +12,25 @@ import '../data/models/person.dart';
 import '../data/models/poll.dart';
 import '../data/models/project.dart';
 import '../data/models/rules_section.dart';
+import '../data/models/session_info.dart';
 import '../data/models/spotlight.dart';
 import '../data/models/visitor_pass.dart';
 
-enum AuthStage { bootstrapping, welcome, estateCode, login, forgot, otp, newPassword, forceReset, app }
+enum AuthStage {
+  bootstrapping,
+  welcome,
+  estateCode,
+  estateFound,
+  login,
+  forgot,
+  otp,
+  newPassword,
+  resetSuccess,
+  forceReset,
+  onboardingComplete,
+  app,
+  locked,
+}
 
 enum Role { resident, guard }
 
@@ -36,14 +51,24 @@ class AppState {
     this.authStage = AuthStage.bootstrapping,
     this.role = Role.resident,
     this.isLoading = false,
+    this.biometricEnabled = false,
+    this.biometricAvailable = false,
     this.currentUser,
     this.estateName,
+    this.estateAddress,
+    this.estateLocked = false,
     this.estateCodeInput = '',
     this.estateCodeError = '',
     this.estateCodeLoading = false,
+    this.pendingEstateCode,
+    this.pendingEstateName,
+    this.pendingEstateAddress,
+    this.pendingEstateManagedBy,
+    this.pendingEstateResidentCount,
     this.loginPhone = '',
     this.loginPassword = '',
     this.loginError = '',
+    this.rememberMe = true,
     this.forgotPhone = '',
     this.otpCode = '',
     this.devOtp,
@@ -83,8 +108,10 @@ class AppState {
     List<RulesSection>? rulesSections,
     List<MyPledge>? myPledges,
     List<ComplaintItem>? complaints,
+    List<SessionInfo>? sessions,
     this.spotlight,
   }) : visitorPasses = visitorPasses ?? [],
+       sessions = sessions ?? [],
        duesHistory = duesHistory ?? [],
        accessLog = accessLog ?? [],
        levies = levies ?? [],
@@ -100,16 +127,46 @@ class AppState {
   final AuthStage authStage;
   final Role role;
   final bool isLoading;
+
+  /// Whether this resident/guard has opted into Face ID/Touch ID unlock,
+  /// and whether this device even supports it (drives whether the toggle
+  /// shows on the profile page at all).
+  final bool biometricEnabled;
+  final bool biometricAvailable;
   final CurrentUser? currentUser;
 
   final String? estateName;
+  final String? estateAddress;
+
+  /// True once this resident/guard has actually authenticated against this
+  /// estate — a successful login, onboarding, or password reset — as
+  /// opposed to merely having entered/confirmed an estate code. Once set,
+  /// this device is considered bound to that estate and the "Change"
+  /// option on the login screen stops being offered.
+  final bool estateLocked;
   final String estateCodeInput;
   final String estateCodeError;
   final bool estateCodeLoading;
 
+  /// Set once [submitEstateCode] finds a match, cleared once the resident
+  /// either confirms (→ actually persisted via EstateStorage) or backs out
+  /// to try a different code — this is deliberately separate from
+  /// [estateName]/[estateCodeInput] so nothing is committed to storage
+  /// until the "Estate found" screen is confirmed.
+  final String? pendingEstateCode;
+  final String? pendingEstateName;
+  final String? pendingEstateAddress;
+  final String? pendingEstateManagedBy;
+  final int? pendingEstateResidentCount;
+
   final String loginPhone;
   final String loginPassword;
   final String loginError;
+
+  /// Off means only the access token gets persisted, not the refresh
+  /// token (see AppNotifier.doLogin) — the session then dies with the
+  /// 15-minute access token instead of silently renewing indefinitely.
+  final bool rememberMe;
 
   final String forgotPhone;
   final String otpCode;
@@ -157,6 +214,7 @@ class AppState {
   final List<RulesSection> rulesSections;
   final List<MyPledge> myPledges;
   final List<ComplaintItem> complaints;
+  final List<SessionInfo> sessions;
   final Spotlight? spotlight;
 
   DuesEntry? get lastPayment {
@@ -167,7 +225,8 @@ class AppState {
   }
 
   String get duesBalanceLabel => formatNaira(duesBalance);
-  String get duesBalanceLabelPre => formatNaira(lastPayment?.amount ?? duesBalance);
+  String get duesBalanceLabelPre =>
+      formatNaira(lastPayment?.amount ?? duesBalance);
   String get receiptAmountLabel => formatNaira(lastPayment?.amount ?? 0);
   String get receiptRef => 'PSK-${lastPayment?.id.toUpperCase() ?? 'N/A'}';
   int get activePassCount => visitorPasses.where((p) => p.isInside).length;
@@ -176,14 +235,24 @@ class AppState {
     AuthStage? authStage,
     Role? role,
     bool? isLoading,
+    bool? biometricEnabled,
+    bool? biometricAvailable,
     Object? currentUser = _sentinel,
     Object? estateName = _sentinel,
+    Object? estateAddress = _sentinel,
+    bool? estateLocked,
     String? estateCodeInput,
     String? estateCodeError,
     bool? estateCodeLoading,
+    Object? pendingEstateCode = _sentinel,
+    Object? pendingEstateName = _sentinel,
+    Object? pendingEstateAddress = _sentinel,
+    Object? pendingEstateManagedBy = _sentinel,
+    Object? pendingEstateResidentCount = _sentinel,
     String? loginPhone,
     String? loginPassword,
     String? loginError,
+    bool? rememberMe,
     String? forgotPhone,
     String? otpCode,
     Object? devOtp = _sentinel,
@@ -223,32 +292,64 @@ class AppState {
     List<RulesSection>? rulesSections,
     List<MyPledge>? myPledges,
     List<ComplaintItem>? complaints,
+    List<SessionInfo>? sessions,
     Object? spotlight = _sentinel,
   }) {
     return AppState(
       authStage: authStage ?? this.authStage,
       role: role ?? this.role,
       isLoading: isLoading ?? this.isLoading,
-      currentUser: identical(currentUser, _sentinel) ? this.currentUser : currentUser as CurrentUser?,
-      estateName: identical(estateName, _sentinel) ? this.estateName : estateName as String?,
+      biometricEnabled: biometricEnabled ?? this.biometricEnabled,
+      biometricAvailable: biometricAvailable ?? this.biometricAvailable,
+      currentUser: identical(currentUser, _sentinel)
+          ? this.currentUser
+          : currentUser as CurrentUser?,
+      estateName: identical(estateName, _sentinel)
+          ? this.estateName
+          : estateName as String?,
+      estateAddress: identical(estateAddress, _sentinel)
+          ? this.estateAddress
+          : estateAddress as String?,
+      estateLocked: estateLocked ?? this.estateLocked,
       estateCodeInput: estateCodeInput ?? this.estateCodeInput,
       estateCodeError: estateCodeError ?? this.estateCodeError,
       estateCodeLoading: estateCodeLoading ?? this.estateCodeLoading,
+      pendingEstateCode: identical(pendingEstateCode, _sentinel)
+          ? this.pendingEstateCode
+          : pendingEstateCode as String?,
+      pendingEstateName: identical(pendingEstateName, _sentinel)
+          ? this.pendingEstateName
+          : pendingEstateName as String?,
+      pendingEstateAddress: identical(pendingEstateAddress, _sentinel)
+          ? this.pendingEstateAddress
+          : pendingEstateAddress as String?,
+      pendingEstateManagedBy: identical(pendingEstateManagedBy, _sentinel)
+          ? this.pendingEstateManagedBy
+          : pendingEstateManagedBy as String?,
+      pendingEstateResidentCount:
+          identical(pendingEstateResidentCount, _sentinel)
+          ? this.pendingEstateResidentCount
+          : pendingEstateResidentCount as int?,
       loginPhone: loginPhone ?? this.loginPhone,
       loginPassword: loginPassword ?? this.loginPassword,
       loginError: loginError ?? this.loginError,
+      rememberMe: rememberMe ?? this.rememberMe,
       forgotPhone: forgotPhone ?? this.forgotPhone,
       otpCode: otpCode ?? this.otpCode,
       devOtp: identical(devOtp, _sentinel) ? this.devOtp : devOtp as String?,
-      resetToken: identical(resetToken, _sentinel) ? this.resetToken : resetToken as String?,
+      resetToken: identical(resetToken, _sentinel)
+          ? this.resetToken
+          : resetToken as String?,
       newPass1: newPass1 ?? this.newPass1,
       newPass2: newPass2 ?? this.newPass2,
       resetMsg: resetMsg ?? this.resetMsg,
       setupFullName: setupFullName ?? this.setupFullName,
       setupHouse: setupHouse ?? this.setupHouse,
       setupEmail: setupEmail ?? this.setupEmail,
-      setupEmergencyContactName: setupEmergencyContactName ?? this.setupEmergencyContactName,
-      setupEmergencyContactPhone: setupEmergencyContactPhone ?? this.setupEmergencyContactPhone,
+      setupEmergencyContactName:
+          setupEmergencyContactName ?? this.setupEmergencyContactName,
+      setupEmergencyContactPhone:
+          setupEmergencyContactPhone ?? this.setupEmergencyContactPhone,
       setupVehiclePlates: setupVehiclePlates ?? this.setupVehiclePlates,
       vfName: vfName ?? this.vfName,
       vfPhone: vfPhone ?? this.vfPhone,
@@ -256,11 +357,15 @@ class AppState {
       vfError: vfError ?? this.vfError,
       visitorPasses: visitorPasses ?? this.visitorPasses,
       paymentStep: paymentStep ?? this.paymentStep,
-      paymentReference: identical(paymentReference, _sentinel) ? this.paymentReference : paymentReference as String?,
+      paymentReference: identical(paymentReference, _sentinel)
+          ? this.paymentReference
+          : paymentReference as String?,
       duesBalance: duesBalance ?? this.duesBalance,
       duesHistory: duesHistory ?? this.duesHistory,
       guardCode: guardCode ?? this.guardCode,
-      guardResult: identical(guardResult, _sentinel) ? this.guardResult : guardResult as GuardResult?,
+      guardResult: identical(guardResult, _sentinel)
+          ? this.guardResult
+          : guardResult as GuardResult?,
       accessLog: accessLog ?? this.accessLog,
       allNotifsRead: allNotifsRead ?? this.allNotifsRead,
       notifications: notifications ?? this.notifications,
@@ -276,7 +381,10 @@ class AppState {
       rulesSections: rulesSections ?? this.rulesSections,
       myPledges: myPledges ?? this.myPledges,
       complaints: complaints ?? this.complaints,
-      spotlight: identical(spotlight, _sentinel) ? this.spotlight : spotlight as Spotlight?,
+      sessions: sessions ?? this.sessions,
+      spotlight: identical(spotlight, _sentinel)
+          ? this.spotlight
+          : spotlight as Spotlight?,
     );
   }
 }

@@ -26,7 +26,7 @@ class AnnouncementDetailPage extends ConsumerWidget {
             error: (e, _) => Center(
               child: Text(
                 'Could not load this announcement.',
-                style: ChTextStyles.body(fontSize: 14, color: ChColors.neutralN(600)),
+                style: ChTextStyles.body(fontSize: 14, color: ChColors.bodyText),
               ),
             ),
             data: (json) => SingleChildScrollView(
@@ -44,7 +44,7 @@ class AnnouncementDetailPage extends ConsumerWidget {
                       const SizedBox(width: 8),
                       Text(
                         DateFormat('d MMM').format(DateTime.parse(json['publishedAt'] as String)),
-                        style: ChTextStyles.body(fontSize: 12, color: ChColors.neutralN(600)),
+                        style: ChTextStyles.body(fontSize: 12, color: ChColors.bodyText),
                       ),
                     ],
                   ),

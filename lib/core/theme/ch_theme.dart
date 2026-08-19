@@ -49,7 +49,7 @@ class ChTheme {
           borderRadius: BorderRadius.circular(ChRadii.button),
           borderSide: const BorderSide(color: ChColors.accent2, width: 1.5),
         ),
-        hintStyle: ChTextStyles.body(color: ChColors.neutralN(600)),
+        hintStyle: ChTextStyles.body(color: ChColors.bodyText),
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
@@ -66,7 +66,7 @@ class ChTheme {
         titleLarge: ChTextStyles.heading(fontSize: 19),
         bodyLarge: ChTextStyles.body(fontSize: 15),
         bodyMedium: ChTextStyles.body(fontSize: 14),
-        bodySmall: ChTextStyles.body(fontSize: 12, color: ChColors.neutralN(600)),
+        bodySmall: ChTextStyles.body(fontSize: 12, color: ChColors.bodyText),
       ),
       dividerTheme: const DividerThemeData(color: ChColors.divider, thickness: 1),
     );

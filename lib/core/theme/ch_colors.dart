@@ -11,12 +11,28 @@ import 'package:flutter/material.dart';
 class ChColors {
   ChColors._();
 
-  static const Color bg = Color(0xfff8f6f1);
+  static const Color bg = Color(0xfffaf7f3);
   static const Color surface = Color(0xffffffff);
   static const Color surfaceSunken = Color(0xfff3f1eb);
+
+  /// Bg and surface are nearly identical, so cards rely on this — not
+  /// color contrast — to read as lifted off the background.
+  static List<BoxShadow> get cardShadow => [
+    BoxShadow(
+      color: Colors.black.withValues(alpha: 0.06),
+      blurRadius: 16,
+      offset: const Offset(0, 4),
+    ),
+  ];
   static const Color text = Color(0xff1c1e1a);
+  static const Color titleText = Color(
+    0xff282b25,
+  ); // headings — lighter than [text], reads less harshly at large/bold sizes
+  static const Color bodyText = Color(
+    0xff767b83,
+  ); // default color for non-heading text — see ChTextStyles.body
   static const Color accent = Color(0xffcc9c3e); // gold
-  static const Color accent2 = Color(0xff1e4638); // deep green (brand primary)
+  static const Color accent2 = Color(0xff0e4a2a); // deep green (brand primary)
   static const Color divider = Color(0xffe8e3d6);
   static const Color danger = Color(0xffc0392b);
   static const Color warning = Color(0xffd98c2b);
@@ -27,7 +43,7 @@ class ChColors {
     Color(0xffe3ded0), // 300
     Color(0xffcdc6b3), // 400
     Color(0xffaea695), // 500
-    Color(0xff8c8574), // 600
+    Color(0xff848793), // 600
     Color(0xff6b6558), // 700
     Color(0xff4a463c), // 800
     Color(0xff2c2a24), // 900
@@ -46,17 +62,19 @@ class ChColors {
     Color(0xff4e3a15), // 900
   ];
 
-  // Deep green ramp — `accent2` (brand primary).
+  // Deep green ramp — `accent2` (brand primary). 700 is the primary itself;
+  // 100-600 are progressively lighter tints (mixed toward white), 800-900
+  // progressively darker shades (mixed toward black).
   static const List<Color> accent2Ramp = [
-    Color(0xffe9f1ec), // 100
-    Color(0xffd1e3da), // 200
-    Color(0xffa7cabb), // 300
-    Color(0xff74a894), // 400
-    Color(0xff477e69), // 500
-    Color(0xff2c5c48), // 600
-    Color(0xff1e4638), // 700
-    Color(0xff15332a), // 800
-    Color(0xff0d2019), // 900
+    Color(0xffe7edea), // 100
+    Color(0xffcad7d0), // 200
+    Color(0xffa3baae), // 300
+    Color(0xff7a9b8a), // 400
+    Color(0xff517d66), // 500
+    Color(0xff2b6044), // 600
+    Color(0xff0e4a2a), // 700
+    Color(0xff0b3820), // 800
+    Color(0xff072515), // 900
   ];
 
   static Color neutralN(int step) => neutral[(step ~/ 100) - 1];

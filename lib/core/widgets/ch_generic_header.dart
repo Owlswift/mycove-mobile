@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../theme/ch_colors.dart';
+import '../theme/ch_responsive.dart';
 import '../theme/ch_text_styles.dart';
 
 /// Back-chevron + title + optional trailing action, used by every
@@ -30,32 +31,32 @@ class ChGenericHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     if (chipStyle) {
       return Padding(
-        padding: const EdgeInsets.fromLTRB(20, 6, 20, 14),
+        padding: EdgeInsets.fromLTRB(20, context.rs(6), 20, context.rs(14)),
         child: Row(
           children: [
             if (showBack)
-              _HeaderChip(onTap: onBack ?? () => Navigator.of(context).maybePop(), child: const Icon(Icons.arrow_back, size: 18))
+              _HeaderChip(onTap: onBack ?? () => Navigator.of(context).maybePop(), child: Icon(Icons.arrow_back, size: context.rs(18)))
             else
-              const SizedBox(width: 40),
+              SizedBox(width: context.rs(40)),
             Expanded(
               child: Text(title, textAlign: TextAlign.center, style: ChTextStyles.heading(fontSize: 17)),
             ),
-            trailing ?? const SizedBox(width: 40),
+            trailing ?? SizedBox(width: context.rs(40)),
           ],
         ),
       );
     }
 
     return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 6, 20, 14),
+      padding: EdgeInsets.fromLTRB(20, context.rs(6), 20, context.rs(14)),
       child: Row(
         children: [
           if (showBack)
             GestureDetector(
               onTap: onBack ?? () => Navigator.of(context).maybePop(),
-              child: const SizedBox(
-                width: 24,
-                child: Icon(Icons.arrow_back, size: 20, color: ChColors.text),
+              child: SizedBox(
+                width: context.rs(24),
+                child: Icon(Icons.arrow_back, size: context.rs(20), color: ChColors.text),
               ),
             ),
           Expanded(child: Text(title, style: ChTextStyles.heading(fontSize: 19))),
@@ -77,8 +78,8 @@ class _HeaderChip extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        width: 40,
-        height: 40,
+        width: context.rs(40),
+        height: context.rs(40),
         alignment: Alignment.center,
         decoration: BoxDecoration(
           color: ChColors.surface,

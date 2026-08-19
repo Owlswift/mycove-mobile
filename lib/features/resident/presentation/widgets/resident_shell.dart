@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/theme/ch_colors.dart';
+import '../../../../core/theme/ch_responsive.dart';
 
 const _tabLabels = ['Home', 'Notices', 'Projects', 'Dues', 'Pass'];
 const _tabIcons = [
@@ -48,7 +49,7 @@ class ResidentShell extends StatelessWidget {
           unselectedLabelStyle: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.w500),
           items: [
             for (var i = 0; i < _tabLabels.length; i++)
-              BottomNavigationBarItem(icon: Icon(_tabIcons[i], size: 22), label: _tabLabels[i]),
+              BottomNavigationBarItem(icon: Icon(_tabIcons[i], size: context.rs(22)), label: _tabLabels[i]),
           ],
         ),
       ),

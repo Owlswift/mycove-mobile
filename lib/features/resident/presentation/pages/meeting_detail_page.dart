@@ -28,7 +28,7 @@ class MeetingDetailPage extends ConsumerWidget {
             error: (e, _) => Center(
               child: Text(
                 'Could not load this meeting.',
-                style: ChTextStyles.body(fontSize: 14, color: ChColors.neutralN(600)),
+                style: ChTextStyles.body(fontSize: 14, color: ChColors.bodyText),
               ),
             ),
             data: (json) {
@@ -46,13 +46,13 @@ class MeetingDetailPage extends ConsumerWidget {
                       const SizedBox(height: 8),
                       Text(
                         '${json['date']} at ${json['time']}',
-                        style: ChTextStyles.body(fontSize: 14, color: ChColors.neutralN(600)),
+                        style: ChTextStyles.body(fontSize: 14, color: ChColors.bodyText),
                       ),
-                      Text(json['location'] as String, style: ChTextStyles.body(fontSize: 14, color: ChColors.neutralN(600))),
+                      Text(json['location'] as String, style: ChTextStyles.body(fontSize: 14, color: ChColors.bodyText)),
                       const SizedBox(height: 16),
                       Text(
                         'AGENDA',
-                        style: ChTextStyles.body(fontSize: 11, fontWeight: FontWeight.w700, color: ChColors.neutralN(600))
+                        style: ChTextStyles.body(fontSize: 11, fontWeight: FontWeight.w700, color: ChColors.bodyText)
                             .copyWith(letterSpacing: 1),
                       ),
                       const SizedBox(height: 8),

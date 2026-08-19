@@ -3,9 +3,27 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'core/router/app_router.dart';
 import 'core/theme/ch_colors.dart';
+import 'core/theme/ch_responsive.dart';
 import 'core/theme/ch_theme.dart';
+import 'features/auth/presentation/pages/biometric_unlock_page.dart';
 import 'state/app_notifier.dart';
 import 'state/app_state.dart';
+
+/// Composes the device-width-based scale on top of the user's own OS
+/// accessibility text-size setting (never replaces it) — every screen's
+/// `Text` widgets pick this up automatically via `MediaQuery.textScaler`,
+/// with no per-screen changes needed.
+Widget _scaleText(BuildContext context, Widget? child) {
+  final mediaQuery = MediaQuery.of(context);
+  final deviceScale = ChResponsive.scaleOf(context);
+  final composedScale = mediaQuery.textScaler.scale(1.0) * deviceScale;
+  return MediaQuery(
+    data: mediaQuery.copyWith(
+      textScaler: TextScaler.linear(composedScale),
+    ),
+    child: child!,
+  );
+}
 
 class CommunityHubApp extends ConsumerStatefulWidget {
   const CommunityHubApp({super.key});
@@ -14,7 +32,8 @@ class CommunityHubApp extends ConsumerStatefulWidget {
   ConsumerState<CommunityHubApp> createState() => _CommunityHubAppState();
 }
 
-class _CommunityHubAppState extends ConsumerState<CommunityHubApp> with WidgetsBindingObserver {
+class _CommunityHubAppState extends ConsumerState<CommunityHubApp>
+    with WidgetsBindingObserver {
   @override
   void initState() {
     super.initState();
@@ -45,10 +64,26 @@ class _CommunityHubAppState extends ConsumerState<CommunityHubApp> with WidgetsB
         title: 'CommunityHub',
         debugShowCheckedModeBanner: false,
         theme: ChTheme.light,
+        builder: _scaleText,
         home: const Scaffold(
           backgroundColor: ChColors.bg,
-          body: Center(child: CircularProgressIndicator(color: ChColors.accent)),
+          body: Center(
+            child: CircularProgressIndicator(color: ChColors.accent),
+          ),
         ),
+      );
+    }
+
+    // Sits outside the router, same as `bootstrapping` above — a lock
+    // screen over a silently-restored session doesn't need go_router's
+    // back/forward or deep-link semantics any more than the splash does.
+    if (authStage == AuthStage.locked) {
+      return MaterialApp(
+        title: 'CommunityHub',
+        debugShowCheckedModeBanner: false,
+        theme: ChTheme.light,
+        builder: _scaleText,
+        home: const BiometricUnlockPage(),
       );
     }
 
@@ -56,6 +91,7 @@ class _CommunityHubAppState extends ConsumerState<CommunityHubApp> with WidgetsB
     return MaterialApp.router(
       title: 'CommunityHub',
       debugShowCheckedModeBanner: false,
+      builder: _scaleText,
       theme: ChTheme.light,
       routerConfig: router,
     );

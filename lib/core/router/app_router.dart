@@ -3,11 +3,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../features/auth/presentation/pages/estate_code_page.dart';
+import '../../features/auth/presentation/pages/estate_found_page.dart';
 import '../../features/auth/presentation/pages/forgot_password_page.dart';
 import '../../features/auth/presentation/pages/force_reset_page.dart';
+import '../../features/auth/presentation/pages/onboarding_complete_page.dart';
 import '../../features/auth/presentation/pages/login_page.dart';
 import '../../features/auth/presentation/pages/new_password_page.dart';
 import '../../features/auth/presentation/pages/otp_page.dart';
+import '../../features/auth/presentation/pages/password_reset_success_page.dart';
 import '../../features/auth/presentation/pages/welcome_page.dart';
 import '../../features/guard/presentation/pages/guard_code_page.dart';
 import '../../features/guard/presentation/pages/guard_log_page.dart';
@@ -26,6 +29,7 @@ import '../../features/resident/presentation/pages/meetings_page.dart';
 import '../../features/resident/presentation/pages/notifications_page.dart';
 import '../../features/resident/presentation/pages/payment_page.dart';
 import '../../features/resident/presentation/pages/polls_page.dart';
+import '../../features/resident/presentation/pages/manage_devices_page.dart';
 import '../../features/resident/presentation/pages/profile_page.dart';
 import '../../features/resident/presentation/pages/project_detail_page.dart';
 import '../../features/resident/presentation/pages/projects_page.dart';
@@ -57,11 +61,14 @@ final _routerRefreshProvider = Provider<_RouterRefreshNotifier>((ref) {
 const _authPaths = {
   AuthStage.welcome: '/welcome',
   AuthStage.estateCode: '/estate-code',
+  AuthStage.estateFound: '/estate-found',
   AuthStage.login: '/login',
   AuthStage.forgot: '/forgot-password',
   AuthStage.otp: '/otp',
   AuthStage.newPassword: '/new-password',
+  AuthStage.resetSuccess: '/reset-success',
   AuthStage.forceReset: '/force-reset',
+  AuthStage.onboardingComplete: '/onboarding-complete',
 };
 
 final routerProvider = Provider<GoRouter>((ref) {
@@ -86,11 +93,29 @@ final routerProvider = Provider<GoRouter>((ref) {
     routes: [
       GoRoute(path: '/welcome', builder: (_, _) => const WelcomePage()),
       GoRoute(path: '/estate-code', builder: (_, _) => const EstateCodePage()),
+      GoRoute(
+        path: '/estate-found',
+        builder: (_, _) => const EstateFoundPage(),
+      ),
       GoRoute(path: '/login', builder: (_, _) => const LoginPage()),
-      GoRoute(path: '/forgot-password', builder: (_, _) => const ForgotPasswordPage()),
+      GoRoute(
+        path: '/forgot-password',
+        builder: (_, _) => const ForgotPasswordPage(),
+      ),
       GoRoute(path: '/otp', builder: (_, _) => const OtpPage()),
-      GoRoute(path: '/new-password', builder: (_, _) => const NewPasswordPage()),
+      GoRoute(
+        path: '/new-password',
+        builder: (_, _) => const NewPasswordPage(),
+      ),
+      GoRoute(
+        path: '/reset-success',
+        builder: (_, _) => const PasswordResetSuccessPage(),
+      ),
       GoRoute(path: '/force-reset', builder: (_, _) => const ForceResetPage()),
+      GoRoute(
+        path: '/onboarding-complete',
+        builder: (_, _) => const OnboardingCompletePage(),
+      ),
 
       // StatefulShellRoute.indexedStack keeps each tab's page (and its own
       // push stack) alive in an IndexedStack, so switching tabs is instant
@@ -98,7 +123,8 @@ final routerProvider = Provider<GoRouter>((ref) {
       // the destination page on every tap (which is what made tab switches
       // feel rough with a plain ShellRoute).
       StatefulShellRoute.indexedStack(
-        builder: (context, state, navigationShell) => ResidentShell(navigationShell: navigationShell),
+        builder: (context, state, navigationShell) =>
+            ResidentShell(navigationShell: navigationShell),
         branches: [
           StatefulShellBranch(
             routes: [
@@ -106,8 +132,20 @@ final routerProvider = Provider<GoRouter>((ref) {
                 path: '/resident',
                 builder: (_, _) => const DashboardPage(),
                 routes: [
-                  GoRoute(path: 'profile', builder: (_, _) => const ProfilePage()),
-                  GoRoute(path: 'notifications', builder: (_, _) => const NotificationsPage()),
+                  GoRoute(
+                    path: 'profile',
+                    builder: (_, _) => const ProfilePage(),
+                    routes: [
+                      GoRoute(
+                        path: 'devices',
+                        builder: (_, _) => const ManageDevicesPage(),
+                      ),
+                    ],
+                  ),
+                  GoRoute(
+                    path: 'notifications',
+                    builder: (_, _) => const NotificationsPage(),
+                  ),
                   GoRoute(path: 'polls', builder: (_, _) => const PollsPage()),
                   GoRoute(path: 'rules', builder: (_, _) => const RulesPage()),
                   GoRoute(path: 'sos', builder: (_, _) => const SosPage()),
@@ -115,15 +153,25 @@ final routerProvider = Provider<GoRouter>((ref) {
                     path: 'complaint',
                     builder: (_, _) => const ComplaintPage(),
                     routes: [
-                      GoRoute(path: 'success', builder: (_, _) => const ComplaintSuccessPage()),
-                      GoRoute(path: 'log', builder: (_, _) => const ComplaintLogPage()),
+                      GoRoute(
+                        path: 'success',
+                        builder: (_, _) => const ComplaintSuccessPage(),
+                      ),
+                      GoRoute(
+                        path: 'log',
+                        builder: (_, _) => const ComplaintLogPage(),
+                      ),
                     ],
                   ),
                   GoRoute(
                     path: 'meetings',
                     builder: (_, _) => const MeetingsPage(),
                     routes: [
-                      GoRoute(path: ':id', builder: (_, s) => MeetingDetailPage(id: s.pathParameters['id']!)),
+                      GoRoute(
+                        path: ':id',
+                        builder: (_, s) =>
+                            MeetingDetailPage(id: s.pathParameters['id']!),
+                      ),
                     ],
                   ),
                 ],
@@ -136,7 +184,11 @@ final routerProvider = Provider<GoRouter>((ref) {
                 path: '/resident/announcements',
                 builder: (_, _) => const AnnouncementsPage(),
                 routes: [
-                  GoRoute(path: ':id', builder: (_, s) => AnnouncementDetailPage(id: s.pathParameters['id']!)),
+                  GoRoute(
+                    path: ':id',
+                    builder: (_, s) =>
+                        AnnouncementDetailPage(id: s.pathParameters['id']!),
+                  ),
                 ],
               ),
             ],
@@ -147,16 +199,29 @@ final routerProvider = Provider<GoRouter>((ref) {
                 path: '/resident/projects',
                 builder: (_, _) => const ProjectsPage(),
                 routes: [
-                  GoRoute(path: ':id', builder: (_, s) => ProjectDetailPage(id: s.pathParameters['id']!)),
+                  GoRoute(
+                    path: ':id',
+                    builder: (_, s) =>
+                        ProjectDetailPage(id: s.pathParameters['id']!),
+                  ),
                 ],
               ),
             ],
           ),
           StatefulShellBranch(
             routes: [
-              GoRoute(path: '/resident/dues', builder: (_, _) => const DuesPage()),
-              GoRoute(path: '/resident/payment', builder: (_, _) => const PaymentPage()),
-              GoRoute(path: '/resident/receipt', builder: (_, _) => const ReceiptPage()),
+              GoRoute(
+                path: '/resident/dues',
+                builder: (_, _) => const DuesPage(),
+              ),
+              GoRoute(
+                path: '/resident/payment',
+                builder: (_, _) => const PaymentPage(),
+              ),
+              GoRoute(
+                path: '/resident/receipt',
+                builder: (_, _) => const ReceiptPage(),
+              ),
             ],
           ),
           StatefulShellBranch(
@@ -165,8 +230,15 @@ final routerProvider = Provider<GoRouter>((ref) {
                 path: '/resident/visitor',
                 builder: (_, _) => const VisitorPage(),
                 routes: [
-                  GoRoute(path: 'new', builder: (_, _) => const VisitorCreatePage()),
-                  GoRoute(path: ':id', builder: (_, s) => VisitorDetailPage(id: s.pathParameters['id']!)),
+                  GoRoute(
+                    path: 'new',
+                    builder: (_, _) => const VisitorCreatePage(),
+                  ),
+                  GoRoute(
+                    path: ':id',
+                    builder: (_, s) =>
+                        VisitorDetailPage(id: s.pathParameters['id']!),
+                  ),
                 ],
               ),
             ],
@@ -175,7 +247,8 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
 
       StatefulShellRoute.indexedStack(
-        builder: (context, state, navigationShell) => GuardShell(navigationShell: navigationShell),
+        builder: (context, state, navigationShell) =>
+            GuardShell(navigationShell: navigationShell),
         branches: [
           StatefulShellBranch(
             routes: [
@@ -183,14 +256,25 @@ final routerProvider = Provider<GoRouter>((ref) {
                 path: '/guard',
                 builder: (_, _) => const GuardScanPage(),
                 routes: [
-                  GoRoute(path: 'code', builder: (_, _) => const GuardCodePage()),
-                  GoRoute(path: 'result', builder: (_, _) => const GuardResultPage()),
+                  GoRoute(
+                    path: 'code',
+                    builder: (_, _) => const GuardCodePage(),
+                  ),
+                  GoRoute(
+                    path: 'result',
+                    builder: (_, _) => const GuardResultPage(),
+                  ),
                 ],
               ),
             ],
           ),
           StatefulShellBranch(
-            routes: [GoRoute(path: '/guard/log', builder: (_, _) => const GuardLogPage())],
+            routes: [
+              GoRoute(
+                path: '/guard/log',
+                builder: (_, _) => const GuardLogPage(),
+              ),
+            ],
           ),
         ],
       ),

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/theme/ch_colors.dart';
+import '../../../../core/theme/ch_responsive.dart';
 import '../../../../core/theme/ch_spacing.dart';
 import '../../../../core/theme/ch_text_styles.dart';
 import '../../../../state/app_notifier.dart';
@@ -52,16 +53,16 @@ class GuardResultPage extends ConsumerWidget {
             child: Column(
               children: [
                 Container(
-                  width: 56,
-                  height: 56,
+                  width: context.rs(56),
+                  height: context.rs(56),
                   alignment: Alignment.center,
                   margin: const EdgeInsets.only(bottom: 14),
                   decoration: BoxDecoration(color: bg, shape: BoxShape.circle),
-                  child: Icon(icon, color: Colors.white, size: 26),
+                  child: Icon(icon, color: Colors.white, size: context.rs(26)),
                 ),
                 Text(title, style: ChTextStyles.heading(fontSize: 17)),
                 const SizedBox(height: 4),
-                Text(subtitle, style: ChTextStyles.body(fontSize: 13, color: ChColors.neutralN(600)), textAlign: TextAlign.center),
+                Text(subtitle, style: ChTextStyles.body(fontSize: 13, color: ChColors.neutralN(500)), textAlign: TextAlign.center),
               ],
             ),
           ),
@@ -105,7 +106,7 @@ class GuardResultPage extends ConsumerWidget {
             ),
           GestureDetector(
             onTap: backToScanner,
-            child: Text('← Back to scanner', style: ChTextStyles.body(fontSize: 13, color: ChColors.neutralN(600))),
+            child: Text('← Back to scanner', style: ChTextStyles.body(fontSize: 13, color: ChColors.bodyText)),
           ),
         ],
       ),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../theme/ch_colors.dart';
+import '../theme/ch_responsive.dart';
 import '../theme/ch_spacing.dart';
 import '../theme/ch_text_styles.dart';
 
@@ -40,13 +41,13 @@ class ChButton extends StatelessWidget {
 
     final child = Container(
       width: expand ? double.infinity : null,
-      padding: const EdgeInsets.symmetric(vertical: 14),
+      padding: EdgeInsets.symmetric(vertical: context.rs(14)),
       alignment: Alignment.center,
       decoration: BoxDecoration(color: fill, borderRadius: BorderRadius.circular(ChRadii.button)),
       child: isLoading
           ? SizedBox(
-              height: 20,
-              width: 20,
+              height: context.rs(20),
+              width: context.rs(20),
               child: CircularProgressIndicator(strokeWidth: 2, valueColor: AlwaysStoppedAnimation<Color>(foreground)),
             )
           : Text(label, style: ChTextStyles.body(fontSize: 15, fontWeight: FontWeight.w600, color: foreground)),

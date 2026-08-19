@@ -2,13 +2,23 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/theme/ch_colors.dart';
+import '../../../../core/theme/ch_responsive.dart';
 import '../../../../core/theme/ch_text_styles.dart';
 import '../../../../core/widgets/ch_button.dart';
-import '../../../../core/widgets/ch_text_field.dart';
+import '../../../../core/widgets/ch_password_field.dart';
+import '../../../../core/widgets/ch_square_icon_button.dart';
 import '../../../../state/app_notifier.dart';
 
 class NewPasswordPage extends ConsumerWidget {
   const NewPasswordPage({super.key});
+
+  int _rulesMet(String password) {
+    var count = 0;
+    if (password.length >= 8) count++;
+    if (password.contains(RegExp(r'[0-9]'))) count++;
+    if (password.contains(RegExp(r'[A-Z]'))) count++;
+    return count;
+  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -16,42 +26,133 @@ class NewPasswordPage extends ConsumerWidget {
     final notifier = ref.read(appStateProvider.notifier);
 
     return Scaffold(
+      backgroundColor: ChColors.bg,
       body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(26, 8, 26, 32),
+        child: SingleChildScrollView(
+          padding: EdgeInsets.fromLTRB(context.rs(20), context.rs(12), context.rs(20), context.rs(28)),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Create new password', style: ChTextStyles.heading(fontSize: 22)),
-              const SizedBox(height: 6),
-              Text(
-                "Choose a password you haven't used before.",
-                style: ChTextStyles.body(fontSize: 14, color: ChColors.neutralN(600)),
+              ChSquareIconButton(icon: Icons.arrow_back, onTap: notifier.backToOtp),
+              const _PadlockIllustration(),
+              SizedBox(height: context.rs(12)),
+              Center(
+                child: Text(
+                  'Create New Password',
+                  textAlign: TextAlign.center,
+                  style: ChTextStyles.heading(fontSize: 24, color: ChColors.accent2),
+                ),
               ),
-              const SizedBox(height: 22),
-              ChTextField(
+              SizedBox(height: context.rs(8)),
+              Padding(
+                padding: EdgeInsets.symmetric(horizontal: context.rs(70)),
+                child: Text(
+                  'Your new password must be different from previous passwords.',
+                  textAlign: TextAlign.center,
+                  style: ChTextStyles.body(fontSize: 13.5, color: ChColors.text, height: 1.4),
+                ),
+              ),
+              SizedBox(height: context.rs(24)),
+              Text(
+                'New Password',
+                style: ChTextStyles.body(fontSize: 13, fontWeight: FontWeight.w500, color: ChColors.text),
+              ),
+              SizedBox(height: context.rs(6)),
+              ChPasswordField(
                 value: s.newPass1,
                 onChanged: notifier.onNewPass1,
-                placeholder: 'New password',
-                obscureText: true,
+                hintText: 'Enter new password',
               ),
-              const SizedBox(height: 12),
-              ChTextField(
+              SizedBox(height: context.rs(10)),
+              _RuleCheckList(rulesMet: _rulesMet(s.newPass1), hasInput: s.newPass1.isNotEmpty),
+              SizedBox(height: context.rs(16)),
+              Text(
+                'Confirm New Password',
+                style: ChTextStyles.body(fontSize: 13, fontWeight: FontWeight.w500, color: ChColors.text),
+              ),
+              SizedBox(height: context.rs(6)),
+              ChPasswordField(
                 value: s.newPass2,
                 onChanged: notifier.onNewPass2,
-                placeholder: 'Confirm password',
-                obscureText: true,
+                hintText: 'Confirm new password',
               ),
-              const SizedBox(height: 18),
               if (s.resetMsg.isNotEmpty) ...[
+                SizedBox(height: context.rs(12)),
                 Text(s.resetMsg, style: ChTextStyles.body(fontSize: 13, color: ChColors.danger)),
-                const SizedBox(height: 12),
               ],
-              ChButton(label: 'Reset Password', onPressed: s.isLoading ? null : notifier.submitNewPassword, isLoading: s.isLoading),
+              SizedBox(height: context.rs(24)),
+              ChButton(
+                label: 'Reset Password',
+                onPressed: s.isLoading ? null : notifier.submitNewPassword,
+                isLoading: s.isLoading,
+              ),
             ],
           ),
         ),
       ),
+    );
+  }
+}
+
+/// Real illustration asset (pre-cut with transparency via Photoroom, unlike
+/// the flat-background ones used elsewhere in this flow) — no masking needed.
+class _PadlockIllustration extends StatelessWidget {
+  const _PadlockIllustration();
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: FractionallySizedBox(
+        widthFactor: 0.95,
+        child: AspectRatio(
+          aspectRatio: 1402 / 1122,
+          child: Image.asset('assets/images/new_password_illustration.png', fit: BoxFit.contain),
+        ),
+      ),
+    );
+  }
+}
+
+/// Vertically-stacked rule rows (met = filled green check, unmet = outline)
+/// — this mockup lists rules one per row rather than in the 3-column layout
+/// used on the force-reset screen's own password step.
+class _RuleCheckList extends StatelessWidget {
+  const _RuleCheckList({required this.rulesMet, required this.hasInput});
+
+  final int rulesMet;
+  final bool hasInput;
+
+  @override
+  Widget build(BuildContext context) {
+    final met = hasInput
+        ? [rulesMet >= 1, rulesMet >= 2, rulesMet >= 3]
+        : [false, false, false];
+    const labels = ['At least 8 characters', 'Contains a number', 'Contains an uppercase letter'];
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        for (var i = 0; i < labels.length; i++)
+          Padding(
+            padding: EdgeInsets.only(bottom: context.rs(6), left: context.rs(6)),
+            child: Row(
+              children: [
+                Icon(
+                  met[i] ? Icons.check_circle_rounded : Icons.check_circle_outline_rounded,
+                  size: context.rs(18),
+                  color: met[i] ? ChColors.accent2 : ChColors.neutralN(400),
+                ),
+                SizedBox(width: context.rs(12)),
+                Text(
+                  labels[i],
+                  style: ChTextStyles.body(
+                    fontSize: 12,
+                    color: met[i] ? ChColors.accent2 : ChColors.bodyText,
+                  ),
+                ),
+              ],
+            ),
+          ),
+      ],
     );
   }
 }

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/theme/ch_colors.dart';
+import '../../../../core/theme/ch_responsive.dart';
 import '../../../../core/theme/ch_spacing.dart';
 import '../../../../core/theme/ch_text_styles.dart';
 import '../../../../core/widgets/ch_generic_header.dart';
@@ -80,7 +81,7 @@ class DuesPage extends ConsumerWidget {
               const SizedBox(height: 18),
               Text(
                 'PAYMENT HISTORY',
-                style: ChTextStyles.body(fontSize: 11, fontWeight: FontWeight.w700, color: ChColors.neutralN(600))
+                style: ChTextStyles.body(fontSize: 11, fontWeight: FontWeight.w700, color: ChColors.bodyText)
                     .copyWith(letterSpacing: 1),
               ),
               const SizedBox(height: 10),
@@ -99,7 +100,7 @@ class DuesPage extends ConsumerWidget {
                               overflow: TextOverflow.ellipsis,
                               style: ChTextStyles.body(fontSize: 14, fontWeight: FontWeight.w600),
                             ),
-                            Text(h.date, style: ChTextStyles.body(fontSize: 12, color: ChColors.neutralN(600))),
+                            Text(h.date, style: ChTextStyles.body(fontSize: 12, color: ChColors.bodyText)),
                           ],
                         ),
                       ),
@@ -118,7 +119,7 @@ class DuesPage extends ConsumerWidget {
               const SizedBox(height: 18),
               Text(
                 'LEVIES',
-                style: ChTextStyles.body(fontSize: 11, fontWeight: FontWeight.w700, color: ChColors.neutralN(600))
+                style: ChTextStyles.body(fontSize: 11, fontWeight: FontWeight.w700, color: ChColors.bodyText)
                     .copyWith(letterSpacing: 1),
               ),
               const SizedBox(height: 10),
@@ -130,12 +131,12 @@ class DuesPage extends ConsumerWidget {
                   child: Row(
                     children: [
                       Container(
-                        width: 32,
-                        height: 32,
+                        width: context.rs(32),
+                        height: context.rs(32),
                         decoration: const BoxDecoration(color: ChColors.surfaceSunken, shape: BoxShape.circle),
-                        child: const Icon(Icons.payments_outlined, size: 15, color: ChColors.text),
+                        child: Icon(Icons.payments_outlined, size: context.rs(15), color: ChColors.text),
                       ),
-                      const SizedBox(width: 12),
+                      SizedBox(width: context.rs(12)),
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -143,7 +144,7 @@ class DuesPage extends ConsumerWidget {
                             Text(lv.label, style: ChTextStyles.body(fontSize: 14, fontWeight: FontWeight.w600)),
                             Text(
                               'Due ${lv.dueDate} · ${formatNaira(lv.amount)}',
-                              style: ChTextStyles.body(fontSize: 12, color: ChColors.neutralN(600)),
+                              style: ChTextStyles.body(fontSize: 12, color: ChColors.bodyText),
                             ),
                           ],
                         ),

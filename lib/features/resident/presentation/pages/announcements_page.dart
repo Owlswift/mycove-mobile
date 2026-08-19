@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/theme/ch_colors.dart';
+import '../../../../core/theme/ch_responsive.dart';
 import '../../../../core/theme/ch_spacing.dart';
 import '../../../../core/theme/ch_text_styles.dart';
 import '../../../../core/widgets/ch_filter_chips.dart';
@@ -66,12 +67,12 @@ class _AnnouncementsPageState extends ConsumerState<AnnouncementsPage> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Container(
-                          width: 36,
-                          height: 36,
+                          width: context.rs(36),
+                          height: context.rs(36),
                           decoration: BoxDecoration(color: ChColors.accent2N(100), shape: BoxShape.circle),
-                          child: Icon(Icons.campaign_outlined, size: 16, color: ChColors.accent2N(700)),
+                          child: Icon(Icons.campaign_outlined, size: context.rs(16), color: ChColors.accent2N(700)),
                         ),
-                        const SizedBox(width: 12),
+                        SizedBox(width: context.rs(12)),
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -80,7 +81,7 @@ class _AnnouncementsPageState extends ConsumerState<AnnouncementsPage> {
                                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                 children: [
                                   ChTag(label: item.category, background: ChColors.accent2N(100), foreground: ChColors.accent2N(800)),
-                                  Text(item.date, style: ChTextStyles.body(fontSize: 12, color: ChColors.neutralN(600))),
+                                  Text(item.date, style: ChTextStyles.body(fontSize: 12, color: ChColors.bodyText)),
                                 ],
                               ),
                               const SizedBox(height: 8),

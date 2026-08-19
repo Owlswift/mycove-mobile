@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/theme/ch_colors.dart';
+import '../../../../core/theme/ch_responsive.dart';
 import '../../../../core/theme/ch_spacing.dart';
 import '../../../../core/theme/ch_text_styles.dart';
 import '../../../../core/widgets/ch_generic_header.dart';
@@ -38,10 +39,10 @@ class _ComplaintLogPageState extends ConsumerState<ComplaintLogPage> {
               context.push('/resident/complaint');
             },
             child: Container(
-              width: 32,
-              height: 32,
+              width: context.rs(32),
+              height: context.rs(32),
               decoration: const BoxDecoration(color: ChColors.accent2, shape: BoxShape.circle),
-              child: const Icon(Icons.add, size: 18, color: Colors.white),
+              child: Icon(Icons.add, size: context.rs(18), color: Colors.white),
             ),
           ),
         ),
@@ -73,7 +74,7 @@ class _ComplaintLogPageState extends ConsumerState<ComplaintLogPage> {
                       Text(
                         'Complaints you submit will appear here with their ticket number and status.',
                         textAlign: TextAlign.center,
-                        style: ChTextStyles.body(fontSize: 13, color: ChColors.neutralN(600)),
+                        style: ChTextStyles.body(fontSize: 13, color: ChColors.bodyText),
                       ),
                     ],
                   )
@@ -110,7 +111,7 @@ class _ComplaintLogPageState extends ConsumerState<ComplaintLogPage> {
                                 c.description,
                                 maxLines: 2,
                                 overflow: TextOverflow.ellipsis,
-                                style: ChTextStyles.body(fontSize: 13, color: ChColors.neutralN(600)),
+                                style: ChTextStyles.body(fontSize: 13, color: ChColors.bodyText),
                               ),
                               const SizedBox(height: 10),
                               Row(
@@ -126,7 +127,7 @@ class _ComplaintLogPageState extends ConsumerState<ComplaintLogPage> {
                                   const Spacer(),
                                   Text(
                                     c.timeLabel,
-                                    style: ChTextStyles.body(fontSize: 12, color: ChColors.neutralN(600)),
+                                    style: ChTextStyles.body(fontSize: 12, color: ChColors.bodyText),
                                   ),
                                 ],
                               ),
@@ -154,7 +155,7 @@ class _StatusBadge extends StatelessWidget {
       'SUBMITTED' => ('Submitted', ChColors.warning, ChColors.warning.withValues(alpha: 0.14)),
       'IN_REVIEW' => ('In Review', ChColors.warning, ChColors.warning.withValues(alpha: 0.14)),
       'RESOLVED' => ('Resolved', ChColors.accent2N(700), ChColors.accent2N(100)),
-      _ => (status, ChColors.neutralN(600), ChColors.neutralN(200)),
+      _ => (status, ChColors.bodyText, ChColors.neutralN(200)),
     };
 
     return Container(

@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 import '../../../../core/theme/ch_colors.dart';
+import '../../../../core/theme/ch_responsive.dart';
 import '../../../../core/theme/ch_spacing.dart';
 import '../../../../core/theme/ch_text_styles.dart';
 import '../../../../core/widgets/ch_generic_header.dart';
@@ -41,10 +42,10 @@ class _VisitorPageState extends ConsumerState<VisitorPage> {
               context.push('/resident/visitor/new');
             },
             child: Container(
-              width: 32,
-              height: 32,
+              width: context.rs(32),
+              height: context.rs(32),
               decoration: const BoxDecoration(color: ChColors.accent2, shape: BoxShape.circle),
-              child: const Icon(Icons.add, size: 18, color: Colors.white),
+              child: Icon(Icons.add, size: context.rs(18), color: Colors.white),
             ),
           ),
         ),
@@ -89,19 +90,19 @@ class _VisitorPageState extends ConsumerState<VisitorPage> {
                               child: Row(
                                 children: [
                                   Container(
-                                    width: 40,
-                                    height: 40,
+                                    width: context.rs(40),
+                                    height: context.rs(40),
                                     decoration: BoxDecoration(
                                       color: p.isInside ? ChColors.accent2N(100) : ChColors.surfaceSunken,
                                       shape: BoxShape.circle,
                                     ),
                                     child: Icon(
                                       Icons.qr_code_2_rounded,
-                                      size: 18,
+                                      size: context.rs(18),
                                       color: p.isInside ? ChColors.accent2N(700) : ChColors.neutralN(600),
                                     ),
                                   ),
-                                  const SizedBox(width: 12),
+                                  SizedBox(width: context.rs(12)),
                                   Expanded(
                                     child: Column(
                                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -116,7 +117,7 @@ class _VisitorPageState extends ConsumerState<VisitorPage> {
                                         const SizedBox(height: 4),
                                         Text(
                                           p.plate == '—' ? p.visitLabel : '${p.plate} · ${p.visitLabel}',
-                                          style: ChTextStyles.body(fontSize: 13, color: ChColors.neutralN(600)),
+                                          style: ChTextStyles.body(fontSize: 13, color: ChColors.bodyText),
                                         ),
                                         const SizedBox(height: 2),
                                         Text(
@@ -155,7 +156,7 @@ class _StatusPill extends StatelessWidget {
   Widget build(BuildContext context) {
     final (bg, fg) = switch (p.status) {
       VisitorPassStatus.revoked => (ChColors.danger.withValues(alpha: 0.1), ChColors.danger),
-      VisitorPassStatus.expired => (ChColors.neutralN(200), ChColors.neutralN(600)),
+      VisitorPassStatus.expired => (ChColors.neutralN(200), ChColors.bodyText),
       VisitorPassStatus.active => (ChColors.accent2N(100), ChColors.accent2N(700)),
     };
     return Container(

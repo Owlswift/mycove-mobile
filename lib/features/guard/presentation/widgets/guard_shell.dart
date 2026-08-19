@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/theme/ch_colors.dart';
+import '../../../../core/theme/ch_responsive.dart';
 import '../../../../core/theme/ch_text_styles.dart';
 import '../../../../state/app_notifier.dart';
 
@@ -21,14 +22,14 @@ class GuardShell extends ConsumerWidget {
         child: Column(
           children: [
             Padding(
-              padding: const EdgeInsets.fromLTRB(22, 6, 22, 14),
+              padding: EdgeInsets.fromLTRB(22, context.rs(6), 22, context.rs(14)),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Security Gate', style: ChTextStyles.body(fontSize: 13, color: ChColors.neutralN(600))),
+                      Text('Security Gate', style: ChTextStyles.body(fontSize: 13, color: ChColors.bodyText)),
                       Text(s.currentUser?.fullName ?? '', style: ChTextStyles.heading(fontSize: 19)),
                     ],
                   ),

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/theme/ch_colors.dart';
+import '../../../../core/theme/ch_responsive.dart';
 import '../../../../core/theme/ch_spacing.dart';
 import '../../../../core/theme/ch_text_styles.dart';
 import '../../../../core/widgets/ch_generic_header.dart';
@@ -36,12 +37,12 @@ class MeetingsPage extends ConsumerWidget {
                     child: Row(
                       children: [
                         Container(
-                          width: 36,
-                          height: 36,
+                          width: context.rs(36),
+                          height: context.rs(36),
                           decoration: BoxDecoration(color: ChColors.accent2N(100), shape: BoxShape.circle),
-                          child: Icon(Icons.event_outlined, size: 16, color: ChColors.accent2N(700)),
+                          child: Icon(Icons.event_outlined, size: context.rs(16), color: ChColors.accent2N(700)),
                         ),
-                        const SizedBox(width: 12),
+                        SizedBox(width: context.rs(12)),
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -50,7 +51,7 @@ class MeetingsPage extends ConsumerWidget {
                               const SizedBox(height: 6),
                               Text(
                                 '${item.date} · ${item.time} · ${item.location}',
-                                style: ChTextStyles.body(fontSize: 13, color: ChColors.neutralN(600)),
+                                style: ChTextStyles.body(fontSize: 13, color: ChColors.bodyText),
                               ),
                               const SizedBox(height: 4),
                               Text(

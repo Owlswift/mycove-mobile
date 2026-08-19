@@ -13,6 +13,8 @@ class CurrentUser {
     this.emergencyContactName,
     this.emergencyContactPhone,
     this.vehiclePlates = const [],
+    this.estateName,
+    this.estateAddress,
   });
 
   factory CurrentUser.fromJson(Map<String, dynamic> json) {
@@ -27,6 +29,8 @@ class CurrentUser {
       emergencyContactName: json['emergencyContactName'] as String?,
       emergencyContactPhone: json['emergencyContactPhone'] as String?,
       vehiclePlates: (json['vehiclePlates'] as List?)?.cast<String>() ?? const [],
+      estateName: json['estateName'] as String?,
+      estateAddress: json['estateAddress'] as String?,
     );
   }
 
@@ -40,6 +44,8 @@ class CurrentUser {
   final String? emergencyContactName;
   final String? emergencyContactPhone;
   final List<String> vehiclePlates;
+  final String? estateName;
+  final String? estateAddress;
 
   String get first => fullName.split(' ').first;
 }

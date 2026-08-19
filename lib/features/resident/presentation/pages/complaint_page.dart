@@ -27,7 +27,7 @@ class ComplaintPage extends ConsumerWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Category', style: ChTextStyles.body(fontSize: 12, color: ChColors.neutralN(600))),
+                Text('Category', style: ChTextStyles.body(fontSize: 12, color: ChColors.bodyText)),
                 const SizedBox(height: 8),
                 Wrap(
                   spacing: 8,
@@ -42,7 +42,7 @@ class ComplaintPage extends ConsumerWidget {
                   ],
                 ),
                 const SizedBox(height: 16),
-                Text('Details', style: ChTextStyles.body(fontSize: 12, color: ChColors.neutralN(600))),
+                Text('Details', style: ChTextStyles.body(fontSize: 12, color: ChColors.bodyText)),
                 const SizedBox(height: 5),
                 TextField(
                   minLines: 5,

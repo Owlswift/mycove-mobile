@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/theme/ch_colors.dart';
+import '../../../../core/theme/ch_responsive.dart';
 import '../../../../core/theme/ch_spacing.dart';
 import '../../../../core/theme/ch_text_styles.dart';
 import '../../../../core/widgets/ch_data_media.dart';
@@ -68,7 +69,7 @@ class _ProjectsPageState extends ConsumerState<ProjectsPage> {
                               padding: const EdgeInsets.only(bottom: 12),
                               child: ChDataMedia(
                                 dataUrl: p.mediaBase64!,
-                                height: 100,
+                                height: context.rs(100),
                                 borderRadius: BorderRadius.circular(ChRadii.md),
                               ),
                             ),
@@ -126,14 +127,14 @@ class _ProgressRing extends StatelessWidget {
   Widget build(BuildContext context) {
     final color = completed ? ChColors.accent2 : ChColors.accent2N(600);
     return SizedBox(
-      width: 46,
-      height: 46,
+      width: context.rs(46),
+      height: context.rs(46),
       child: Stack(
         alignment: Alignment.center,
         children: [
           SizedBox(
-            width: 46,
-            height: 46,
+            width: context.rs(46),
+            height: context.rs(46),
             child: CircularProgressIndicator(
               value: progress / 100,
               strokeWidth: 4,
@@ -142,7 +143,7 @@ class _ProgressRing extends StatelessWidget {
             ),
           ),
           completed
-              ? Icon(Icons.check_rounded, size: 18, color: color)
+              ? Icon(Icons.check_rounded, size: context.rs(18), color: color)
               : Text('$progress%', style: ChTextStyles.body(fontSize: 11, fontWeight: FontWeight.w700, color: color)),
         ],
       ),

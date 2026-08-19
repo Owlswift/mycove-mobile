@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../core/theme/ch_colors.dart';
+import '../../../../core/theme/ch_responsive.dart';
 import '../../../../core/theme/ch_spacing.dart';
 import '../../../../core/theme/ch_text_styles.dart';
 import '../../../../data/models/poll.dart';
@@ -43,7 +44,7 @@ class PollCard extends StatelessWidget {
                   style: ChTextStyles.body(
                     fontSize: 11,
                     fontWeight: FontWeight.w700,
-                    color: _isClosed ? ChColors.neutralN(700) : ChColors.accent2N(800),
+                    color: _isClosed ? ChColors.bodyText : ChColors.accent2N(800),
                   ),
                 ),
               ),
@@ -58,7 +59,7 @@ class PollCard extends StatelessWidget {
                 child: Stack(
                   children: [
                     Container(
-                      height: 38,
+                      height: context.rs(38),
                       decoration: BoxDecoration(
                         color: ChColors.neutralN(200),
                         borderRadius: BorderRadius.circular(ChRadii.pill),
@@ -68,7 +69,7 @@ class PollCard extends StatelessWidget {
                       FractionallySizedBox(
                         widthFactor: option.pct / 100,
                         child: Container(
-                          height: 38,
+                          height: context.rs(38),
                           decoration: BoxDecoration(color: ChColors.accent2N(200), borderRadius: BorderRadius.circular(ChRadii.pill)),
                         ),
                       ),
@@ -91,7 +92,7 @@ class PollCard extends StatelessWidget {
                     if (poll.selectedOptionId == option.id)
                       Positioned.fill(
                         child: Container(
-                          height: 38,
+                          height: context.rs(38),
                           decoration: BoxDecoration(
                             border: Border.all(color: ChColors.accent2, width: 2),
                             borderRadius: BorderRadius.circular(ChRadii.pill),
@@ -104,7 +105,7 @@ class PollCard extends StatelessWidget {
             ),
           Text(
             poll.voteCountLabel,
-            style: ChTextStyles.body(fontSize: 12, color: ChColors.neutralN(600)),
+            style: ChTextStyles.body(fontSize: 12, color: ChColors.bodyText),
           ),
         ],
       ),

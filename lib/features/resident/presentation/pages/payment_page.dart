@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/theme/ch_colors.dart';
+import '../../../../core/theme/ch_responsive.dart';
 import '../../../../core/theme/ch_spacing.dart';
 import '../../../../core/theme/ch_text_styles.dart';
 import '../../../../core/widgets/ch_button.dart';
@@ -56,7 +57,7 @@ class _Idle extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Amount to pay', style: ChTextStyles.body(fontSize: 13, color: ChColors.neutralN(600))),
+              Text('Amount to pay', style: ChTextStyles.body(fontSize: 13, color: ChColors.bodyText)),
               const SizedBox(height: 6),
               Text(balanceLabel, style: ChTextStyles.heading(fontSize: 24)),
             ],
@@ -65,7 +66,7 @@ class _Idle extends StatelessWidget {
         const SizedBox(height: 20),
         Text(
           'PAY WITH',
-          style: ChTextStyles.body(fontSize: 11, fontWeight: FontWeight.w700, color: ChColors.neutralN(600))
+          style: ChTextStyles.body(fontSize: 11, fontWeight: FontWeight.w700, color: ChColors.bodyText)
               .copyWith(letterSpacing: 1),
         ),
         const SizedBox(height: 10),
@@ -74,8 +75,8 @@ class _Idle extends StatelessWidget {
           decoration: BoxDecoration(color: ChColors.surface, borderRadius: BorderRadius.circular(ChRadii.md)),
           child: Row(
             children: [
-              Container(width: 28, height: 28, decoration: BoxDecoration(color: ChColors.accent2, borderRadius: BorderRadius.circular(ChRadii.sm))),
-              const SizedBox(width: 10),
+              Container(width: context.rs(28), height: context.rs(28), decoration: BoxDecoration(color: ChColors.accent2, borderRadius: BorderRadius.circular(ChRadii.sm))),
+              SizedBox(width: context.rs(10)),
               Expanded(
                 child: Text(
                   'Paystack — card/bank/USSD',
@@ -102,13 +103,13 @@ class _Processing extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         const SizedBox(height: 60),
-        const SizedBox(
-          width: 36,
-          height: 36,
-          child: CircularProgressIndicator(strokeWidth: 3, color: ChColors.accent),
+        SizedBox(
+          width: context.rs(36),
+          height: context.rs(36),
+          child: const CircularProgressIndicator(strokeWidth: 3, color: ChColors.accent),
         ),
         const SizedBox(height: 18),
-        Text('Processing with Paystack…', style: ChTextStyles.body(fontSize: 14, color: ChColors.neutralN(600))),
+        Text('Processing with Paystack…', style: ChTextStyles.body(fontSize: 14, color: ChColors.bodyText)),
       ],
     );
   }
@@ -126,15 +127,15 @@ class _Success extends StatelessWidget {
       children: [
         const SizedBox(height: 44),
         Container(
-          width: 64,
-          height: 64,
+          width: context.rs(64),
+          height: context.rs(64),
           decoration: const BoxDecoration(color: ChColors.accent2, shape: BoxShape.circle),
-          child: const Icon(Icons.check, color: Colors.white, size: 30),
+          child: Icon(Icons.check, color: Colors.white, size: context.rs(30)),
         ),
         const SizedBox(height: 18),
         Text('Payment successful', style: ChTextStyles.heading(fontSize: 18)),
         const SizedBox(height: 6),
-        Text('$amountLabel paid in full', style: ChTextStyles.body(fontSize: 13, color: ChColors.neutralN(600))),
+        Text('$amountLabel paid in full', style: ChTextStyles.body(fontSize: 13, color: ChColors.bodyText)),
         const SizedBox(height: 22),
         ChButton(label: 'View Receipt', variant: ChButtonVariant.secondary, onPressed: onViewReceipt),
       ],

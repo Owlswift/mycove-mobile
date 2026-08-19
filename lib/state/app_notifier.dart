@@ -2,11 +2,15 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:math';
 
+import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:local_auth/local_auth.dart';
 
 import '../core/network/api_client.dart';
 import '../core/network/api_exception.dart';
+import '../core/network/biometric_storage.dart';
 import '../core/network/estate_storage.dart';
+import '../core/network/jwt_decode.dart';
 import '../core/network/token_storage.dart';
 import '../core/push/push_service.dart';
 import '../data/community_hub_api.dart';
@@ -22,6 +26,7 @@ import '../data/models/person.dart';
 import '../data/models/poll.dart';
 import '../data/models/project.dart';
 import '../data/models/rules_section.dart';
+import '../data/models/session_info.dart';
 import '../data/models/spotlight.dart';
 import '../data/models/visitor_pass.dart';
 import 'app_state.dart';
@@ -33,12 +38,20 @@ import 'app_state.dart';
 /// an endpoint that shouldn't exist.
 const demoScanCodes = ['482913', '116607'];
 
-Role _roleFromApi(String value) => value == 'GUARD' ? Role.guard : Role.resident;
+Role _roleFromApi(String value) =>
+    value == 'GUARD' ? Role.guard : Role.resident;
 String _roleToApi(Role role) => role == Role.guard ? 'GUARD' : 'RESIDENT';
 String _digitsOnly(String v) => v.replaceAll(RegExp(r'\D'), '');
 
 class AppNotifier extends StateNotifier<AppState> {
-  AppNotifier(this._api, this._tokenStorage, this._estateStorage, this._ref) : super(AppState()) {
+  AppNotifier(
+    this._api,
+    this._tokenStorage,
+    this._estateStorage,
+    this._ref, [
+    BiometricStorage? biometricStorage,
+  ]) : _biometricStorage = biometricStorage ?? const BiometricStorage(),
+       super(AppState()) {
     ApiClient.instance.onAccountDeactivated = _handleAccountDeactivated;
     _bootstrap();
   }
@@ -46,8 +59,10 @@ class AppNotifier extends StateNotifier<AppState> {
   final CommunityHubApi _api;
   final TokenStorage _tokenStorage;
   final EstateStorage _estateStorage;
+  final BiometricStorage _biometricStorage;
   final Ref _ref;
   final _random = Random();
+  final _localAuth = LocalAuthentication();
 
   /// Gate on a validated estate code before anything else — this app is
   /// shared across estates, so a fresh install doesn't know which estate's
@@ -55,12 +70,23 @@ class AppNotifier extends StateNotifier<AppState> {
   /// validated once, it's remembered and this step is skipped on future
   /// launches (see submitEstateCode).
   Future<void> _bootstrap() async {
+    unawaited(_checkBiometricAvailability());
     final estateName = await _estateStorage.readName();
+    // TEMP: diagnostic only
+    print('[DIAG] estateName=$estateName');
     if (estateName == null) {
       state = state.copyWith(authStage: AuthStage.welcome);
       return;
     }
-    state = state.copyWith(estateName: estateName);
+    final estateAddress = await _estateStorage.readAddress();
+    final estateLocked = await _estateStorage.readLocked();
+    // TEMP: diagnostic only
+    print('[DIAG] estateLocked=$estateLocked');
+    state = state.copyWith(
+      estateName: estateName,
+      estateAddress: estateAddress,
+      estateLocked: estateLocked,
+    );
     await _tryAutoLogin();
   }
 
@@ -68,7 +94,19 @@ class AppNotifier extends StateNotifier<AppState> {
   /// estate code entered first (the API itself is estate-scoped), so both
   /// land here; "I'm a Security Guard" calls [setRoleGuard] first so the
   /// guard tab is already selected once they reach the login screen.
-  void goToEstateCode() => state = state.copyWith(authStage: AuthStage.estateCode);
+  ///
+  /// Once this device is locked to an estate (see [estateLocked] on
+  /// AppState), there's no code left to enter — go straight to login
+  /// instead of re-offering "Find Your Estate".
+  void goToEstateCode() => state = state.copyWith(
+    authStage: state.estateLocked ? AuthStage.login : AuthStage.estateCode,
+  );
+
+  void backToWelcome() => state = state.copyWith(
+    authStage: AuthStage.welcome,
+    estateCodeInput: '',
+    estateCodeError: '',
+  );
 
   /// A revoked account means this person no longer belongs to this
   /// estate — the token and estate code are both already cleared from
@@ -79,12 +117,19 @@ class AppNotifier extends StateNotifier<AppState> {
   void _handleAccountDeactivated() {
     state = AppState(
       authStage: AuthStage.estateCode,
-      estateCodeError: 'Your access was revoked by your estate admin. Enter an estate code to continue.',
+      estateCodeError:
+          'Your access was revoked by your estate admin. Enter an estate code to continue.',
     );
   }
 
-  void onEstateCodeChange(String v) => state = state.copyWith(estateCodeInput: v, estateCodeError: '');
+  void onEstateCodeChange(String v) =>
+      state = state.copyWith(estateCodeInput: v, estateCodeError: '');
 
+  /// Only looks the code up and stages the result — nothing is persisted
+  /// to EstateStorage yet. The resident confirms what they found on the
+  /// "Estate found" screen first (see [confirmEstate]); this keeps a
+  /// mistyped-but-valid code (someone else's estate) from being committed
+  /// before they've actually seen which estate it resolved to.
   Future<void> submitEstateCode() async {
     final code = state.estateCodeInput.trim();
     if (code.isEmpty) {
@@ -94,13 +139,56 @@ class AppNotifier extends StateNotifier<AppState> {
     state = state.copyWith(estateCodeLoading: true, estateCodeError: '');
     try {
       final result = await _api.lookupEstate(code);
-      final name = result['name'] as String;
-      await _estateStorage.save(code: code, name: name);
-      state = state.copyWith(estateName: name, estateCodeLoading: false);
-      await _tryAutoLogin();
+      state = state.copyWith(
+        estateCodeLoading: false,
+        pendingEstateCode: code,
+        pendingEstateName: result['name'] as String,
+        pendingEstateAddress: result['address'] as String?,
+        pendingEstateManagedBy: result['managedBy'] as String?,
+        pendingEstateResidentCount: result['residentCount'] as int?,
+        authStage: AuthStage.estateFound,
+      );
     } catch (e) {
-      state = state.copyWith(estateCodeLoading: false, estateCodeError: extractMessage(e));
+      state = state.copyWith(
+        estateCodeLoading: false,
+        estateCodeError: extractMessage(e),
+      );
     }
+  }
+
+  /// "Continue to Login" on the estate-found screen — this is the actual
+  /// commit point: only now does the code get remembered on-device (see
+  /// EstateStorage's doc comment on why that matters for future launches).
+  Future<void> confirmEstate() async {
+    final code = state.pendingEstateCode;
+    final name = state.pendingEstateName;
+    if (code == null || name == null) return;
+    final address = state.pendingEstateAddress;
+    await _estateStorage.save(code: code, name: name, address: address);
+    state = state.copyWith(
+      estateName: name,
+      estateAddress: address,
+      pendingEstateCode: null,
+      pendingEstateName: null,
+      pendingEstateAddress: null,
+      pendingEstateManagedBy: null,
+      pendingEstateResidentCount: null,
+    );
+    await _tryAutoLogin();
+  }
+
+  /// "Enter a different code" (or the back arrow) on the estate-found
+  /// screen — nothing was ever persisted, so this just clears the staged
+  /// result and returns to the code entry field.
+  void reenterEstateCode() {
+    state = state.copyWith(
+      authStage: AuthStage.estateCode,
+      pendingEstateCode: null,
+      pendingEstateName: null,
+      pendingEstateAddress: null,
+      pendingEstateManagedBy: null,
+      pendingEstateResidentCount: null,
+    );
   }
 
   Future<void> _registerPushToken() async {
@@ -127,6 +215,8 @@ class AppNotifier extends StateNotifier<AppState> {
 
   Future<void> _tryAutoLogin() async {
     final token = await _tokenStorage.read();
+    // TEMP: diagnostic only
+    print('[DIAG] accessToken present=${token != null}');
     if (token == null) {
       state = state.copyWith(authStage: AuthStage.login);
       return;
@@ -134,38 +224,96 @@ class AppNotifier extends StateNotifier<AppState> {
     try {
       final user = CurrentUser.fromJson(await _api.me());
       final role = _roleFromApi(user.role);
-      state = state.copyWith(currentUser: user, role: role);
+      state = state.copyWith(
+        currentUser: user,
+        role: role,
+        estateName: user.estateName ?? state.estateName,
+        estateAddress: user.estateAddress ?? state.estateAddress,
+      );
       if (user.role == 'GUARD') {
         await _bootstrapGuard();
       } else {
         await _bootstrapResident();
       }
-      state = state.copyWith(authStage: AuthStage.app);
+      await _enterApp();
       unawaited(_registerPushToken());
-    } catch (_) {
+      // TEMP: diagnostic only
+      print('[DIAG] auto-login succeeded');
+    } catch (e) {
+      // TEMP: diagnostic only
+      print('[DIAG] auto-login FAILED: $e');
       await _tokenStorage.clear();
       state = state.copyWith(authStage: AuthStage.login);
     }
   }
 
+  /// Data is already loaded by the time this runs (called after bootstrap)
+  /// — biometric lock, when enabled, sits in front of an already-ready app
+  /// rather than blocking the data fetch behind it.
+  Future<void> _enterApp() async {
+    final biometricEnabled = await _biometricStorage.readEnabled();
+    state = state.copyWith(
+      authStage: biometricEnabled ? AuthStage.locked : AuthStage.app,
+      biometricEnabled: biometricEnabled,
+    );
+  }
+
   // ── Login ────────────────────────────────────────────────────────────
-  void setRoleResident() => state = state.copyWith(role: Role.resident, loginError: '');
-  void setRoleGuard() => state = state.copyWith(role: Role.guard, loginError: '');
+  void setRoleResident() =>
+      state = state.copyWith(role: Role.resident, loginError: '');
+  void setRoleGuard() =>
+      state = state.copyWith(role: Role.guard, loginError: '');
   void onPhoneChange(String v) => state = state.copyWith(loginPhone: v);
   void onPasswordChange(String v) => state = state.copyWith(loginPassword: v);
+  void setRememberMe(bool v) => state = state.copyWith(rememberMe: v);
+
+  /// "Change" on the estate card during login — unlike [reenterEstateCode]
+  /// (used before anything's been confirmed), the estate here is already
+  /// committed to EstateStorage, so this actually clears it.
+  Future<void> changeEstate() async {
+    await _estateStorage.clear();
+    state = state.copyWith(
+      authStage: AuthStage.estateCode,
+      estateName: null,
+      estateAddress: null,
+      estateCodeInput: '',
+    );
+  }
 
   Future<void> doLogin() async {
     state = state.copyWith(isLoading: true, loginError: '');
     try {
+      final (platform, deviceName) = await _deviceInfo();
       final result = await _api.login(
         phone: _digitsOnly(state.loginPhone),
         password: state.loginPassword,
         role: _roleToApi(state.role),
+        platform: platform,
+        deviceName: deviceName,
       );
       await _tokenStorage.save(result['accessToken'] as String);
-      await _tokenStorage.saveRefreshToken(result['refreshToken'] as String);
+      // Always needed for this session's own requests (see ApiClient's
+      // interceptor) regardless of "remember me" — only the *refresh*
+      // token controls whether the session outlives the 15-minute access
+      // token.
+      if (state.rememberMe) {
+        await _tokenStorage.saveRefreshToken(result['refreshToken'] as String);
+      }
       final user = CurrentUser.fromJson(await _api.me());
-      state = state.copyWith(currentUser: user, isLoading: false);
+      // A successful login proves this device belongs to this estate —
+      // lock it in so "Change" stops being offered on the login screen.
+      await _estateStorage.markLocked();
+      state = state.copyWith(
+        currentUser: user,
+        isLoading: false,
+        // The server's own estate relation is the source of truth — local
+        // storage (set only when this device went through "Find Your
+        // Estate" itself) can be stale or, on some paths to this screen,
+        // never populated at all.
+        estateName: user.estateName ?? state.estateName,
+        estateAddress: user.estateAddress ?? state.estateAddress,
+        estateLocked: true,
+      );
 
       // Guards share a duty phone rather than a personal device, so there's
       // no "first login, set up your own profile" moment for them — their
@@ -188,7 +336,13 @@ class AppNotifier extends StateNotifier<AppState> {
       } else {
         await _bootstrapResident();
       }
-      state = state.copyWith(authStage: AuthStage.app);
+      // Straight to `app`, not through the biometric lock — typing the
+      // password just now already was the authentication event. The lock
+      // only guards *silent* session restoration (see _tryAutoLogin).
+      state = state.copyWith(
+        authStage: AuthStage.app,
+        biometricEnabled: await _biometricStorage.readEnabled(),
+      );
       unawaited(_registerPushToken());
     } catch (e) {
       state = state.copyWith(isLoading: false, loginError: extractMessage(e));
@@ -196,7 +350,8 @@ class AppNotifier extends StateNotifier<AppState> {
   }
 
   // ── Forgot / OTP / reset ─────────────────────────────────────────────
-  void goForgot() => state = state.copyWith(authStage: AuthStage.forgot, resetMsg: '');
+  void goForgot() =>
+      state = state.copyWith(authStage: AuthStage.forgot, resetMsg: '');
   void onForgotPhoneChange(String v) => state = state.copyWith(forgotPhone: v);
 
   Future<void> sendOtp() async {
@@ -215,17 +370,22 @@ class AppNotifier extends StateNotifier<AppState> {
 
   void onOtpChange(String v) {
     final digits = _digitsOnly(v);
-    state = state.copyWith(otpCode: digits.substring(0, min(4, digits.length)));
+    state = state.copyWith(otpCode: digits.substring(0, min(6, digits.length)));
   }
 
   Future<void> verifyOtp() async {
-    if (state.otpCode.length != 4) {
-      state = state.copyWith(resetMsg: 'Enter the 4-digit code sent to your phone.');
+    if (state.otpCode.length != 6) {
+      state = state.copyWith(
+        resetMsg: 'Enter the 6-digit code sent to your phone.',
+      );
       return;
     }
     state = state.copyWith(isLoading: true, resetMsg: '');
     try {
-      final result = await _api.verifyOtp(phone: _digitsOnly(state.forgotPhone), code: state.otpCode);
+      final result = await _api.verifyOtp(
+        phone: _digitsOnly(state.forgotPhone),
+        code: state.otpCode,
+      );
       state = state.copyWith(
         authStage: AuthStage.newPassword,
         resetToken: result['resetToken'] as String,
@@ -241,13 +401,18 @@ class AppNotifier extends StateNotifier<AppState> {
   void onSetupFullName(String v) => state = state.copyWith(setupFullName: v);
   void onSetupHouse(String v) => state = state.copyWith(setupHouse: v);
   void onSetupEmail(String v) => state = state.copyWith(setupEmail: v);
-  void onSetupEmergencyContactName(String v) => state = state.copyWith(setupEmergencyContactName: v);
-  void onSetupEmergencyContactPhone(String v) => state = state.copyWith(setupEmergencyContactPhone: v);
-  void onSetupVehiclePlates(String v) => state = state.copyWith(setupVehiclePlates: v);
+  void onSetupEmergencyContactName(String v) =>
+      state = state.copyWith(setupEmergencyContactName: v);
+  void onSetupEmergencyContactPhone(String v) =>
+      state = state.copyWith(setupEmergencyContactPhone: v);
+  void onSetupVehiclePlates(String v) =>
+      state = state.copyWith(setupVehiclePlates: v);
 
   Future<void> submitNewPassword() async {
     if (state.newPass1.length < 6) {
-      state = state.copyWith(resetMsg: 'Password must be at least 6 characters.');
+      state = state.copyWith(
+        resetMsg: 'Password must be at least 6 characters.',
+      );
       return;
     }
     if (state.newPass1 != state.newPass2) {
@@ -256,15 +421,22 @@ class AppNotifier extends StateNotifier<AppState> {
     }
     state = state.copyWith(isLoading: true, resetMsg: '');
     try {
-      await _api.resetPassword(resetToken: state.resetToken!, newPassword: state.newPass1);
+      await _api.resetPassword(
+        resetToken: state.resetToken!,
+        newPassword: state.newPass1,
+      );
+      // Successfully resetting the password proves this account belongs
+      // to this device's estate — same commit point as a normal login.
+      await _estateStorage.markLocked();
       state = state.copyWith(
-        authStage: AuthStage.login,
+        authStage: AuthStage.resetSuccess,
         newPass1: '',
         newPass2: '',
         resetMsg: '',
         resetToken: null,
         loginError: '',
         isLoading: false,
+        estateLocked: true,
       );
     } catch (e) {
       state = state.copyWith(isLoading: false, resetMsg: extractMessage(e));
@@ -273,7 +445,9 @@ class AppNotifier extends StateNotifier<AppState> {
 
   Future<void> completeForceReset() async {
     if (state.newPass1.length < 6) {
-      state = state.copyWith(resetMsg: 'Password must be at least 6 characters.');
+      state = state.copyWith(
+        resetMsg: 'Password must be at least 6 characters.',
+      );
       return;
     }
     if (state.newPass1 != state.newPass2) {
@@ -312,14 +486,20 @@ class AppNotifier extends StateNotifier<AppState> {
       // The role driving which bootstrap runs is whatever the admin set
       // this account up as — not assumed to always be a resident, since
       // guard accounts can need first-time setup too.
-      final role = state.currentUser?.role == 'GUARD' ? Role.guard : Role.resident;
+      final role = state.currentUser?.role == 'GUARD'
+          ? Role.guard
+          : Role.resident;
       if (role == Role.guard) {
         await _bootstrapGuard();
       } else {
         await _bootstrapResident();
       }
+      // Data's already loaded (bootstrap just ran above) — the success
+      // screen sits in front of an app that's ready to go the moment
+      // finishOnboarding flips authStage to app, same as the biometric
+      // lock screen does for a silently-restored session.
       state = state.copyWith(
-        authStage: AuthStage.app,
+        authStage: AuthStage.onboardingComplete,
         role: role,
         newPass1: '',
         newPass2: '',
@@ -331,7 +511,13 @@ class AppNotifier extends StateNotifier<AppState> {
     }
   }
 
-  void backToLogin() => state = state.copyWith(authStage: AuthStage.login, resetMsg: '');
+  void finishOnboarding() => state = state.copyWith(authStage: AuthStage.app);
+
+  void backToLogin() =>
+      state = state.copyWith(authStage: AuthStage.login, resetMsg: '');
+
+  void backToOtp() =>
+      state = state.copyWith(authStage: AuthStage.otp, resetMsg: '');
 
   Future<void> logout() async {
     await _unregisterPushToken();
@@ -342,7 +528,17 @@ class AppNotifier extends StateNotifier<AppState> {
       // Best-effort — the token is discarded locally regardless.
     }
     await _tokenStorage.clear();
-    state = AppState(authStage: AuthStage.login);
+    // Devices get handed to a different person often enough (guards share
+    // a duty phone across shifts) that leaving a stale biometric-enabled
+    // flag around would lock the *next* login behind someone else's face.
+    await _biometricStorage.setEnabled(false);
+    state = AppState(
+      authStage: AuthStage.login,
+      biometricAvailable: state.biometricAvailable,
+      estateName: state.estateName,
+      estateAddress: state.estateAddress,
+      estateLocked: state.estateLocked,
+    );
   }
 
   /// Pull-to-refresh for any resident list screen — re-runs the same
@@ -362,10 +558,119 @@ class AppNotifier extends StateNotifier<AppState> {
   /// nothing to refresh yet.
   Future<void> refreshOnResume() async {
     if (state.authStage != AuthStage.app) return;
+    if (state.biometricEnabled) {
+      state = state.copyWith(authStage: AuthStage.locked);
+      return;
+    }
     if (state.role == Role.guard) {
       await _bootstrapGuard();
     } else {
       await _bootstrapResident();
+    }
+  }
+
+  // ── Biometric lock ───────────────────────────────────────────────────
+  Future<void> _checkBiometricAvailability() async {
+    try {
+      final supported = await _localAuth.isDeviceSupported();
+      final canCheck = await _localAuth.canCheckBiometrics;
+      state = state.copyWith(biometricAvailable: supported && canCheck);
+    } catch (_) {
+      state = state.copyWith(biometricAvailable: false);
+    }
+  }
+
+  /// Called from the unlock screen. On success, resumes exactly what
+  /// [refreshOnResume] paused (or what [_tryAutoLogin] deferred on cold
+  /// start) by re-running the same data bootstrap.
+  Future<bool> unlockWithBiometrics() async {
+    try {
+      final ok = await _localAuth.authenticate(
+        localizedReason: 'Unlock CommunityHub',
+        options: const AuthenticationOptions(
+          biometricOnly: true,
+          stickyAuth: true,
+        ),
+      );
+      if (!ok) return false;
+      state = state.copyWith(authStage: AuthStage.app);
+      if (state.role == Role.guard) {
+        await _bootstrapGuard();
+      } else {
+        await _bootstrapResident();
+      }
+      return true;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  /// Called from the profile toggle — requires a successful auth right
+  /// then, before persisting the flag, so turning it on always proves the
+  /// device's biometrics actually work for this user.
+  Future<bool> enableBiometrics() async {
+    try {
+      final ok = await _localAuth.authenticate(
+        localizedReason: 'Confirm to enable biometric unlock',
+        options: const AuthenticationOptions(biometricOnly: true),
+      );
+      if (!ok) return false;
+      await _biometricStorage.setEnabled(true);
+      state = state.copyWith(biometricEnabled: true);
+      return true;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  Future<void> disableBiometrics() async {
+    await _biometricStorage.setEnabled(false);
+    state = state.copyWith(biometricEnabled: false);
+  }
+
+  // ── Device sessions ──────────────────────────────────────────────────
+  Future<void> loadSessions() async {
+    try {
+      final raw = await _api.listSessions();
+      final sessions = raw
+          .map((e) => SessionInfo.fromJson(e as Map<String, dynamic>))
+          .toList();
+      state = state.copyWith(sessions: sessions);
+    } catch (_) {
+      // Best-effort — the page just shows whatever was already loaded.
+    }
+  }
+
+  Future<void> revokeSession(String id) async {
+    try {
+      await _api.revokeSession(id);
+      await loadSessions();
+    } catch (_) {
+      // Best-effort.
+    }
+  }
+
+  /// Compares against [SessionInfo.jti] to mark "this device" in the list
+  /// — the access token attached to every guarded request carries its own
+  /// jti, not the refresh token's, so this has to be read locally instead.
+  Future<String?> currentSessionJti() async {
+    final refreshToken = await _tokenStorage.readRefreshToken();
+    if (refreshToken == null) return null;
+    return jwtJti(refreshToken);
+  }
+
+  Future<(String?, String?)> _deviceInfo() async {
+    if (!Platform.isAndroid && !Platform.isIOS) return (null, null);
+    try {
+      final info = DeviceInfoPlugin();
+      if (Platform.isIOS) {
+        final iosInfo = await info.iosInfo;
+        return ('IOS', iosInfo.name);
+      }
+      final androidInfo = await info.androidInfo;
+      return ('ANDROID', androidInfo.model);
+    } catch (_) {
+      return (Platform.isIOS ? 'IOS' : 'ANDROID', null);
     }
   }
 
@@ -385,31 +690,55 @@ class AppNotifier extends StateNotifier<AppState> {
       _api.myPledges(),
     ]);
 
-    final announcements = (results[0] as List).map((j) => Announcement.fromJson(j as Map<String, dynamic>)).toList();
-    final meetings = (results[1] as List).map((j) => Meeting.fromJson(j as Map<String, dynamic>)).toList();
+    final announcements = (results[0] as List)
+        .map((j) => Announcement.fromJson(j as Map<String, dynamic>))
+        .toList();
+    final meetings = (results[1] as List)
+        .map((j) => Meeting.fromJson(j as Map<String, dynamic>))
+        .toList();
     final dues = results[2] as Map<String, dynamic>;
-    final levies = (results[3] as List).map((j) => Levy.fromJson(j as Map<String, dynamic>)).toList();
-    final visitorPasses = (results[4] as List).map((j) => VisitorPass.fromJson(j as Map<String, dynamic>)).toList();
-    final projects = (results[5] as List).map((j) => Project.fromJson(j as Map<String, dynamic>)).toList();
-    final polls = (results[6] as List).map((j) => Poll.fromJson(j as Map<String, dynamic>)).toList();
+    final levies = (results[3] as List)
+        .map((j) => Levy.fromJson(j as Map<String, dynamic>))
+        .toList();
+    final visitorPasses = (results[4] as List)
+        .map((j) => VisitorPass.fromJson(j as Map<String, dynamic>))
+        .toList();
+    final projects = (results[5] as List)
+        .map((j) => Project.fromJson(j as Map<String, dynamic>))
+        .toList();
+    final polls = (results[6] as List)
+        .map((j) => Poll.fromJson(j as Map<String, dynamic>))
+        .toList();
     final notificationsJson = results[7] as List;
-    final notifications = notificationsJson.map((j) => NotificationItem.fromJson(j as Map<String, dynamic>)).toList();
-    final rulesSections = (results[8] as List).map((j) => RulesSection.fromJson(j as Map<String, dynamic>)).toList();
+    final notifications = notificationsJson
+        .map((j) => NotificationItem.fromJson(j as Map<String, dynamic>))
+        .toList();
+    final rulesSections = (results[8] as List)
+        .map((j) => RulesSection.fromJson(j as Map<String, dynamic>))
+        .toList();
     final spotlightJson = results[9] as Map<String, dynamic>?;
-    final spotlight = spotlightJson == null ? null : Spotlight.fromJson(spotlightJson);
-    final myPledges = (results[10] as List).map((j) => MyPledge.fromJson(j as Map<String, dynamic>)).toList();
+    final spotlight = spotlightJson == null
+        ? null
+        : Spotlight.fromJson(spotlightJson);
+    final myPledges = (results[10] as List)
+        .map((j) => MyPledge.fromJson(j as Map<String, dynamic>))
+        .toList();
 
     state = state.copyWith(
       announcements: announcements,
       meetings: meetings,
       duesBalance: dues['balance'] as int,
-      duesHistory: (dues['history'] as List).map((j) => DuesEntry.fromJson(j as Map<String, dynamic>)).toList(),
+      duesHistory: (dues['history'] as List)
+          .map((j) => DuesEntry.fromJson(j as Map<String, dynamic>))
+          .toList(),
       levies: levies,
       visitorPasses: visitorPasses,
       projects: projects,
       polls: polls,
       notifications: notifications,
-      allNotifsRead: notificationsJson.every((j) => (j as Map<String, dynamic>)['readAt'] != null),
+      allNotifsRead: notificationsJson.every(
+        (j) => (j as Map<String, dynamic>)['readAt'] != null,
+      ),
       rulesSections: rulesSections,
       spotlight: spotlight,
       myPledges: myPledges,
@@ -417,7 +746,9 @@ class AppNotifier extends StateNotifier<AppState> {
   }
 
   Future<void> _bootstrapGuard() async {
-    final accessLog = (await _api.accessLog()).map((j) => AccessLogEntry.fromJson(j as Map<String, dynamic>)).toList();
+    final accessLog = (await _api.accessLog())
+        .map((j) => AccessLogEntry.fromJson(j as Map<String, dynamic>))
+        .toList();
     state = state.copyWith(accessLog: accessLog);
   }
 
@@ -440,13 +771,19 @@ class AppNotifier extends StateNotifier<AppState> {
   }
 
   // ── Dues / payment ───────────────────────────────────────────────────
-  void resetPayment() => state = state.copyWith(paymentStep: PaymentStep.idle, paymentReference: null);
+  void resetPayment() => state = state.copyWith(
+    paymentStep: PaymentStep.idle,
+    paymentReference: null,
+  );
 
   Future<void> confirmPayment() async {
     state = state.copyWith(paymentStep: PaymentStep.processing);
     try {
       final amount = state.duesBalance;
-      final initiated = await _api.initiatePayment(amount: amount, purpose: 'DUES');
+      final initiated = await _api.initiatePayment(
+        amount: amount,
+        purpose: 'DUES',
+      );
       final reference = initiated['reference'] as String;
 
       var status = 'PENDING';
@@ -461,7 +798,9 @@ class AppNotifier extends StateNotifier<AppState> {
           paymentStep: PaymentStep.success,
           paymentReference: reference,
           duesBalance: dues['balance'] as int,
-          duesHistory: (dues['history'] as List).map((j) => DuesEntry.fromJson(j as Map<String, dynamic>)).toList(),
+          duesHistory: (dues['history'] as List)
+              .map((j) => DuesEntry.fromJson(j as Map<String, dynamic>))
+              .toList(),
         );
       } else {
         state = state.copyWith(paymentStep: PaymentStep.idle);
@@ -474,7 +813,9 @@ class AppNotifier extends StateNotifier<AppState> {
   Future<String?> payLevy(String id) async {
     try {
       await _api.payLevy(id);
-      final levies = (await _api.levies()).map((j) => Levy.fromJson(j as Map<String, dynamic>)).toList();
+      final levies = (await _api.levies())
+          .map((j) => Levy.fromJson(j as Map<String, dynamic>))
+          .toList();
       state = state.copyWith(levies: levies);
       return null;
     } catch (e) {
@@ -483,7 +824,8 @@ class AppNotifier extends StateNotifier<AppState> {
   }
 
   // ── Visitor passes ───────────────────────────────────────────────────
-  void resetVisitorForm() => state = state.copyWith(vfName: '', vfPhone: '', vfPlate: '', vfError: '');
+  void resetVisitorForm() =>
+      state = state.copyWith(vfName: '', vfPhone: '', vfPlate: '', vfError: '');
   void onVfName(String v) => state = state.copyWith(vfName: v);
   void onVfPhone(String v) => state = state.copyWith(vfPhone: v);
   void onVfPlate(String v) => state = state.copyWith(vfPlate: v);
@@ -491,7 +833,9 @@ class AppNotifier extends StateNotifier<AppState> {
   /// Returns the new pass's id on success, or null if it failed.
   Future<String?> createVisitorPass() async {
     if (state.vfName.trim().isEmpty || state.vfPhone.trim().isEmpty) {
-      state = state.copyWith(vfError: 'Visitor name and phone number are required.');
+      state = state.copyWith(
+        vfError: 'Visitor name and phone number are required.',
+      );
       return null;
     }
     try {
@@ -535,10 +879,13 @@ class AppNotifier extends StateNotifier<AppState> {
   // ── Guard ─────────────────────────────────────────────────────────────
   void onGuardCodeChange(String v) {
     final digits = _digitsOnly(v);
-    state = state.copyWith(guardCode: digits.substring(0, min(6, digits.length)));
+    state = state.copyWith(
+      guardCode: digits.substring(0, min(6, digits.length)),
+    );
   }
 
-  void resetGuardResult() => state = state.copyWith(guardCode: '', guardResult: null);
+  void resetGuardResult() =>
+      state = state.copyWith(guardCode: '', guardResult: null);
 
   /// Returns null on success (the result — matched or not — lands in
   /// `guardResult`), or an error message if the check itself couldn't be
@@ -633,14 +980,18 @@ class AppNotifier extends StateNotifier<AppState> {
   }
 
   Future<void> refreshPolls() async {
-    final polls = (await _api.polls()).map((j) => Poll.fromJson(j as Map<String, dynamic>)).toList();
+    final polls = (await _api.polls())
+        .map((j) => Poll.fromJson(j as Map<String, dynamic>))
+        .toList();
     state = state.copyWith(polls: polls);
   }
 
   Future<String?> votePoll(String pollId, String optionId) async {
     try {
       await _api.vote(pollId: pollId, optionId: optionId);
-      final polls = (await _api.polls()).map((j) => Poll.fromJson(j as Map<String, dynamic>)).toList();
+      final polls = (await _api.polls())
+          .map((j) => Poll.fromJson(j as Map<String, dynamic>))
+          .toList();
       state = state.copyWith(polls: polls);
       return null;
     } catch (e) {
@@ -649,10 +1000,15 @@ class AppNotifier extends StateNotifier<AppState> {
   }
 
   // ── Projects ──────────────────────────────────────────────────────────
-  Future<String?> pledge({required String projectId, required int amount}) async {
+  Future<String?> pledge({
+    required String projectId,
+    required int amount,
+  }) async {
     try {
       await _api.pledge(projectId: projectId, amount: amount);
-      final myPledges = (await _api.myPledges()).map((j) => MyPledge.fromJson(j as Map<String, dynamic>)).toList();
+      final myPledges = (await _api.myPledges())
+          .map((j) => MyPledge.fromJson(j as Map<String, dynamic>))
+          .toList();
       state = state.copyWith(myPledges: myPledges);
       return null;
     } catch (e) {
@@ -665,17 +1021,23 @@ class AppNotifier extends StateNotifier<AppState> {
     complaintError: '',
     complaintCategory: 'Maintenance',
   );
-  void selectComplaintCategory(String cat) => state = state.copyWith(complaintCategory: cat);
+  void selectComplaintCategory(String cat) =>
+      state = state.copyWith(complaintCategory: cat);
   void onComplaintDesc(String v) => state = state.copyWith(complaintDesc: v);
 
   /// Returns the generated reference on success, or null if it failed.
   Future<String?> submitComplaint() async {
     if (state.complaintDesc.trim().length < 5) {
-      state = state.copyWith(complaintError: 'Please describe the issue in a bit more detail.');
+      state = state.copyWith(
+        complaintError: 'Please describe the issue in a bit more detail.',
+      );
       return null;
     }
     try {
-      final result = await _api.submitComplaint(category: state.complaintCategory, description: state.complaintDesc);
+      final result = await _api.submitComplaint(
+        category: state.complaintCategory,
+        description: state.complaintDesc,
+      );
       final ref = result['ref'] as String;
       state = state.copyWith(complaintRef: ref, complaintError: '');
       await loadComplaints();
@@ -688,5 +1050,11 @@ class AppNotifier extends StateNotifier<AppState> {
 }
 
 final appStateProvider = StateNotifierProvider<AppNotifier, AppState>(
-  (ref) => AppNotifier(CommunityHubApi(), const TokenStorage(), const EstateStorage(), ref),
+  (ref) => AppNotifier(
+    CommunityHubApi(),
+    const TokenStorage(),
+    const EstateStorage(),
+    ref,
+    const BiometricStorage(),
+  ),
 );

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../theme/ch_colors.dart';
+import '../theme/ch_responsive.dart';
 import '../theme/ch_spacing.dart';
 import '../theme/ch_text_styles.dart';
 
@@ -28,11 +29,14 @@ class ChFilterChips extends StatelessWidget {
         children: [
           for (final option in options)
             Padding(
-              padding: const EdgeInsets.only(right: 8),
+              padding: EdgeInsets.only(right: context.rs(8)),
               child: GestureDetector(
                 onTap: option.onSelect,
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 9),
+                  padding: EdgeInsets.symmetric(
+                    horizontal: context.rs(16),
+                    vertical: context.rs(9),
+                  ),
                   decoration: BoxDecoration(
                     color: option.selected ? ChColors.accent2 : ChColors.surface,
                     borderRadius: BorderRadius.circular(ChRadii.pill),
@@ -43,7 +47,7 @@ class ChFilterChips extends StatelessWidget {
                     style: ChTextStyles.body(
                       fontSize: 13,
                       fontWeight: FontWeight.w600,
-                      color: option.selected ? Colors.white : ChColors.neutralN(700),
+                      color: option.selected ? Colors.white : ChColors.bodyText,
                     ),
                   ),
                 ),

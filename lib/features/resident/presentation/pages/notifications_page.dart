@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/theme/ch_colors.dart';
+import '../../../../core/theme/ch_responsive.dart';
 import '../../../../core/theme/ch_spacing.dart';
 import '../../../../core/theme/ch_text_styles.dart';
 import '../../../../core/widgets/ch_generic_header.dart';
@@ -54,8 +55,8 @@ class NotificationsPage extends ConsumerWidget {
                   child: Row(
                     children: [
                       Container(
-                        width: 36,
-                        height: 36,
+                        width: context.rs(36),
+                        height: context.rs(36),
                         alignment: Alignment.center,
                         decoration: BoxDecoration(
                           color: isMoney ? ChColors.accent2N(200) : ChColors.accentN(200),
@@ -67,7 +68,7 @@ class NotificationsPage extends ConsumerWidget {
                           decoration: BoxDecoration(color: isMoney ? ChColors.accent2 : ChColors.accent, shape: BoxShape.circle),
                         ),
                       ),
-                      const SizedBox(width: 12),
+                      SizedBox(width: context.rs(12)),
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -77,11 +78,11 @@ class NotificationsPage extends ConsumerWidget {
                               style: ChTextStyles.body(
                                 fontSize: 14,
                                 fontWeight: n.read ? FontWeight.w500 : FontWeight.w700,
-                                color: n.read ? ChColors.neutralN(600) : ChColors.text,
+                                color: n.read ? ChColors.bodyText : ChColors.text,
                               ),
                             ),
                             const SizedBox(height: 3),
-                            Text(n.time, style: ChTextStyles.body(fontSize: 12.5, color: ChColors.neutralN(600))),
+                            Text(n.time, style: ChTextStyles.body(fontSize: 12.5, color: ChColors.bodyText)),
                           ],
                         ),
                       ),

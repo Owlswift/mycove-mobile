@@ -49,6 +49,9 @@ dependencies:
   share_plus: ^10.1.3
   flutter_markdown: ^0.7.7+1
   add_2_calendar: ^3.0.1
+  local_auth: ^2.3.0
+  device_info_plus: ^11.2.0
+  iconsax_flutter: ^1.0.0
 
 dev_dependencies:
   flutter_test:
@@ -76,6 +79,12 @@ flutter:
 
   assets:
     - assets/images/welcome_banner.png
+    - assets/images/5b2b41ac-38ab-4b30-9c9b-1678f038d2ef.png
+    - assets/images/estate_gate.png
+    - assets/images/reset_password_illustration.png
+    - assets/images/otp_illustration.png
+    - assets/images/new_password_illustration.png
+    - assets/images/password_reset_success_illustration.png
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images

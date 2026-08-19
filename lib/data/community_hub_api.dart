@@ -12,23 +12,46 @@ class CommunityHubApi {
   List<dynamic> _list(Response r) => r.data as List<dynamic>;
 
   // ── Estate (pre-login) ───────────────────────────────────────────────
-  Future<Map<String, dynamic>> lookupEstate(String code) async => _map(await _dio.get('/estates/$code'));
+  Future<Map<String, dynamic>> lookupEstate(String code) async =>
+      _map(await _dio.get('/estates/$code'));
 
   // ── Auth ──────────────────────────────────────────────────────────────
   Future<Map<String, dynamic>> login({
     required String phone,
     required String password,
     required String role,
-  }) async => _map(await _dio.post('/auth/login', data: {'phone': phone, 'password': password, 'role': role}));
+    String? platform,
+    String? deviceName,
+  }) async => _map(
+    await _dio.post(
+      '/auth/login',
+      data: {
+        'phone': phone,
+        'password': password,
+        'role': role,
+        'platform': ?platform,
+        'deviceName': ?deviceName,
+      },
+    ),
+  );
 
   Future<Map<String, dynamic>> forgotPassword(String phone) async =>
       _map(await _dio.post('/auth/forgot-password', data: {'phone': phone}));
 
-  Future<Map<String, dynamic>> verifyOtp({required String phone, required String code}) async =>
-      _map(await _dio.post('/auth/verify-otp', data: {'phone': phone, 'code': code}));
+  Future<Map<String, dynamic>> verifyOtp({
+    required String phone,
+    required String code,
+  }) async => _map(
+    await _dio.post('/auth/verify-otp', data: {'phone': phone, 'code': code}),
+  );
 
-  Future<void> resetPassword({required String resetToken, required String newPassword}) =>
-      _dio.post('/auth/reset-password', data: {'resetToken': resetToken, 'newPassword': newPassword});
+  Future<void> resetPassword({
+    required String resetToken,
+    required String newPassword,
+  }) => _dio.post(
+    '/auth/reset-password',
+    data: {'resetToken': resetToken, 'newPassword': newPassword},
+  );
 
   Future<void> completeForceReset({
     required String newPassword,
@@ -57,13 +80,17 @@ class CommunityHubApi {
   Future<Map<String, dynamic>> me() async => _map(await _dio.get('/users/me'));
 
   // ── Announcements ────────────────────────────────────────────────────
-  Future<List<dynamic>> announcements() async => _list(await _dio.get('/announcements'));
-  Future<Map<String, dynamic>> announcement(String id) async => _map(await _dio.get('/announcements/$id'));
-  Future<void> markAnnouncementRead(String id) => _dio.post('/announcements/$id/read');
+  Future<List<dynamic>> announcements() async =>
+      _list(await _dio.get('/announcements'));
+  Future<Map<String, dynamic>> announcement(String id) async =>
+      _map(await _dio.get('/announcements/$id'));
+  Future<void> markAnnouncementRead(String id) =>
+      _dio.post('/announcements/$id/read');
 
   // ── Meetings ──────────────────────────────────────────────────────────
   Future<List<dynamic>> meetings() async => _list(await _dio.get('/meetings'));
-  Future<Map<String, dynamic>> meeting(String id) async => _map(await _dio.get('/meetings/$id'));
+  Future<Map<String, dynamic>> meeting(String id) async =>
+      _map(await _dio.get('/meetings/$id'));
   Future<void> addToCalendar(String id) => _dio.post('/meetings/$id/calendar');
 
   // ── Dues & levies ─────────────────────────────────────────────────────
@@ -77,7 +104,10 @@ class CommunityHubApi {
     required String purpose,
     String? levyId,
   }) async => _map(
-    await _dio.post('/payments/initiate', data: {'amount': amount, 'purpose': purpose, 'levyId': levyId}),
+    await _dio.post(
+      '/payments/initiate',
+      data: {'amount': amount, 'purpose': purpose, 'levyId': levyId},
+    ),
   );
 
   Future<Map<String, dynamic>> verifyPayment(String reference) async =>
@@ -87,7 +117,8 @@ class CommunityHubApi {
       _map(await _dio.get('/payments/$reference/receipt'));
 
   // ── Visitor passes (resident) ────────────────────────────────────────
-  Future<List<dynamic>> visitorPasses() async => _list(await _dio.get('/visitor-passes'));
+  Future<List<dynamic>> visitorPasses() async =>
+      _list(await _dio.get('/visitor-passes'));
 
   Future<Map<String, dynamic>> createVisitorPass({
     required String name,
@@ -95,10 +126,19 @@ class CommunityHubApi {
     String? plate,
     int? validHours,
   }) async => _map(
-    await _dio.post('/visitor-passes', data: {'name': name, 'phone': phone, 'plate': plate, 'validHours': ?validHours}),
+    await _dio.post(
+      '/visitor-passes',
+      data: {
+        'name': name,
+        'phone': phone,
+        'plate': plate,
+        'validHours': ?validHours,
+      },
+    ),
   );
 
-  Future<Map<String, dynamic>> visitorPass(String id) async => _map(await _dio.get('/visitor-passes/$id'));
+  Future<Map<String, dynamic>> visitorPass(String id) async =>
+      _map(await _dio.get('/visitor-passes/$id'));
 
   Future<Map<String, dynamic>> revokeVisitorPass(String id) async =>
       _map(await _dio.patch('/visitor-passes/$id/revoke'));
@@ -107,16 +147,21 @@ class CommunityHubApi {
   Future<Map<String, dynamic>> guardVerify(String code) async =>
       _map(await _dio.post('/visitor-passes/verify', data: {'code': code}));
 
-  Future<void> recordEntry(String visitorPassId) => _dio.post('/visitor-passes/$visitorPassId/entry');
-  Future<void> recordExit(String visitorPassId) => _dio.post('/visitor-passes/$visitorPassId/exit');
-  Future<List<dynamic>> accessLog() async => _list(await _dio.get('/access-log'));
+  Future<void> recordEntry(String visitorPassId) =>
+      _dio.post('/visitor-passes/$visitorPassId/entry');
+  Future<void> recordExit(String visitorPassId) =>
+      _dio.post('/visitor-passes/$visitorPassId/exit');
+  Future<List<dynamic>> accessLog() async =>
+      _list(await _dio.get('/access-log'));
 
   // ── Projects ──────────────────────────────────────────────────────────
   Future<List<dynamic>> projects() async => _list(await _dio.get('/projects'));
-  Future<Map<String, dynamic>> project(String id) async => _map(await _dio.get('/projects/$id'));
+  Future<Map<String, dynamic>> project(String id) async =>
+      _map(await _dio.get('/projects/$id'));
   Future<void> pledge({required String projectId, required int amount}) =>
       _dio.post('/projects/$projectId/pledges', data: {'amount': amount});
-  Future<List<dynamic>> myPledges() async => _list(await _dio.get('/projects/my-pledges'));
+  Future<List<dynamic>> myPledges() async =>
+      _list(await _dio.get('/projects/my-pledges'));
 
   // ── Spotlights ────────────────────────────────────────────────────────
   Future<Map<String, dynamic>?> currentSpotlight() async {
@@ -130,20 +175,37 @@ class CommunityHubApi {
       _dio.post('/polls/$pollId/vote', data: {'optionId': optionId});
 
   // ── Notifications ────────────────────────────────────────────────────
-  Future<List<dynamic>> notifications() async => _list(await _dio.get('/notifications'));
-  Future<void> markAllNotificationsRead() => _dio.post('/notifications/read-all');
+  Future<List<dynamic>> notifications() async =>
+      _list(await _dio.get('/notifications'));
+  Future<void> markAllNotificationsRead() =>
+      _dio.post('/notifications/read-all');
 
   // ── Rules ─────────────────────────────────────────────────────────────
   Future<List<dynamic>> rules() async => _list(await _dio.get('/rules'));
 
   // ── Complaints ────────────────────────────────────────────────────────
-  Future<List<dynamic>> complaints() async => _list(await _dio.get('/complaints'));
-  Future<Map<String, dynamic>> submitComplaint({required String category, required String description}) async =>
-      _map(await _dio.post('/complaints', data: {'category': category, 'description': description}));
+  Future<List<dynamic>> complaints() async =>
+      _list(await _dio.get('/complaints'));
+  Future<Map<String, dynamic>> submitComplaint({
+    required String category,
+    required String description,
+  }) async => _map(
+    await _dio.post(
+      '/complaints',
+      data: {'category': category, 'description': description},
+    ),
+  );
 
   // ── Push notifications ───────────────────────────────────────────────
-  Future<void> registerDeviceToken(String token, String platform) =>
-      _dio.post('/push/register-token', data: {'token': token, 'platform': platform});
+  Future<void> registerDeviceToken(String token, String platform) => _dio.post(
+    '/push/register-token',
+    data: {'token': token, 'platform': platform},
+  );
   Future<void> unregisterDeviceToken(String token) =>
       _dio.post('/push/unregister-token', data: {'token': token});
+
+  // ── Sessions (logged-in devices) ────────────────────────────────────
+  Future<List<dynamic>> listSessions() async =>
+      _list(await _dio.get('/auth/sessions'));
+  Future<void> revokeSession(String id) => _dio.delete('/auth/sessions/$id');
 }

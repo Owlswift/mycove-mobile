@@ -2,216 +2,283 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/theme/ch_colors.dart';
+import '../../../../core/theme/ch_responsive.dart';
 import '../../../../core/theme/ch_spacing.dart';
 import '../../../../core/theme/ch_text_styles.dart';
 import '../../../../state/app_notifier.dart';
 
 /// The very first screen a fresh install sees, before any estate has been
-/// remembered on this device — matches the Palm Court mockup's landing
-/// page. Returning devices skip straight past this (see
-/// AppNotifier._bootstrap): once an estate code has been validated once,
-/// it's stored and this screen never shows again.
+/// remembered on this device. Returning devices skip straight past this
+/// (see AppNotifier._bootstrap): once an estate code has been validated
+/// once, it's stored and this screen never shows again.
 class WelcomePage extends ConsumerWidget {
   const WelcomePage({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final notifier = ref.read(appStateProvider.notifier);
-    final bottomInset = MediaQuery.of(context).padding.bottom;
+    final heroHeight = MediaQuery.sizeOf(context).height * 0.32;
 
     return Scaffold(
       backgroundColor: ChColors.bg,
       body: SafeArea(
-        bottom: false,
-        child: Column(
-          children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(24, 12, 24, 0),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  Expanded(
-                    child: Row(
+        child: SingleChildScrollView(
+          child: Column(
+            children: [
+              SizedBox(height: context.rs(8)),
+              const _BrandMark(),
+              SizedBox(height: context.rs(10)),
+              RichText(
+                text: TextSpan(
+                  style: ChTextStyles.heading(fontSize: 28),
+                  children: [
+                    const TextSpan(text: 'Community'),
+                    TextSpan(
+                      text: 'Hub',
+                      style: ChTextStyles.heading(
+                        fontSize: 28,
+                        color: ChColors.accent2,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              SizedBox(height: context.rs(4)),
+              Text(
+                'Your Community. Connected.',
+                style: ChTextStyles.body(
+                  fontSize: 13,
+                  color: ChColors.bodyText,
+                ),
+              ),
+              _HeroPhoto(height: heroHeight),
+              SizedBox(height: context.rs(4)),
+              Container(
+                padding: EdgeInsets.symmetric(
+                  horizontal: context.rs(16),
+                  vertical: context.rs(9),
+                ),
+                decoration: BoxDecoration(
+                  color: ChColors.accent2N(100),
+                  borderRadius: BorderRadius.circular(ChRadii.pill),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Icons.verified_user_rounded,
+                      size: context.rs(15),
+                      color: ChColors.accent2N(700),
+                    ),
+                    SizedBox(width: context.rs(7)),
+                    Text(
+                      'Secure • Private • Trusted',
+                      style: ChTextStyles.body(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color: ChColors.accent2N(800),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              SizedBox(height: context.rs(20)),
+              Text(
+                'Welcome Home',
+                style: ChTextStyles.heroTitle(
+                  fontSize: 32,
+                  color: ChColors.accent2,
+                ),
+              ),
+              SizedBox(height: context.rs(12)),
+              Padding(
+                padding: EdgeInsets.symmetric(horizontal: context.rs(56)),
+                child: Text(
+                  'CommunityHub brings your whole estate together. Stay informed, make payments, manage visitors and more.',
+                  textAlign: TextAlign.center,
+                  style: ChTextStyles.body(
+                    fontSize: 14,
+                    height: 1.5,
+                    color: ChColors.bodyText,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+              SizedBox(height: context.rs(26)),
+              Padding(
+                padding: EdgeInsets.symmetric(horizontal: context.rs(24)),
+                child: GestureDetector(
+                  onTap: notifier.goToEstateCode,
+                  child: Container(
+                    width: double.infinity,
+                    padding: EdgeInsets.symmetric(
+                      vertical: context.rs(16),
+                      horizontal: context.rs(20),
+                    ),
+                    decoration: BoxDecoration(
+                      color: ChColors.accent2,
+                      borderRadius: BorderRadius.circular(ChRadii.button),
+                    ),
+                    child: Stack(
+                      alignment: Alignment.center,
                       children: [
-                        const Icon(Icons.holiday_village_rounded, size: 30, color: ChColors.accent2),
-                        const SizedBox(width: 10),
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text('CommunityHub', style: ChTextStyles.heading(fontSize: 17)),
-                            Text('Palm Court Estate', style: ChTextStyles.body(fontSize: 12, color: ChColors.neutralN(600))),
-                          ],
+                        Text('Get Started', style: ChTextStyles.button()),
+                        Align(
+                          alignment: Alignment.centerRight,
+                          child: Icon(
+                            Icons.arrow_forward_rounded,
+                            size: context.rs(22),
+                            color: Colors.white,
+                          ),
                         ),
                       ],
                     ),
                   ),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                    decoration: BoxDecoration(
-                      color: ChColors.surface,
-                      borderRadius: BorderRadius.circular(ChRadii.pill),
-                      boxShadow: [
-                        BoxShadow(color: Colors.black.withValues(alpha: 0.06), blurRadius: 10, offset: const Offset(0, 3)),
-                      ],
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(Icons.language_rounded, size: 15, color: ChColors.neutralN(700)),
-                        const SizedBox(width: 6),
-                        Text('Language', style: ChTextStyles.body(fontSize: 12.5, fontWeight: FontWeight.w600)),
-                        const SizedBox(width: 4),
-                        Icon(Icons.keyboard_arrow_down_rounded, size: 16, color: ChColors.neutralN(700)),
-                      ],
-                    ),
-                  ),
-                ],
+                ),
               ),
-            ),
-            const SizedBox(height: 22),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  RichText(
-                    // 29, not the scale's 36 — at 36 "all in one place" wraps
-                    // across 3 lines and splits "one"/"place" awkwardly; 29
-                    // is what reproduces the reference's clean 2-line break
-                    // on this screen's width.
-                    text: TextSpan(
-                      style: ChTextStyles.heroTitle(fontSize: 29),
-                      children: [
-                        const TextSpan(text: 'Welcome to your community, all in '),
-                        TextSpan(text: 'one place', style: ChTextStyles.heroTitle(fontSize: 29, color: ChColors.accent2)),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  Text(
-                    'Stay informed, make payments, book visitors and connect with your estate seamlessly.',
-                    style: ChTextStyles.body(fontSize: 14.5, color: ChColors.neutralN(600)),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 18),
-            Expanded(
-              child: Stack(
-                fit: StackFit.expand,
-                children: [
-                  const _EstateBanner(),
-                  Align(
-                    alignment: Alignment.bottomCenter,
-                    child: Container(
-                      width: double.infinity,
-                      padding: EdgeInsets.fromLTRB(24, 26, 24, 22 + bottomInset),
-                      decoration: BoxDecoration(
-                        color: ChColors.surface,
-                        borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
-                        boxShadow: [
-                          BoxShadow(color: Colors.black.withValues(alpha: 0.12), blurRadius: 28, offset: const Offset(0, -6)),
-                        ],
-                      ),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          _WelcomeButton(
-                            icon: Icons.apartment_rounded,
-                            label: 'Find Your Estate',
-                            primary: true,
-                            onTap: notifier.goToEstateCode,
-                          ),
-                          const SizedBox(height: 12),
-                          _WelcomeButton(
-                            icon: Icons.person_outline_rounded,
-                            label: 'Log In',
-                            primary: false,
-                            onTap: notifier.goToEstateCode,
-                          ),
-                          const SizedBox(height: 12),
-                          _WelcomeButton(
-                            icon: Icons.verified_user_outlined,
-                            label: "I'm a Security Guard",
-                            primary: false,
-                            onTap: () {
-                              notifier.setRoleGuard();
-                              notifier.goToEstateCode();
-                            },
-                          ),
-                          const SizedBox(height: 18),
-                          RichText(
-                            textAlign: TextAlign.center,
-                            text: TextSpan(
-                              style: ChTextStyles.body(fontSize: 13, color: ChColors.neutralN(600)),
-                              children: [
-                                const TextSpan(text: "New to CommunityHub? "),
-                                TextSpan(
-                                  text: 'Contact your estate management',
-                                  style: ChTextStyles.body(fontSize: 13, fontWeight: FontWeight.w700, color: ChColors.accent2),
-                                ),
-                                const TextSpan(text: ' for access.'),
-                              ],
-                            ),
-                          ),
-                        ],
+              SizedBox(height: context.rs(24)),
+              Padding(
+                padding: EdgeInsets.symmetric(horizontal: context.rs(24)),
+                child: Row(
+                  children: [
+                    Expanded(child: Divider(color: ChColors.divider)),
+                    Padding(
+                      padding: EdgeInsets.symmetric(horizontal: context.rs(12)),
+                      child: Text(
+                        'Trusted by communities',
+                        style: ChTextStyles.body(
+                          fontSize: 12.5,
+                          color: ChColors.bodyText,
+                        ),
                       ),
                     ),
-                  ),
-                ],
+                    Expanded(child: Divider(color: ChColors.divider)),
+                  ],
+                ),
               ),
-            ),
-          ],
+              SizedBox(height: context.rs(20)),
+              Padding(
+                padding: EdgeInsets.symmetric(horizontal: context.rs(24)),
+                child: Row(
+                  children: const [
+                    Expanded(
+                      child: _TrustItem(
+                        icon: Icons.verified_user_outlined,
+                        label: 'Safe & Secure',
+                      ),
+                    ),
+                    Expanded(
+                      child: _TrustItem(
+                        icon: Icons.groups_outlined,
+                        label: 'Community First',
+                      ),
+                    ),
+                    Expanded(
+                      child: _TrustItem(
+                        icon: Icons.notifications_outlined,
+                        label: 'Always Informed',
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              SizedBox(height: context.rs(20)),
+            ],
+          ),
         ),
       ),
     );
   }
 }
 
-class _WelcomeButton extends StatelessWidget {
-  const _WelcomeButton({required this.icon, required this.label, required this.primary, required this.onTap});
+/// House-with-family mark — no single Material icon matches the mockup's
+/// custom logo, so this composites the closest built-in shapes: a house
+/// outline with a family silhouette nested inside it.
+class _BrandMark extends StatelessWidget {
+  const _BrandMark();
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: context.rs(58),
+      height: context.rs(58),
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          Icon(Icons.home_rounded, size: context.rs(58), color: ChColors.accent2),
+          Padding(
+            padding: EdgeInsets.only(top: context.rs(22)),
+            child: Icon(
+              Icons.family_restroom_rounded,
+              size: context.rs(22),
+              color: ChColors.accent2N(100),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// The estate's gate photo, faded into the page background at the bottom
+/// rather than ending in a hard rectangular edge — same technique used on
+/// the estate-found/onboarding-complete celebration graphics.
+class _HeroPhoto extends StatelessWidget {
+  const _HeroPhoto({required this.height});
+
+  final double height;
+
+  @override
+  Widget build(BuildContext context) {
+    return ShaderMask(
+      shaderCallback: (rect) => const LinearGradient(
+        begin: Alignment.topCenter,
+        end: Alignment.bottomCenter,
+        colors: [Colors.black, Colors.black, Colors.transparent],
+        stops: [0.0, 0.55, 1.0],
+      ).createShader(rect),
+      blendMode: BlendMode.dstIn,
+      child: Image.asset(
+        'assets/images/welcome_banner.png',
+        width: double.infinity,
+        height: height,
+        fit: BoxFit.cover,
+      ),
+    );
+  }
+}
+
+class _TrustItem extends StatelessWidget {
+  const _TrustItem({required this.icon, required this.label});
 
   final IconData icon;
   final String label;
-  final bool primary;
-  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        width: double.infinity,
-        padding: const EdgeInsets.symmetric(vertical: 15),
-        alignment: Alignment.center,
-        decoration: BoxDecoration(
-          color: primary ? ChColors.accent2 : ChColors.surface,
-          borderRadius: BorderRadius.circular(ChRadii.button),
-          border: primary ? null : Border.all(color: ChColors.divider),
+    return Column(
+      children: [
+        Container(
+          width: context.rs(48),
+          height: context.rs(48),
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            color: ChColors.accent2N(100),
+            borderRadius: BorderRadius.circular(ChRadii.md),
+          ),
+          child: Icon(icon, size: context.rs(28), color: ChColors.accent2N(700)),
         ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(icon, size: 18, color: primary ? Colors.white : ChColors.text),
-            const SizedBox(width: 10),
-            Text(label, style: ChTextStyles.button(color: primary ? Colors.white : ChColors.text)),
-          ],
+        const SizedBox(height: 8),
+        Text(
+          label,
+          textAlign: TextAlign.center,
+          style: ChTextStyles.body(
+            fontSize: 12,
+            fontWeight: FontWeight.w500,
+            color: ChColors.bodyText,
+          ),
         ),
-      ),
-    );
-  }
-}
-
-/// The estate's gate photo, supplied directly for this screen.
-class _EstateBanner extends StatelessWidget {
-  const _EstateBanner();
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      color: ChColors.accent2N(800),
-      child: Image.asset('assets/images/welcome_banner.png', fit: BoxFit.cover),
+      ],
     );
   }
 }

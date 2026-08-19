@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/theme/ch_colors.dart';
+import '../../../../core/theme/ch_responsive.dart';
 import '../../../../core/theme/ch_spacing.dart';
 import '../../../../core/theme/ch_text_styles.dart';
 import '../../../../core/widgets/ch_generic_header.dart';
@@ -26,26 +27,46 @@ class ProfilePage extends ConsumerWidget {
             child: Column(
               children: [
                 Container(
-                  width: 72,
-                  height: 72,
+                  width: context.rs(72),
+                  height: context.rs(72),
                   alignment: Alignment.center,
                   margin: const EdgeInsets.only(bottom: 12),
-                  decoration: const BoxDecoration(color: ChColors.accent2, shape: BoxShape.circle),
+                  decoration: const BoxDecoration(
+                    color: ChColors.accent2,
+                    shape: BoxShape.circle,
+                  ),
                   child: Text(
                     user?.initials ?? '',
-                    style: ChTextStyles.body(fontSize: 24, fontWeight: FontWeight.w700, color: Colors.white),
+                    style: ChTextStyles.body(
+                      fontSize: 24,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.white,
+                    ),
                   ),
                 ),
-                Text(user?.fullName ?? '', style: ChTextStyles.heading(fontSize: 18)),
-                Text(user?.house ?? '', style: ChTextStyles.body(fontSize: 13, color: ChColors.neutralN(600))),
+                Text(
+                  user?.fullName ?? '',
+                  style: ChTextStyles.heading(fontSize: 18),
+                ),
+                Text(
+                  user?.house ?? '',
+                  style: ChTextStyles.body(
+                    fontSize: 13,
+                    color: ChColors.bodyText,
+                  ),
+                ),
                 const SizedBox(height: 20),
                 Container(
                   width: double.infinity,
-                  decoration: BoxDecoration(color: ChColors.surface, borderRadius: BorderRadius.circular(ChRadii.card)),
+                  decoration: BoxDecoration(
+                    color: ChColors.surface,
+                    borderRadius: BorderRadius.circular(ChRadii.card),
+                  ),
                   child: Column(
                     children: [
                       _infoRow('Phone', user?.phone ?? '', showBorder: true),
-                      if (user?.email?.isNotEmpty ?? false) _infoRow('Email', user!.email!, showBorder: true),
+                      if (user?.email?.isNotEmpty ?? false)
+                        _infoRow('Email', user!.email!, showBorder: true),
                       if (user?.emergencyContactName?.isNotEmpty ?? false)
                         _infoRow(
                           'Emergency contact',
@@ -53,27 +74,65 @@ class ProfilePage extends ConsumerWidget {
                           showBorder: true,
                         ),
                       if (user?.vehiclePlates.isNotEmpty ?? false)
-                        _infoRow('Vehicle(s)', user!.vehiclePlates.join(', '), showBorder: true),
-                      _infoRow('Estate', 'Palm Court Estate'),
+                        _infoRow(
+                          'Vehicle(s)',
+                          user!.vehiclePlates.join(', '),
+                          showBorder: true,
+                        ),
+                      _infoRow('Estate', s.estateName ?? ''),
                     ],
                   ),
                 ),
                 const SizedBox(height: 16),
                 Container(
                   width: double.infinity,
-                  decoration: BoxDecoration(color: ChColors.surface, borderRadius: BorderRadius.circular(ChRadii.card)),
+                  decoration: BoxDecoration(
+                    color: ChColors.surface,
+                    borderRadius: BorderRadius.circular(ChRadii.card),
+                  ),
                   child: Column(
                     children: [
-                      _linkRow(context, icon: Icons.poll_outlined, label: 'Polls', showBorder: true, onTap: () => context.push('/resident/polls')),
-                      _linkRow(context, icon: Icons.menu_book_outlined, label: 'Rules & Regulations', showBorder: true, onTap: () => context.push('/resident/rules')),
-                      _linkRow(context, icon: Icons.report_gmailerrorred_outlined, label: 'Submit a Complaint', showBorder: true, onTap: () {
-                        notifier.resetComplaintForm();
-                        context.push('/resident/complaint');
-                      }),
-                      _linkRow(context, icon: Icons.history_outlined, label: 'My Complaints', showBorder: true, onTap: () {
-                        notifier.loadComplaints();
-                        context.push('/resident/complaint/log');
-                      }),
+                      _linkRow(
+                        context,
+                        icon: Icons.poll_outlined,
+                        label: 'Polls',
+                        showBorder: true,
+                        onTap: () => context.push('/resident/polls'),
+                      ),
+                      _linkRow(
+                        context,
+                        icon: Icons.menu_book_outlined,
+                        label: 'Rules & Regulations',
+                        showBorder: true,
+                        onTap: () => context.push('/resident/rules'),
+                      ),
+                      _linkRow(
+                        context,
+                        icon: Icons.report_gmailerrorred_outlined,
+                        label: 'Submit a Complaint',
+                        showBorder: true,
+                        onTap: () {
+                          notifier.resetComplaintForm();
+                          context.push('/resident/complaint');
+                        },
+                      ),
+                      _linkRow(
+                        context,
+                        icon: Icons.history_outlined,
+                        label: 'My Complaints',
+                        showBorder: true,
+                        onTap: () {
+                          notifier.loadComplaints();
+                          context.push('/resident/complaint/log');
+                        },
+                      ),
+                      _linkRow(
+                        context,
+                        icon: Icons.phonelink_lock_outlined,
+                        label: 'Manage Devices',
+                        showBorder: true,
+                        onTap: () => context.push('/resident/profile/devices'),
+                      ),
                       _linkRow(
                         context,
                         icon: Icons.shield_outlined,
@@ -85,6 +144,55 @@ class ProfilePage extends ConsumerWidget {
                     ],
                   ),
                 ),
+                if (s.biometricAvailable) ...[
+                  const SizedBox(height: 16),
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 4,
+                    ),
+                    decoration: BoxDecoration(
+                      color: ChColors.surface,
+                      borderRadius: BorderRadius.circular(ChRadii.card),
+                    ),
+                    child: Row(
+                      children: [
+                        Container(
+                          width: context.rs(32),
+                          height: context.rs(32),
+                          decoration: BoxDecoration(
+                            color: ChColors.accent2N(100),
+                            shape: BoxShape.circle,
+                          ),
+                          child: Icon(
+                            Icons.fingerprint,
+                            size: context.rs(17),
+                            color: ChColors.accent2,
+                          ),
+                        ),
+                        SizedBox(width: context.rs(12)),
+                        Expanded(
+                          child: Text(
+                            'Biometric Login',
+                            style: ChTextStyles.body(fontSize: 14),
+                          ),
+                        ),
+                        Switch(
+                          value: s.biometricEnabled,
+                          activeThumbColor: ChColors.accent2,
+                          onChanged: (value) async {
+                            if (value) {
+                              await notifier.enableBiometrics();
+                            } else {
+                              await notifier.disableBiometrics();
+                            }
+                          },
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
                 const SizedBox(height: 16),
                 GestureDetector(
                   onTap: notifier.logout,
@@ -92,10 +200,17 @@ class ProfilePage extends ConsumerWidget {
                     width: double.infinity,
                     padding: const EdgeInsets.symmetric(vertical: 13),
                     alignment: Alignment.center,
-                    decoration: BoxDecoration(color: ChColors.surface, borderRadius: BorderRadius.circular(ChRadii.button)),
+                    decoration: BoxDecoration(
+                      color: ChColors.surface,
+                      borderRadius: BorderRadius.circular(ChRadii.button),
+                    ),
                     child: Text(
                       'Log Out',
-                      style: ChTextStyles.body(fontSize: 14, fontWeight: FontWeight.w700, color: ChColors.danger),
+                      style: ChTextStyles.body(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w700,
+                        color: ChColors.danger,
+                      ),
                     ),
                   ),
                 ),
@@ -110,12 +225,25 @@ class ProfilePage extends ConsumerWidget {
   Widget _infoRow(String label, String value, {bool showBorder = false}) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-      decoration: showBorder ? const BoxDecoration(border: Border(bottom: BorderSide(color: ChColors.divider))) : null,
+      decoration: showBorder
+          ? const BoxDecoration(
+              border: Border(bottom: BorderSide(color: ChColors.divider)),
+            )
+          : null,
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(label, style: ChTextStyles.body(fontSize: 14, color: ChColors.neutralN(600))),
-          Text(value, style: ChTextStyles.body(fontSize: 14, fontWeight: FontWeight.w600)),
+          Text(
+            label,
+            style: ChTextStyles.body(
+              fontSize: 14,
+              color: ChColors.bodyText,
+            ),
+          ),
+          Text(
+            value,
+            style: ChTextStyles.body(fontSize: 14, fontWeight: FontWeight.w600),
+          ),
         ],
       ),
     );
@@ -134,18 +262,37 @@ class ProfilePage extends ConsumerWidget {
       onTap: onTap,
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-        decoration: showBorder ? const BoxDecoration(border: Border(bottom: BorderSide(color: ChColors.divider))) : null,
+        decoration: showBorder
+            ? const BoxDecoration(
+                border: Border(bottom: BorderSide(color: ChColors.divider)),
+              )
+            : null,
         child: Row(
           children: [
             Container(
-              width: 32,
-              height: 32,
-              decoration: BoxDecoration(color: iconBg ?? ChColors.accent2N(100), shape: BoxShape.circle),
-              child: Icon(icon, size: 15, color: iconColor ?? ChColors.accent2N(700)),
+              width: context.rs(32),
+              height: context.rs(32),
+              decoration: BoxDecoration(
+                color: iconBg ?? ChColors.accent2N(100),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                icon,
+                size: context.rs(15),
+                color: iconColor ?? ChColors.accent2N(700),
+              ),
             ),
-            const SizedBox(width: 12),
-            Expanded(child: Text(label, style: ChTextStyles.body(fontSize: 14))),
-            Text('›', style: ChTextStyles.body(fontSize: 16, color: ChColors.neutralN(600))),
+            SizedBox(width: context.rs(12)),
+            Expanded(
+              child: Text(label, style: ChTextStyles.body(fontSize: 14)),
+            ),
+            Text(
+              '›',
+              style: ChTextStyles.body(
+                fontSize: 16,
+                color: ChColors.bodyText,
+              ),
+            ),
           ],
         ),
       ),

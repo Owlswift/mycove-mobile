@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:share_plus/share_plus.dart';
 
 import '../../../../core/theme/ch_colors.dart';
+import '../../../../core/theme/ch_responsive.dart';
 import '../../../../core/theme/ch_spacing.dart';
 import '../../../../core/theme/ch_text_styles.dart';
 import '../../../../core/widgets/ch_generic_header.dart';
@@ -135,19 +136,19 @@ class _VisitorDetailPageState extends ConsumerState<VisitorDetailPage> {
                             style: ChTextStyles.body(
                               fontSize: 10.5,
                               fontWeight: FontWeight.w600,
-                              color: pass.isInside ? ChColors.accent2N(700) : ChColors.neutralN(600),
+                              color: pass.isInside ? ChColors.accent2N(700) : ChColors.bodyText,
                             ),
                           ),
                         ),
                         const SizedBox(height: 2),
-                        Text(pass.visitLabel, style: ChTextStyles.body(fontSize: 13, color: ChColors.neutralN(600))),
+                        Text(pass.visitLabel, style: ChTextStyles.body(fontSize: 13, color: ChColors.bodyText)),
                         const SizedBox(height: 18),
                         Container(
                           padding: const EdgeInsets.all(14),
                           decoration: BoxDecoration(color: ChColors.surfaceSunken, borderRadius: BorderRadius.circular(ChRadii.md)),
                           child: SizedBox(
-                            width: 8 * 12,
-                            height: 8 * 12,
+                            width: context.rs(8 * 12),
+                            height: context.rs(8 * 12),
                             child: GridView.builder(
                               physics: const NeverScrollableScrollPhysics(),
                               gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 8, mainAxisSpacing: 2, crossAxisSpacing: 2),
@@ -157,7 +158,7 @@ class _VisitorDetailPageState extends ConsumerState<VisitorDetailPage> {
                           ),
                         ),
                         const SizedBox(height: 16),
-                        Text('Fallback code', style: ChTextStyles.body(fontSize: 12, color: ChColors.neutralN(600))),
+                        Text('Fallback code', style: ChTextStyles.body(fontSize: 12, color: ChColors.bodyText)),
                         const SizedBox(height: 4),
                         Text(
                           pass.code,
@@ -207,7 +208,7 @@ class _VisitorDetailPageState extends ConsumerState<VisitorDetailPage> {
                     alignment: Alignment.centerLeft,
                     child: Text(
                       'Vehicle: ${pass.plate}\nPhone: ${pass.phone}',
-                      style: ChTextStyles.body(fontSize: 13, color: ChColors.neutralN(600)),
+                      style: ChTextStyles.body(fontSize: 13, color: ChColors.bodyText),
                     ),
                   ),
                   if (pass.status == VisitorPassStatus.active)

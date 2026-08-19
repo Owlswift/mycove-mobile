@@ -8,17 +8,43 @@ class EstateStorage {
 
   static const _codeKey = 'estate_code';
   static const _nameKey = 'estate_name';
+  static const _addressKey = 'estate_address';
+  static const _lockedKey = 'estate_locked';
   static const _storage = FlutterSecureStorage();
 
   Future<String?> readCode() => _readKey(_codeKey);
   Future<String?> readName() => _readKey(_nameKey);
+  Future<String?> readAddress() => _readKey(_addressKey);
 
-  Future<void> save({required String code, required String name}) async {
-    await Future.wait([_writeKey(_codeKey, code), _writeKey(_nameKey, name)]);
+  /// Whether this device has actually authenticated against the saved
+  /// estate (login, onboarding, or password reset) rather than just having
+  /// entered/confirmed an estate code.
+  Future<bool> readLocked() async => (await _readKey(_lockedKey)) == 'true';
+
+  Future<void> markLocked() => _writeKey(_lockedKey, 'true');
+
+  Future<void> save({
+    required String code,
+    required String name,
+    String? address,
+  }) async {
+    await Future.wait([
+      _writeKey(_codeKey, code),
+      _writeKey(_nameKey, name),
+      if (address != null)
+        _writeKey(_addressKey, address)
+      else
+        _deleteKey(_addressKey),
+    ]);
   }
 
   Future<void> clear() async {
-    await Future.wait([_deleteKey(_codeKey), _deleteKey(_nameKey)]);
+    await Future.wait([
+      _deleteKey(_codeKey),
+      _deleteKey(_nameKey),
+      _deleteKey(_addressKey),
+      _deleteKey(_lockedKey),
+    ]);
   }
 
   Future<String?> _readKey(String key) async {

@@ -37,7 +37,7 @@ class GuardLogPage extends ConsumerWidget {
               padding: const EdgeInsets.only(top: 12, bottom: 8),
               child: Text(
                 _dayLabel(day),
-                style: ChTextStyles.body(fontSize: 12, fontWeight: FontWeight.w700, color: ChColors.neutralN(600)),
+                style: ChTextStyles.body(fontSize: 12, fontWeight: FontWeight.w700, color: ChColors.bodyText),
               ),
             ),
             for (final log in byDay[day]!)
@@ -50,8 +50,8 @@ class GuardLogPage extends ConsumerWidget {
                   children: [
                     Text(log.visitor, style: ChTextStyles.body(fontSize: 14, fontWeight: FontWeight.w600)),
                     const SizedBox(height: 6),
-                    Text('In: ${log.entry}', style: ChTextStyles.body(fontSize: 12.5, color: ChColors.neutralN(600))),
-                    Text('Out: ${log.exit ?? 'Still on site'}', style: ChTextStyles.body(fontSize: 12.5, color: ChColors.neutralN(600))),
+                    Text('In: ${log.entry}', style: ChTextStyles.body(fontSize: 12.5, color: ChColors.bodyText)),
+                    Text('Out: ${log.exit ?? 'Still on site'}', style: ChTextStyles.body(fontSize: 12.5, color: ChColors.bodyText)),
                   ],
                 ),
               ),

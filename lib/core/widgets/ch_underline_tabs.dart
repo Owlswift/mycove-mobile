@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../theme/ch_colors.dart';
+import '../theme/ch_responsive.dart';
 import '../theme/ch_text_styles.dart';
 
 class ChUnderlineTabOption {
@@ -30,7 +31,7 @@ class ChUnderlineTabs extends StatelessWidget {
               onTap: option.onSelect,
               behavior: HitTestBehavior.opaque,
               child: Container(
-                padding: const EdgeInsets.only(bottom: 10),
+                padding: EdgeInsets.only(bottom: context.rs(10)),
                 decoration: BoxDecoration(
                   border: Border(
                     bottom: BorderSide(color: option.selected ? ChColors.accent2 : ChColors.divider, width: 2),
@@ -43,7 +44,7 @@ class ChUnderlineTabs extends StatelessWidget {
                   style: ChTextStyles.body(
                     fontSize: 13.5,
                     fontWeight: option.selected ? FontWeight.w700 : FontWeight.w500,
-                    color: option.selected ? ChColors.accent2 : ChColors.neutralN(600),
+                    color: option.selected ? ChColors.accent2 : ChColors.bodyText,
                   ),
                 ),
               ),

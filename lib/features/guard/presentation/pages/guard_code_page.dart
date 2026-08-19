@@ -21,7 +21,7 @@ class GuardCodePage extends ConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('6-digit fallback code', style: ChTextStyles.body(fontSize: 13, fontWeight: FontWeight.w600, color: ChColors.neutralN(600))),
+          Text('6-digit fallback code', style: ChTextStyles.body(fontSize: 13, fontWeight: FontWeight.w600, color: ChColors.bodyText)),
           const SizedBox(height: 8),
           ChTextField(
             value: s.guardCode,
@@ -50,7 +50,7 @@ class GuardCodePage extends ConsumerWidget {
           Center(
             child: GestureDetector(
               onTap: () => context.pop(),
-              child: Text('← Back to scanner', style: ChTextStyles.body(fontSize: 13, color: ChColors.neutralN(600))),
+              child: Text('← Back to scanner', style: ChTextStyles.body(fontSize: 13, color: ChColors.bodyText)),
             ),
           ),
         ],

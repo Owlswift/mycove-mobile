@@ -20,7 +20,7 @@ class ChRadii {
   static const double card = 18;
 
   /// Buttons — rounded rectangle, distinct from the fully-pill small chips.
-  static const double button = 14;
+  static const double button = 12;
 
   /// Small status chips/tags/segmented controls stay fully pill-shaped.
   static const double pill = 999;

@@ -26,7 +26,7 @@ class ReceiptPage extends ConsumerWidget {
               child: Column(
                 children: [
                   Text('Payment Receipt', style: ChTextStyles.heading(fontSize: 17)),
-                  Text('Ref: ${s.receiptRef}', style: ChTextStyles.body(fontSize: 12, color: ChColors.neutralN(600))),
+                  Text('Ref: ${s.receiptRef}', style: ChTextStyles.body(fontSize: 12, color: ChColors.bodyText)),
                   const SizedBox(height: 18),
                   _row('Resident', s.currentUser?.fullName ?? ''),
                   _row('House', s.currentUser?.house ?? ''),
@@ -54,7 +54,7 @@ class ReceiptPage extends ConsumerWidget {
             style: ChTextStyles.body(
               fontSize: bold ? 15 : 13,
               fontWeight: bold ? FontWeight.w700 : FontWeight.w400,
-              color: bold ? ChColors.text : ChColors.neutralN(600),
+              color: bold ? ChColors.text : ChColors.bodyText,
             ),
           ),
           Text(

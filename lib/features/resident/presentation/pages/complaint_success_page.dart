@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/theme/ch_colors.dart';
+import '../../../../core/theme/ch_responsive.dart';
 import '../../../../core/theme/ch_text_styles.dart';
 import '../../../../core/widgets/ch_button.dart';
 import '../../../../state/app_notifier.dart';
@@ -19,10 +20,10 @@ class ComplaintSuccessPage extends ConsumerWidget {
       child: Column(
         children: [
           Container(
-            width: 64,
-            height: 64,
+            width: context.rs(64),
+            height: context.rs(64),
             decoration: const BoxDecoration(color: ChColors.accent2, shape: BoxShape.circle),
-            child: const Icon(Icons.check, color: Colors.white, size: 30),
+            child: Icon(Icons.check, color: Colors.white, size: context.rs(30)),
           ),
           const SizedBox(height: 18),
           Text('Complaint submitted', style: ChTextStyles.heading(fontSize: 18)),
@@ -30,7 +31,7 @@ class ComplaintSuccessPage extends ConsumerWidget {
           Text(
             'Reference ${s.complaintRef} · the estate office will follow up.',
             textAlign: TextAlign.center,
-            style: ChTextStyles.body(fontSize: 13, color: ChColors.neutralN(600)),
+            style: ChTextStyles.body(fontSize: 13, color: ChColors.bodyText),
           ),
           const SizedBox(height: 22),
           ChButton(

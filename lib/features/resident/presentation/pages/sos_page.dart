@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/theme/ch_colors.dart';
+import '../../../../core/theme/ch_responsive.dart';
 import '../../../../core/theme/ch_spacing.dart';
 import '../../../../core/theme/ch_text_styles.dart';
 import '../../../../core/widgets/ch_button.dart';
@@ -67,16 +68,16 @@ class SosPage extends ConsumerWidget {
                   child: Column(
                     children: [
                       Container(
-                        width: 72,
-                        height: 72,
+                        width: context.rs(72),
+                        height: context.rs(72),
                         alignment: Alignment.center,
                         decoration: BoxDecoration(color: ChColors.danger.withValues(alpha: 0.14), shape: BoxShape.circle),
                         child: Container(
-                          width: 48,
-                          height: 48,
+                          width: context.rs(48),
+                          height: context.rs(48),
                           alignment: Alignment.center,
                           decoration: const BoxDecoration(color: ChColors.danger, shape: BoxShape.circle),
-                          child: const Icon(Icons.shield_outlined, color: Colors.white, size: 24),
+                          child: Icon(Icons.shield_outlined, color: Colors.white, size: context.rs(24)),
                         ),
                       ),
                       const SizedBox(height: 18),
@@ -85,7 +86,7 @@ class SosPage extends ConsumerWidget {
                       Text(
                         'Press the button below to alert security and emergency contacts.',
                         textAlign: TextAlign.center,
-                        style: ChTextStyles.body(fontSize: 13, color: ChColors.neutralN(600)),
+                        style: ChTextStyles.body(fontSize: 13, color: ChColors.bodyText),
                       ),
                       const SizedBox(height: 20),
                       ChButton(label: 'Send SOS Alert', variant: ChButtonVariant.danger, onPressed: () => _sendAlert(context)),
@@ -158,7 +159,7 @@ class SosPage extends ConsumerWidget {
             margin: const EdgeInsets.only(top: 7, right: 8),
             decoration: BoxDecoration(color: ChColors.neutralN(600), shape: BoxShape.circle),
           ),
-          Expanded(child: Text(text, style: ChTextStyles.body(fontSize: 13, color: ChColors.neutralN(700)))),
+          Expanded(child: Text(text, style: ChTextStyles.body(fontSize: 13, color: ChColors.bodyText))),
         ],
       ),
     );
@@ -188,15 +189,15 @@ class _ContactRow extends StatelessWidget {
                 children: [
                   Text(label, style: ChTextStyles.body(fontSize: 14, fontWeight: FontWeight.w600)),
                   const SizedBox(height: 2),
-                  Text(phone, style: ChTextStyles.body(fontSize: 12.5, color: ChColors.neutralN(600))),
+                  Text(phone, style: ChTextStyles.body(fontSize: 12.5, color: ChColors.bodyText)),
                 ],
               ),
             ),
             Container(
-              width: 34,
-              height: 34,
+              width: context.rs(34),
+              height: context.rs(34),
               decoration: BoxDecoration(color: ChColors.accent2N(100), shape: BoxShape.circle),
-              child: Icon(Icons.call_outlined, size: 15, color: ChColors.accent2N(700)),
+              child: Icon(Icons.call_outlined, size: context.rs(15), color: ChColors.accent2N(700)),
             ),
           ],
         ),
