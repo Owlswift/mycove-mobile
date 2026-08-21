@@ -7,10 +7,13 @@ import '../theme/ch_text_styles.dart';
 /// Back-chevron + title + optional trailing action, used by every
 /// non-dashboard resident screen and the guard screens.
 ///
-/// Two looks, matching the two header treatments in the mockups:
+/// Three looks, matching the header treatments in the mockups:
 ///  - default: bare back chevron, left-aligned title
 ///  - [chipStyle]: back/trailing rendered as bordered circular icon
 ///    buttons, title centered (Project Details, notice detail)
+///  - [centerTitle]: bare back chevron (like default) but the title is
+///    centered on the row via symmetric left/right spacers, matching the
+///    trailing icon's width — used by the electricity purchase wizard
 class ChGenericHeader extends StatelessWidget {
   const ChGenericHeader({
     super.key,
@@ -19,6 +22,7 @@ class ChGenericHeader extends StatelessWidget {
     this.onBack,
     this.trailing,
     this.chipStyle = false,
+    this.centerTitle = false,
   });
 
   final String title;
@@ -26,6 +30,7 @@ class ChGenericHeader extends StatelessWidget {
   final VoidCallback? onBack;
   final Widget? trailing;
   final bool chipStyle;
+  final bool centerTitle;
 
   @override
   Widget build(BuildContext context) {
@@ -42,6 +47,29 @@ class ChGenericHeader extends StatelessWidget {
               child: Text(title, textAlign: TextAlign.center, style: ChTextStyles.heading(fontSize: 17)),
             ),
             trailing ?? SizedBox(width: context.rs(40)),
+          ],
+        ),
+      );
+    }
+
+    if (centerTitle) {
+      return Padding(
+        padding: EdgeInsets.fromLTRB(20, context.rs(6), 20, context.rs(14)),
+        child: Row(
+          children: [
+            SizedBox(
+              width: context.rs(40),
+              child: showBack
+                  ? GestureDetector(
+                      onTap: onBack ?? () => Navigator.of(context).maybePop(),
+                      child: Icon(Icons.arrow_back, size: context.rs(20), color: ChColors.text),
+                    )
+                  : null,
+            ),
+            Expanded(
+              child: Text(title, textAlign: TextAlign.center, style: ChTextStyles.heading(fontSize: 19)),
+            ),
+            SizedBox(width: context.rs(40), child: trailing),
           ],
         ),
       );

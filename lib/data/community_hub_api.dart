@@ -208,4 +208,83 @@ class CommunityHubApi {
   Future<List<dynamic>> listSessions() async =>
       _list(await _dio.get('/auth/sessions'));
   Future<void> revokeSession(String id) => _dio.delete('/auth/sessions/$id');
+
+  // ── Utilities (electricity + airtime) ───────────────────────────────
+  //
+  // These hit a real external payment provider (VTpass, possibly failing
+  // over to BuyPower) rather than our own DB, so they routinely take much
+  // longer than the app's default 10s timeout — a real electricity vend
+  // was observed taking ~20s against VTpass's sandbox. A longer per-request
+  // timeout here avoids the client giving up (and showing an error) on a
+  // purchase that's still genuinely in flight server-side.
+  static final _utilityRequestOptions = Options(
+    sendTimeout: const Duration(seconds: 45),
+    receiveTimeout: const Duration(seconds: 45),
+  );
+
+  Future<List<dynamic>> utilityMeters() async =>
+      _list(await _dio.get('/utilities/meters'));
+
+  Future<List<dynamic>> discos() async => _list(await _dio.get('/utilities/discos'));
+
+  Future<Map<String, dynamic>> verifyMeter({
+    required String discoCode,
+    required String meterNumber,
+    required String meterType,
+  }) async => _map(
+    await _dio.post(
+      '/utilities/meters/verify',
+      data: {
+        'discoCode': discoCode,
+        'meterNumber': meterNumber,
+        'meterType': meterType,
+      },
+      options: _utilityRequestOptions,
+    ),
+  );
+
+  Future<Map<String, dynamic>> saveMeter({
+    required String discoCode,
+    required String discoName,
+    required String meterNumber,
+    required String meterType,
+  }) async => _map(
+    await _dio.post(
+      '/utilities/meters',
+      data: {
+        'discoCode': discoCode,
+        'discoName': discoName,
+        'meterNumber': meterNumber,
+        'meterType': meterType,
+      },
+      options: _utilityRequestOptions,
+    ),
+  );
+
+  Future<Map<String, dynamic>> buyElectricity({
+    required String meterId,
+    required String phone,
+    required int amount,
+  }) async => _map(
+    await _dio.post(
+      '/utilities/electricity/buy',
+      data: {'meterId': meterId, 'phone': phone, 'amount': amount},
+      options: _utilityRequestOptions,
+    ),
+  );
+
+  Future<Map<String, dynamic>> buyAirtime({
+    required String network,
+    required String phone,
+    required int amount,
+  }) async => _map(
+    await _dio.post(
+      '/utilities/airtime/buy',
+      data: {'network': network, 'phone': phone, 'amount': amount},
+      options: _utilityRequestOptions,
+    ),
+  );
+
+  Future<List<dynamic>> utilityPurchases() async =>
+      _list(await _dio.get('/utilities/purchases'));
 }

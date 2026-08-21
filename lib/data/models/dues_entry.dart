@@ -7,6 +7,7 @@ class DuesEntry {
     required this.desc,
     required this.type,
     required this.amount,
+    required this.createdAt,
   });
 
   factory DuesEntry.fromJson(Map<String, dynamic> json) {
@@ -16,6 +17,7 @@ class DuesEntry {
       desc: json['desc'] as String,
       type: json['type'] == 'PAYMENT' ? DuesEntryType.payment : DuesEntryType.charge,
       amount: json['amount'] as int,
+      createdAt: DateTime.parse(json['createdAt'] as String),
     );
   }
 
@@ -24,4 +26,10 @@ class DuesEntry {
   final String desc;
   final DuesEntryType type;
   final int amount;
+
+  /// Real timestamp behind [date]'s display string — used to decide
+  /// whether a payment counts as "recent" (e.g. the dashboard's Recent
+  /// Activity card), since [date] itself is a pre-formatted label, not a
+  /// parseable one.
+  final DateTime createdAt;
 }

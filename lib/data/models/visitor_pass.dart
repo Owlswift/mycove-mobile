@@ -23,10 +23,19 @@ class VisitorPass {
     this.hasEntered = false,
     this.isInside = false,
     this.visitLabel = 'Not yet arrived',
+    this.enteredAt,
     DateTime? createdAt,
   }) : createdAt = createdAt ?? DateTime.now();
 
   factory VisitorPass.fromJson(Map<String, dynamic> json) {
+    // A pass is single-use (visitor-passes.service.ts rejects a second
+    // entry), so there's at most one access-log row — its entryAt is the
+    // real "when did they actually arrive" moment, distinct from
+    // createdAt (when the pass itself was issued).
+    final accessLogEntries = json['accessLogEntries'] as List<dynamic>?;
+    final firstEntry = (accessLogEntries != null && accessLogEntries.isNotEmpty)
+        ? accessLogEntries.first as Map<String, dynamic>
+        : null;
     return VisitorPass(
       id: json['id'] as String,
       name: json['name'] as String,
@@ -38,6 +47,7 @@ class VisitorPass {
       hasEntered: json['hasEntered'] as bool? ?? false,
       isInside: json['isInside'] as bool? ?? false,
       visitLabel: json['visitLabel'] as String? ?? 'Not yet arrived',
+      enteredAt: firstEntry != null ? DateTime.parse(firstEntry['entryAt'] as String) : null,
       createdAt: json['createdAt'] != null ? DateTime.parse(json['createdAt'] as String) : null,
     );
   }
@@ -53,4 +63,7 @@ class VisitorPass {
   final bool isInside;
   final String visitLabel;
   final DateTime createdAt;
+
+  /// When this visitor actually entered — null until [hasEntered] is true.
+  final DateTime? enteredAt;
 }

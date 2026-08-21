@@ -85,6 +85,13 @@ flutter:
     - assets/images/otp_illustration.png
     - assets/images/new_password_illustration.png
     - assets/images/password_reset_success_illustration.png
+    # DISCO logos — filename must be the disco's shortCode lowercased,
+    # e.g. assets/images/discos/ikedc.png for "IKEDC" (see discoLogoAsset
+    # in lib/data/models/utility_meter.dart). A directory declaration (not
+    # individual files) so logos can be dropped in later without another
+    # pubspec change; DiscoLogo falls back to a placeholder icon for any
+    # DISCO whose file isn't there yet.
+    - assets/images/discos/
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images

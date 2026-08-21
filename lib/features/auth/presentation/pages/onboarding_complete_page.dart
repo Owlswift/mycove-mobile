@@ -5,6 +5,7 @@ import '../../../../core/theme/ch_colors.dart';
 import '../../../../core/theme/ch_responsive.dart';
 import '../../../../core/theme/ch_spacing.dart';
 import '../../../../core/theme/ch_text_styles.dart';
+import '../../../../core/widgets/ch_data_media.dart';
 import '../../../../state/app_notifier.dart';
 
 /// Shown once, right after [AppNotifier.completeForceReset] succeeds —
@@ -15,6 +16,7 @@ class OnboardingCompletePage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final s = ref.watch(appStateProvider);
     final notifier = ref.read(appStateProvider.notifier);
 
     return Scaffold(
@@ -25,7 +27,7 @@ class OnboardingCompletePage extends ConsumerWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const _SuccessGraphic(),
+              _SuccessGraphic(estateImage: s.estateImage),
               const SizedBox(height: 20),
               Center(
                 child: Text(
@@ -218,7 +220,9 @@ class _NextStepRow extends StatelessWidget {
 /// bottom to blend into the page background rather than ending in a
 /// hard rectangular edge.
 class _SuccessGraphic extends StatelessWidget {
-  const _SuccessGraphic();
+  const _SuccessGraphic({required this.estateImage});
+
+  final String? estateImage;
 
   @override
   Widget build(BuildContext context) {
@@ -242,12 +246,14 @@ class _SuccessGraphic extends StatelessWidget {
                   topLeft: Radius.circular(160),
                   topRight: Radius.circular(160),
                 ),
-                child: Image.asset(
-                  'assets/images/welcome_banner.png',
-                  height: context.rs(204),
-                  width: double.infinity,
-                  fit: BoxFit.cover,
-                ),
+                child: estateImage != null
+                    ? ChDataMedia(dataUrl: estateImage!, height: context.rs(204))
+                    : Image.asset(
+                        'assets/images/welcome_banner.png',
+                        height: context.rs(204),
+                        width: double.infinity,
+                        fit: BoxFit.cover,
+                      ),
               ),
             ),
           ),

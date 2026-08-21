@@ -14,6 +14,8 @@ import '../data/models/project.dart';
 import '../data/models/rules_section.dart';
 import '../data/models/session_info.dart';
 import '../data/models/spotlight.dart';
+import '../data/models/utility_meter.dart';
+import '../data/models/utility_purchase.dart';
 import '../data/models/visitor_pass.dart';
 
 enum AuthStage {
@@ -56,6 +58,7 @@ class AppState {
     this.currentUser,
     this.estateName,
     this.estateAddress,
+    this.estateImage,
     this.estateLocked = false,
     this.estateCodeInput = '',
     this.estateCodeError = '',
@@ -63,6 +66,7 @@ class AppState {
     this.pendingEstateCode,
     this.pendingEstateName,
     this.pendingEstateAddress,
+    this.pendingEstateImage,
     this.pendingEstateManagedBy,
     this.pendingEstateResidentCount,
     this.loginPhone = '',
@@ -110,6 +114,23 @@ class AppState {
     List<ComplaintItem>? complaints,
     List<SessionInfo>? sessions,
     this.spotlight,
+    this.utilityLoading = false,
+    this.utilityError = '',
+    this.airtimeNetwork = '',
+    this.airtimePhone = '',
+    this.airtimeAmount = '',
+    this.elecDiscoCode = '',
+    this.elecDiscoName = '',
+    this.elecMeterNumber = '',
+    this.elecMeterType = 'PREPAID',
+    this.elecPhone = '',
+    this.elecAmount = '',
+    this.elecVerifiedName,
+    this.elecVerifiedAddress,
+    List<UtilityMeter>? utilityMeters,
+    List<UtilityPurchase>? utilityPurchases,
+    this.lastUtilityPurchase,
+    List<Disco>? discos,
   }) : visitorPasses = visitorPasses ?? [],
        sessions = sessions ?? [],
        duesHistory = duesHistory ?? [],
@@ -122,7 +143,10 @@ class AppState {
        notifications = notifications ?? [],
        rulesSections = rulesSections ?? [],
        myPledges = myPledges ?? [],
-       complaints = complaints ?? [];
+       complaints = complaints ?? [],
+       utilityMeters = utilityMeters ?? [],
+       utilityPurchases = utilityPurchases ?? [],
+       discos = discos ?? [];
 
   final AuthStage authStage;
   final Role role;
@@ -137,6 +161,13 @@ class AppState {
 
   final String? estateName;
   final String? estateAddress;
+
+  /// Base64 data URL of this estate's own photo (see [ChDataMedia]) —
+  /// fetched once via [pendingEstateImage] when the estate code resolves,
+  /// then persisted to EstateStorage on confirm so it's available offline
+  /// and doesn't need to be refetched on every launch. Null for estates
+  /// that haven't uploaded one; callers fall back to a generic asset.
+  final String? estateImage;
 
   /// True once this resident/guard has actually authenticated against this
   /// estate — a successful login, onboarding, or password reset — as
@@ -156,6 +187,7 @@ class AppState {
   final String? pendingEstateCode;
   final String? pendingEstateName;
   final String? pendingEstateAddress;
+  final String? pendingEstateImage;
   final String? pendingEstateManagedBy;
   final int? pendingEstateResidentCount;
 
@@ -217,6 +249,26 @@ class AppState {
   final List<SessionInfo> sessions;
   final Spotlight? spotlight;
 
+  final bool utilityLoading;
+  final String utilityError;
+  final List<UtilityMeter> utilityMeters;
+  final List<UtilityPurchase> utilityPurchases;
+  final UtilityPurchase? lastUtilityPurchase;
+  final List<Disco> discos;
+
+  final String airtimeNetwork;
+  final String airtimePhone;
+  final String airtimeAmount;
+
+  final String elecDiscoCode;
+  final String elecDiscoName;
+  final String elecMeterNumber;
+  final String elecMeterType;
+  final String elecPhone;
+  final String elecAmount;
+  final String? elecVerifiedName;
+  final String? elecVerifiedAddress;
+
   DuesEntry? get lastPayment {
     for (final h in duesHistory) {
       if (h.type == DuesEntryType.payment) return h;
@@ -240,6 +292,7 @@ class AppState {
     Object? currentUser = _sentinel,
     Object? estateName = _sentinel,
     Object? estateAddress = _sentinel,
+    Object? estateImage = _sentinel,
     bool? estateLocked,
     String? estateCodeInput,
     String? estateCodeError,
@@ -247,6 +300,7 @@ class AppState {
     Object? pendingEstateCode = _sentinel,
     Object? pendingEstateName = _sentinel,
     Object? pendingEstateAddress = _sentinel,
+    Object? pendingEstateImage = _sentinel,
     Object? pendingEstateManagedBy = _sentinel,
     Object? pendingEstateResidentCount = _sentinel,
     String? loginPhone,
@@ -294,6 +348,23 @@ class AppState {
     List<ComplaintItem>? complaints,
     List<SessionInfo>? sessions,
     Object? spotlight = _sentinel,
+    bool? utilityLoading,
+    String? utilityError,
+    List<UtilityMeter>? utilityMeters,
+    List<UtilityPurchase>? utilityPurchases,
+    Object? lastUtilityPurchase = _sentinel,
+    List<Disco>? discos,
+    String? airtimeNetwork,
+    String? airtimePhone,
+    String? airtimeAmount,
+    String? elecDiscoCode,
+    String? elecDiscoName,
+    String? elecMeterNumber,
+    String? elecMeterType,
+    String? elecPhone,
+    String? elecAmount,
+    Object? elecVerifiedName = _sentinel,
+    Object? elecVerifiedAddress = _sentinel,
   }) {
     return AppState(
       authStage: authStage ?? this.authStage,
@@ -310,6 +381,9 @@ class AppState {
       estateAddress: identical(estateAddress, _sentinel)
           ? this.estateAddress
           : estateAddress as String?,
+      estateImage: identical(estateImage, _sentinel)
+          ? this.estateImage
+          : estateImage as String?,
       estateLocked: estateLocked ?? this.estateLocked,
       estateCodeInput: estateCodeInput ?? this.estateCodeInput,
       estateCodeError: estateCodeError ?? this.estateCodeError,
@@ -323,6 +397,9 @@ class AppState {
       pendingEstateAddress: identical(pendingEstateAddress, _sentinel)
           ? this.pendingEstateAddress
           : pendingEstateAddress as String?,
+      pendingEstateImage: identical(pendingEstateImage, _sentinel)
+          ? this.pendingEstateImage
+          : pendingEstateImage as String?,
       pendingEstateManagedBy: identical(pendingEstateManagedBy, _sentinel)
           ? this.pendingEstateManagedBy
           : pendingEstateManagedBy as String?,
@@ -385,6 +462,29 @@ class AppState {
       spotlight: identical(spotlight, _sentinel)
           ? this.spotlight
           : spotlight as Spotlight?,
+      utilityLoading: utilityLoading ?? this.utilityLoading,
+      utilityError: utilityError ?? this.utilityError,
+      utilityMeters: utilityMeters ?? this.utilityMeters,
+      utilityPurchases: utilityPurchases ?? this.utilityPurchases,
+      lastUtilityPurchase: identical(lastUtilityPurchase, _sentinel)
+          ? this.lastUtilityPurchase
+          : lastUtilityPurchase as UtilityPurchase?,
+      discos: discos ?? this.discos,
+      airtimeNetwork: airtimeNetwork ?? this.airtimeNetwork,
+      airtimePhone: airtimePhone ?? this.airtimePhone,
+      airtimeAmount: airtimeAmount ?? this.airtimeAmount,
+      elecDiscoCode: elecDiscoCode ?? this.elecDiscoCode,
+      elecDiscoName: elecDiscoName ?? this.elecDiscoName,
+      elecMeterNumber: elecMeterNumber ?? this.elecMeterNumber,
+      elecMeterType: elecMeterType ?? this.elecMeterType,
+      elecPhone: elecPhone ?? this.elecPhone,
+      elecAmount: elecAmount ?? this.elecAmount,
+      elecVerifiedName: identical(elecVerifiedName, _sentinel)
+          ? this.elecVerifiedName
+          : elecVerifiedName as String?,
+      elecVerifiedAddress: identical(elecVerifiedAddress, _sentinel)
+          ? this.elecVerifiedAddress
+          : elecVerifiedAddress as String?,
     );
   }
 }

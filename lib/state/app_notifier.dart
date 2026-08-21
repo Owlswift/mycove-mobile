@@ -28,6 +28,8 @@ import '../data/models/project.dart';
 import '../data/models/rules_section.dart';
 import '../data/models/session_info.dart';
 import '../data/models/spotlight.dart';
+import '../data/models/utility_meter.dart';
+import '../data/models/utility_purchase.dart';
 import '../data/models/visitor_pass.dart';
 import 'app_state.dart';
 
@@ -72,19 +74,17 @@ class AppNotifier extends StateNotifier<AppState> {
   Future<void> _bootstrap() async {
     unawaited(_checkBiometricAvailability());
     final estateName = await _estateStorage.readName();
-    // TEMP: diagnostic only
-    print('[DIAG] estateName=$estateName');
     if (estateName == null) {
       state = state.copyWith(authStage: AuthStage.welcome);
       return;
     }
     final estateAddress = await _estateStorage.readAddress();
+    final estateImage = await _estateStorage.readImage();
     final estateLocked = await _estateStorage.readLocked();
-    // TEMP: diagnostic only
-    print('[DIAG] estateLocked=$estateLocked');
     state = state.copyWith(
       estateName: estateName,
       estateAddress: estateAddress,
+      estateImage: estateImage,
       estateLocked: estateLocked,
     );
     await _tryAutoLogin();
@@ -144,6 +144,7 @@ class AppNotifier extends StateNotifier<AppState> {
         pendingEstateCode: code,
         pendingEstateName: result['name'] as String,
         pendingEstateAddress: result['address'] as String?,
+        pendingEstateImage: result['imageBase64'] as String?,
         pendingEstateManagedBy: result['managedBy'] as String?,
         pendingEstateResidentCount: result['residentCount'] as int?,
         authStage: AuthStage.estateFound,
@@ -164,13 +165,21 @@ class AppNotifier extends StateNotifier<AppState> {
     final name = state.pendingEstateName;
     if (code == null || name == null) return;
     final address = state.pendingEstateAddress;
-    await _estateStorage.save(code: code, name: name, address: address);
+    final image = state.pendingEstateImage;
+    await _estateStorage.save(
+      code: code,
+      name: name,
+      address: address,
+      image: image,
+    );
     state = state.copyWith(
       estateName: name,
       estateAddress: address,
+      estateImage: image,
       pendingEstateCode: null,
       pendingEstateName: null,
       pendingEstateAddress: null,
+      pendingEstateImage: null,
       pendingEstateManagedBy: null,
       pendingEstateResidentCount: null,
     );
@@ -186,6 +195,7 @@ class AppNotifier extends StateNotifier<AppState> {
       pendingEstateCode: null,
       pendingEstateName: null,
       pendingEstateAddress: null,
+      pendingEstateImage: null,
       pendingEstateManagedBy: null,
       pendingEstateResidentCount: null,
     );
@@ -215,8 +225,6 @@ class AppNotifier extends StateNotifier<AppState> {
 
   Future<void> _tryAutoLogin() async {
     final token = await _tokenStorage.read();
-    // TEMP: diagnostic only
-    print('[DIAG] accessToken present=${token != null}');
     if (token == null) {
       state = state.copyWith(authStage: AuthStage.login);
       return;
@@ -237,11 +245,7 @@ class AppNotifier extends StateNotifier<AppState> {
       }
       await _enterApp();
       unawaited(_registerPushToken());
-      // TEMP: diagnostic only
-      print('[DIAG] auto-login succeeded');
-    } catch (e) {
-      // TEMP: diagnostic only
-      print('[DIAG] auto-login FAILED: $e');
+    } catch (_) {
       await _tokenStorage.clear();
       state = state.copyWith(authStage: AuthStage.login);
     }
@@ -537,6 +541,7 @@ class AppNotifier extends StateNotifier<AppState> {
       biometricAvailable: state.biometricAvailable,
       estateName: state.estateName,
       estateAddress: state.estateAddress,
+      estateImage: state.estateImage,
       estateLocked: state.estateLocked,
     );
   }
@@ -688,6 +693,8 @@ class AppNotifier extends StateNotifier<AppState> {
       _api.rules(),
       _api.currentSpotlight(),
       _api.myPledges(),
+      _api.utilityMeters(),
+      _api.discos(),
     ]);
 
     final announcements = (results[0] as List)
@@ -723,6 +730,12 @@ class AppNotifier extends StateNotifier<AppState> {
     final myPledges = (results[10] as List)
         .map((j) => MyPledge.fromJson(j as Map<String, dynamic>))
         .toList();
+    final utilityMeters = (results[11] as List)
+        .map((j) => UtilityMeter.fromJson(j as Map<String, dynamic>))
+        .toList();
+    final discos = (results[12] as List)
+        .map((j) => Disco.fromJson(j as Map<String, dynamic>))
+        .toList();
 
     state = state.copyWith(
       announcements: announcements,
@@ -742,6 +755,8 @@ class AppNotifier extends StateNotifier<AppState> {
       rulesSections: rulesSections,
       spotlight: spotlight,
       myPledges: myPledges,
+      utilityMeters: utilityMeters,
+      discos: discos,
     );
   }
 
@@ -1045,6 +1060,179 @@ class AppNotifier extends StateNotifier<AppState> {
     } catch (e) {
       state = state.copyWith(complaintError: extractMessage(e));
       return null;
+    }
+  }
+
+  // ── Utilities: airtime ───────────────────────────────────────────────
+
+  void resetAirtimeForm() => state = state.copyWith(
+    airtimeNetwork: '',
+    airtimePhone: '',
+    airtimeAmount: '',
+    utilityError: '',
+  );
+  void onAirtimeNetwork(String v) => state = state.copyWith(airtimeNetwork: v);
+  void onAirtimePhone(String v) => state = state.copyWith(airtimePhone: v);
+  void onAirtimeAmount(String v) => state = state.copyWith(airtimeAmount: v);
+
+  Future<bool> buyAirtime() async {
+    final amount = int.tryParse(state.airtimeAmount.trim());
+    if (state.airtimeNetwork.isEmpty ||
+        state.airtimePhone.trim().isEmpty ||
+        amount == null ||
+        amount <= 0) {
+      state = state.copyWith(
+        utilityError:
+            'Select a network and enter a valid phone number and amount.',
+      );
+      return false;
+    }
+    state = state.copyWith(utilityLoading: true, utilityError: '');
+    try {
+      final json = await _api.buyAirtime(
+        network: state.airtimeNetwork,
+        phone: state.airtimePhone.trim(),
+        amount: amount,
+      );
+      final purchase = UtilityPurchase.fromJson(json);
+      state = state.copyWith(
+        utilityLoading: false,
+        lastUtilityPurchase: purchase,
+        utilityPurchases: [purchase, ...state.utilityPurchases],
+      );
+      return true;
+    } catch (e) {
+      state = state.copyWith(utilityLoading: false, utilityError: extractMessage(e));
+      return false;
+    }
+  }
+
+  // ── Utilities: electricity ───────────────────────────────────────────
+
+  /// Used when leaving a step via the header's back arrow — a stale error
+  /// from that step (e.g. a failed Verify Meter) shouldn't still be showing
+  /// if the resident comes back to it later, or on whichever step they land
+  /// on next. Unlike [resetElectricityForm], this leaves the rest of the
+  /// form (disco, meter number, etc.) untouched.
+  void clearUtilityError() => state = state.copyWith(utilityError: '');
+
+  void resetElectricityForm() => state = state.copyWith(
+    elecDiscoCode: '',
+    elecDiscoName: '',
+    elecMeterNumber: '',
+    elecMeterType: 'PREPAID',
+    elecPhone: '',
+    elecAmount: '',
+    elecVerifiedName: null,
+    elecVerifiedAddress: null,
+    utilityError: '',
+  );
+
+  /// Pre-fills the form from a previously-saved, already-verified meter —
+  /// lets a returning resident skip straight to Confirm Details (step 3)
+  /// instead of re-picking their provider and re-typing their meter number
+  /// every single purchase.
+  void useExistingMeter(UtilityMeter meter) => state = state.copyWith(
+    elecDiscoCode: meter.discoCode,
+    elecDiscoName: meter.discoName,
+    elecMeterNumber: meter.meterNumber,
+    elecMeterType: meterTypeToJson(meter.meterType),
+    elecPhone: '',
+    elecAmount: '',
+    elecVerifiedName: meter.customerName ?? '',
+    elecVerifiedAddress: meter.address,
+    utilityError: '',
+  );
+
+  void onElecDisco(String code, String name) => state = state.copyWith(
+    elecDiscoCode: code,
+    elecDiscoName: name,
+    elecVerifiedName: null,
+    elecVerifiedAddress: null,
+  );
+  void onElecMeterNumber(String v) => state = state.copyWith(
+    elecMeterNumber: v,
+    elecVerifiedName: null,
+    elecVerifiedAddress: null,
+  );
+  void onElecMeterType(String v) => state = state.copyWith(
+    elecMeterType: v,
+    elecVerifiedName: null,
+    elecVerifiedAddress: null,
+  );
+  void onElecPhone(String v) => state = state.copyWith(elecPhone: v);
+  void onElecAmount(String v) => state = state.copyWith(elecAmount: v);
+
+  /// Verification result is staged onto elecVerifiedName/Address — the meter
+  /// itself isn't saved until [buyElectricity] actually goes through, so
+  /// backing out of the purchase doesn't leave an unused meter behind.
+  Future<bool> verifyElecMeter() async {
+    if (state.elecDiscoCode.isEmpty || state.elecMeterNumber.trim().isEmpty) {
+      state = state.copyWith(
+        utilityError: 'Select your DISCO and enter your meter number.',
+      );
+      return false;
+    }
+    state = state.copyWith(utilityLoading: true, utilityError: '');
+    try {
+      final json = await _api.verifyMeter(
+        discoCode: state.elecDiscoCode,
+        meterNumber: state.elecMeterNumber.trim(),
+        meterType: state.elecMeterType,
+      );
+      state = state.copyWith(
+        utilityLoading: false,
+        elecVerifiedName: json['customerName'] as String?,
+        elecVerifiedAddress: json['address'] as String?,
+      );
+      return true;
+    } catch (e) {
+      state = state.copyWith(utilityLoading: false, utilityError: extractMessage(e));
+      return false;
+    }
+  }
+
+  Future<bool> buyElectricity() async {
+    final amount = int.tryParse(state.elecAmount.trim());
+    if (state.elecVerifiedName == null ||
+        state.elecPhone.trim().isEmpty ||
+        amount == null ||
+        amount < 500) {
+      state = state.copyWith(
+        utilityError:
+            'Verify your meter and enter a valid phone number and amount (min ₦500).',
+      );
+      return false;
+    }
+    state = state.copyWith(utilityLoading: true, utilityError: '');
+    try {
+      final meterJson = await _api.saveMeter(
+        discoCode: state.elecDiscoCode,
+        discoName: state.elecDiscoName,
+        meterNumber: state.elecMeterNumber.trim(),
+        meterType: state.elecMeterType,
+      );
+      final meter = UtilityMeter.fromJson(meterJson);
+      final purchaseJson = await _api.buyElectricity(
+        meterId: meter.id,
+        phone: state.elecPhone.trim(),
+        amount: amount,
+      );
+      final purchase = UtilityPurchase.fromJson(purchaseJson);
+      state = state.copyWith(
+        utilityLoading: false,
+        lastUtilityPurchase: purchase,
+        utilityPurchases: [purchase, ...state.utilityPurchases],
+        utilityMeters: [
+          meter,
+          for (final m in state.utilityMeters)
+            if (m.id != meter.id) m,
+        ],
+      );
+      return true;
+    } catch (e) {
+      state = state.copyWith(utilityLoading: false, utilityError: extractMessage(e));
+      return false;
     }
   }
 }

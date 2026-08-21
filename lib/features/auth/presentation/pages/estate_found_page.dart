@@ -7,6 +7,7 @@ import '../../../../core/theme/ch_colors.dart';
 import '../../../../core/theme/ch_responsive.dart';
 import '../../../../core/theme/ch_spacing.dart';
 import '../../../../core/theme/ch_text_styles.dart';
+import '../../../../core/widgets/ch_data_media.dart';
 import '../../../../core/widgets/ch_square_icon_button.dart';
 import '../../../../state/app_notifier.dart';
 
@@ -71,12 +72,17 @@ class EstateFoundPage extends ConsumerWidget {
                 clipBehavior: Clip.antiAlias,
                 child: Column(
                   children: [
-                    Image.asset(
-                      'assets/images/welcome_banner.png',
-                      width: double.infinity,
-                      height: imageHeight,
-                      fit: BoxFit.cover,
-                    ),
+                    s.pendingEstateImage != null
+                        ? ChDataMedia(
+                            dataUrl: s.pendingEstateImage!,
+                            height: imageHeight,
+                          )
+                        : Image.asset(
+                            'assets/images/welcome_banner.png',
+                            width: double.infinity,
+                            height: imageHeight,
+                            fit: BoxFit.cover,
+                          ),
                     Padding(
                       padding: EdgeInsets.symmetric(horizontal: context.rs(16), vertical: context.rs(20)),
                       child: Row(

@@ -9,12 +9,19 @@ class EstateStorage {
   static const _codeKey = 'estate_code';
   static const _nameKey = 'estate_name';
   static const _addressKey = 'estate_address';
+  static const _imageKey = 'estate_image';
   static const _lockedKey = 'estate_locked';
   static const _storage = FlutterSecureStorage();
 
   Future<String?> readCode() => _readKey(_codeKey);
   Future<String?> readName() => _readKey(_nameKey);
   Future<String?> readAddress() => _readKey(_addressKey);
+
+  /// This estate's own photo, as the same base64 data URL the backend
+  /// returns — cached here on confirm so every screen that shows it
+  /// (login, dashboard, onboarding) reads the real photo for *this*
+  /// estate instead of a generic placeholder, without refetching it.
+  Future<String?> readImage() => _readKey(_imageKey);
 
   /// Whether this device has actually authenticated against the saved
   /// estate (login, onboarding, or password reset) rather than just having
@@ -27,6 +34,7 @@ class EstateStorage {
     required String code,
     required String name,
     String? address,
+    String? image,
   }) async {
     await Future.wait([
       _writeKey(_codeKey, code),
@@ -35,6 +43,10 @@ class EstateStorage {
         _writeKey(_addressKey, address)
       else
         _deleteKey(_addressKey),
+      if (image != null)
+        _writeKey(_imageKey, image)
+      else
+        _deleteKey(_imageKey),
     ]);
   }
 
@@ -43,6 +55,7 @@ class EstateStorage {
       _deleteKey(_codeKey),
       _deleteKey(_nameKey),
       _deleteKey(_addressKey),
+      _deleteKey(_imageKey),
       _deleteKey(_lockedKey),
     ]);
   }

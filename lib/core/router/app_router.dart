@@ -19,11 +19,17 @@ import '../../features/guard/presentation/pages/guard_scan_page.dart';
 import '../../features/guard/presentation/widgets/guard_shell.dart';
 import '../../features/resident/presentation/pages/announcement_detail_page.dart';
 import '../../features/resident/presentation/pages/announcements_page.dart';
+import '../../features/resident/presentation/pages/buy_airtime_page.dart';
 import '../../features/resident/presentation/pages/complaint_log_page.dart';
 import '../../features/resident/presentation/pages/complaint_page.dart';
 import '../../features/resident/presentation/pages/complaint_success_page.dart';
 import '../../features/resident/presentation/pages/dashboard_page.dart';
 import '../../features/resident/presentation/pages/dues_page.dart';
+import '../../features/resident/presentation/pages/electricity_confirm_meter_page.dart';
+import '../../features/resident/presentation/pages/electricity_enter_amount_page.dart';
+import '../../features/resident/presentation/pages/electricity_enter_meter_page.dart';
+import '../../features/resident/presentation/pages/electricity_payment_page.dart';
+import '../../features/resident/presentation/pages/electricity_select_provider_page.dart';
 import '../../features/resident/presentation/pages/meeting_detail_page.dart';
 import '../../features/resident/presentation/pages/meetings_page.dart';
 import '../../features/resident/presentation/pages/notifications_page.dart';
@@ -36,6 +42,8 @@ import '../../features/resident/presentation/pages/projects_page.dart';
 import '../../features/resident/presentation/pages/receipt_page.dart';
 import '../../features/resident/presentation/pages/rules_page.dart';
 import '../../features/resident/presentation/pages/sos_page.dart';
+import '../../features/resident/presentation/pages/utility_history_page.dart';
+import '../../features/resident/presentation/pages/utility_purchase_success_page.dart';
 import '../../features/resident/presentation/pages/visitor_create_page.dart';
 import '../../features/resident/presentation/pages/visitor_detail_page.dart';
 import '../../features/resident/presentation/pages/visitor_page.dart';
@@ -173,6 +181,47 @@ final routerProvider = Provider<GoRouter>((ref) {
                             MeetingDetailPage(id: s.pathParameters['id']!),
                       ),
                     ],
+                  ),
+                  GoRoute(
+                    path: 'airtime',
+                    builder: (_, _) => const BuyAirtimePage(),
+                    routes: [
+                      GoRoute(
+                        path: 'success',
+                        builder: (_, _) => const UtilityPurchaseSuccessPage(),
+                      ),
+                    ],
+                  ),
+                  GoRoute(
+                    path: 'electricity',
+                    builder: (_, _) => const ElectricitySelectProviderPage(),
+                    routes: [
+                      GoRoute(
+                        path: 'meter',
+                        builder: (_, _) => const ElectricityEnterMeterPage(),
+                      ),
+                      GoRoute(
+                        path: 'confirm',
+                        builder: (_, _) => const ElectricityConfirmMeterPage(),
+                      ),
+                      GoRoute(
+                        path: 'amount',
+                        builder: (_, _) => const ElectricityEnterAmountPage(),
+                      ),
+                      GoRoute(
+                        path: 'payment',
+                        builder: (_, _) => const ElectricityPaymentPage(),
+                      ),
+                      GoRoute(
+                        path: 'success',
+                        builder: (_, _) => const UtilityPurchaseSuccessPage(),
+                      ),
+                    ],
+                  ),
+                  GoRoute(
+                    path: 'utility-history',
+                    builder: (_, s) =>
+                        UtilityHistoryPage(type: s.extra as String? ?? 'ELECTRICITY'),
                   ),
                 ],
               ),

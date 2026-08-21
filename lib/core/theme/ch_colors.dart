@@ -13,7 +13,12 @@ class ChColors {
 
   static const Color bg = Color(0xfffaf7f3);
   static const Color surface = Color(0xffffffff);
-  static const Color surfaceSunken = Color(0xfff3f1eb);
+  static const Color surfaceSunken = Color(0x2bd1d2db);
+
+  /// Text/select field fill — a translucent overlay (design-provided:
+  /// #d1d2db2b, RRGGBBAA) rather than a flat color, so it picks up warmth
+  /// from [bg]/[surface] underneath instead of reading as a cool grey.
+  static const Color inputFill = Color(0x2bd1d2db);
 
   /// Bg and surface are nearly identical, so cards rely on this — not
   /// color contrast — to read as lifted off the background.

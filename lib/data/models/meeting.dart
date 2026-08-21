@@ -1,3 +1,21 @@
+/// "Today" / "Tomorrow" / "Aug 25" style label for compact display (e.g.
+/// the dashboard's "Next Meeting" stat tile) — distinct from [Meeting]'s
+/// own `countdown` field ("2 days away"), which reads as a full sentence
+/// and is meant for the meetings list instead.
+String meetingWhenLabel(DateTime scheduledAt) {
+  final now = DateTime.now();
+  final today = DateTime(now.year, now.month, now.day);
+  final day = DateTime(scheduledAt.year, scheduledAt.month, scheduledAt.day);
+  final diff = day.difference(today).inDays;
+  if (diff == 0) return 'Today';
+  if (diff == 1) return 'Tomorrow';
+  const months = [
+    'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+    'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+  ];
+  return '${months[scheduledAt.month - 1]} ${scheduledAt.day}';
+}
+
 class Meeting {
   const Meeting({
     required this.id,
@@ -6,6 +24,7 @@ class Meeting {
     required this.time,
     required this.countdown,
     required this.location,
+    required this.scheduledAt,
   });
 
   factory Meeting.fromJson(Map<String, dynamic> json) {
@@ -16,6 +35,7 @@ class Meeting {
       time: json['time'] as String,
       countdown: json['countdown'] as String,
       location: json['location'] as String,
+      scheduledAt: DateTime.parse(json['scheduledAt'] as String),
     );
   }
 
@@ -25,4 +45,5 @@ class Meeting {
   final String time;
   final String countdown;
   final String location;
+  final DateTime scheduledAt;
 }

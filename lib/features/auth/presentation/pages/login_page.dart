@@ -5,6 +5,7 @@ import '../../../../core/theme/ch_colors.dart';
 import '../../../../core/theme/ch_responsive.dart';
 import '../../../../core/theme/ch_spacing.dart';
 import '../../../../core/theme/ch_text_styles.dart';
+import '../../../../core/widgets/ch_data_media.dart';
 import '../../../../core/widgets/ch_help_pill.dart';
 import '../../../../core/widgets/ch_password_field.dart';
 import '../../../../core/widgets/ch_square_icon_button.dart';
@@ -42,6 +43,7 @@ class LoginPage extends ConsumerWidget {
               _EstateBanner(
                 name: s.estateName ?? 'Your Estate',
                 address: s.estateAddress,
+                image: s.estateImage,
                 onChange: s.estateLocked ? null : notifier.changeEstate,
               ),
               SizedBox(height: context.rs(22)),
@@ -320,11 +322,13 @@ class _EstateBanner extends StatelessWidget {
   const _EstateBanner({
     required this.name,
     required this.address,
+    required this.image,
     required this.onChange,
   });
 
   final String name;
   final String? address;
+  final String? image;
   final VoidCallback? onChange;
 
   @override
@@ -344,10 +348,12 @@ class _EstateBanner extends StatelessWidget {
                 width: photoWidth,
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(ChRadii.card),
-                  child: Image.asset(
-                    'assets/images/welcome_banner.png',
-                    fit: BoxFit.cover,
-                  ),
+                  child: image != null
+                      ? ChDataMedia(dataUrl: image!)
+                      : Image.asset(
+                          'assets/images/welcome_banner.png',
+                          fit: BoxFit.cover,
+                        ),
                 ),
               ),
               Positioned(
