@@ -4,10 +4,13 @@ import '../data/models/access_log_entry.dart';
 import '../data/models/announcement.dart';
 import '../data/models/complaint_item.dart';
 import '../data/models/dues_entry.dart';
+import '../data/models/household_invite.dart';
+import '../data/models/household_member.dart';
 import '../data/models/levy.dart';
 import '../data/models/meeting.dart';
 import '../data/models/my_pledge.dart';
 import '../data/models/notification_item.dart';
+import '../data/models/owing_resident.dart';
 import '../data/models/person.dart';
 import '../data/models/poll.dart';
 import '../data/models/project.dart';
@@ -112,6 +115,9 @@ class AppState {
     this.guardCode = '',
     this.guardResult,
     List<AccessLogEntry>? accessLog,
+    List<OwingResident>? owingResidents,
+    List<HouseholdMember>? householdMembers,
+    List<HouseholdInvite>? householdInvites,
     this.allNotifsRead = true,
     this.complaintCategory = 'Maintenance',
     this.complaintDesc = '',
@@ -150,6 +156,9 @@ class AppState {
        sessions = sessions ?? [],
        duesHistory = duesHistory ?? [],
        accessLog = accessLog ?? [],
+       owingResidents = owingResidents ?? [],
+       householdMembers = householdMembers ?? [],
+       householdInvites = householdInvites ?? [],
        levies = levies ?? [],
        announcements = announcements ?? [],
        meetings = meetings ?? [],
@@ -278,6 +287,9 @@ class AppState {
   final String guardCode;
   final GuardResult? guardResult;
   final List<AccessLogEntry> accessLog;
+  final List<OwingResident> owingResidents;
+  final List<HouseholdMember> householdMembers;
+  final List<HouseholdInvite> householdInvites;
 
   final bool allNotifsRead;
   final List<NotificationItem> notifications;
@@ -398,6 +410,9 @@ class AppState {
     String? guardCode,
     Object? guardResult = _sentinel,
     List<AccessLogEntry>? accessLog,
+    List<OwingResident>? owingResidents,
+    List<HouseholdMember>? householdMembers,
+    List<HouseholdInvite>? householdInvites,
     bool? allNotifsRead,
     List<NotificationItem>? notifications,
     String? complaintCategory,
@@ -532,6 +547,9 @@ class AppState {
           ? this.guardResult
           : guardResult as GuardResult?,
       accessLog: accessLog ?? this.accessLog,
+      owingResidents: owingResidents ?? this.owingResidents,
+      householdMembers: householdMembers ?? this.householdMembers,
+      householdInvites: householdInvites ?? this.householdInvites,
       allNotifsRead: allNotifsRead ?? this.allNotifsRead,
       notifications: notifications ?? this.notifications,
       complaintCategory: complaintCategory ?? this.complaintCategory,

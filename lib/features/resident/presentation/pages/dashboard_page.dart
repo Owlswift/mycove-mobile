@@ -259,7 +259,9 @@ class DashboardPage extends ConsumerWidget {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    'Outstanding Dues',
+                                    (s.currentUser?.duesLiable ?? true)
+                                        ? 'Outstanding Dues'
+                                        : 'Household Outstanding Dues',
                                     style: ChTextStyles.body(
                                       fontSize: 13,
                                       color: Colors.white.withValues(
@@ -275,35 +277,37 @@ class DashboardPage extends ConsumerWidget {
                                       color: Colors.white,
                                     ),
                                   ),
-                                  SizedBox(height: context.rs(14)),
-                                  Wrap(
-                                    crossAxisAlignment:
-                                        WrapCrossAlignment.center,
-                                    spacing: context.rs(12),
-                                    runSpacing: context.rs(8),
-                                    children: [
-                                      Container(
-                                        padding: EdgeInsets.symmetric(
-                                          horizontal: context.rs(18),
-                                          vertical: context.rs(10),
-                                        ),
-                                        decoration: BoxDecoration(
-                                          color: const Color(0xfff5dfb8),
-                                          borderRadius: BorderRadius.circular(
-                                            ChRadii.pill,
+                                  if (s.currentUser?.duesLiable ?? true) ...[
+                                    SizedBox(height: context.rs(14)),
+                                    Wrap(
+                                      crossAxisAlignment:
+                                          WrapCrossAlignment.center,
+                                      spacing: context.rs(12),
+                                      runSpacing: context.rs(8),
+                                      children: [
+                                        Container(
+                                          padding: EdgeInsets.symmetric(
+                                            horizontal: context.rs(18),
+                                            vertical: context.rs(10),
+                                          ),
+                                          decoration: BoxDecoration(
+                                            color: const Color(0xfff5dfb8),
+                                            borderRadius: BorderRadius.circular(
+                                              ChRadii.pill,
+                                            ),
+                                          ),
+                                          child: Text(
+                                            'Pay Now →',
+                                            style: ChTextStyles.body(
+                                              fontSize: 13,
+                                              fontWeight: FontWeight.w700,
+                                              color: ChColors.accentN(900),
+                                            ),
                                           ),
                                         ),
-                                        child: Text(
-                                          'Pay Now →',
-                                          style: ChTextStyles.body(
-                                            fontSize: 13,
-                                            fontWeight: FontWeight.w700,
-                                            color: ChColors.accentN(900),
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
+                                      ],
+                                    ),
+                                  ],
                                 ],
                               ),
                             ),
@@ -715,7 +719,9 @@ class DashboardPage extends ConsumerWidget {
                 Expanded(
                   child: _QuickAction(
                     icon: Icons.credit_card_rounded,
-                    label: 'Pay Dues',
+                    label: (s.currentUser?.duesLiable ?? true)
+                        ? 'Pay Dues'
+                        : 'View Dues',
                     tint: ChColors.accentN(500),
                     iconColor: ChColors.accentN(800),
                     onTap: () => context.go('/resident/dues'),

@@ -73,6 +73,7 @@ class GuardShell extends ConsumerWidget {
           items: const [
             BottomNavigationBarItem(icon: Icon(Icons.qr_code_scanner_rounded), label: 'Scan'),
             BottomNavigationBarItem(icon: Icon(Icons.list_alt_rounded), label: 'Log'),
+            BottomNavigationBarItem(icon: Icon(Icons.receipt_long_rounded), label: 'Dues'),
           ],
         ),
       ),

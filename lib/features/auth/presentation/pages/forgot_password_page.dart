@@ -3,9 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/theme/ch_colors.dart';
 import '../../../../core/theme/ch_responsive.dart';
-import '../../../../core/theme/ch_spacing.dart';
 import '../../../../core/theme/ch_text_styles.dart';
 import '../../../../core/widgets/ch_button.dart';
+import '../../../../core/widgets/ch_phone_field.dart';
 import '../../../../core/widgets/ch_square_icon_button.dart';
 import '../../../../state/app_notifier.dart';
 
@@ -50,7 +50,7 @@ class ForgotPasswordPage extends ConsumerWidget {
                 style: ChTextStyles.body(fontSize: 13, fontWeight: FontWeight.w500, color: ChColors.text),
               ),
               SizedBox(height: context.rs(6)),
-              _PhoneField(value: s.forgotPhone, onChanged: notifier.onForgotPhoneChange),
+              ChPhoneField(value: s.forgotPhone, onChanged: notifier.onForgotPhoneChange),
               if (s.resetMsg.isNotEmpty) ...[
                 SizedBox(height: context.rs(12)),
                 Text(s.resetMsg, style: ChTextStyles.body(fontSize: 13, color: ChColors.danger)),
@@ -103,91 +103,3 @@ class _ResetIllustration extends StatelessWidget {
   }
 }
 
-/// Same styling as the phone field on the login screen (flag, country code,
-/// divider, input, call icon) — duplicated locally rather than shared since
-/// neither screen has a widget extracted for it yet.
-class _PhoneField extends StatefulWidget {
-  const _PhoneField({required this.value, required this.onChanged});
-
-  final String value;
-  final ValueChanged<String> onChanged;
-
-  @override
-  State<_PhoneField> createState() => _PhoneFieldState();
-}
-
-class _PhoneFieldState extends State<_PhoneField> {
-  late final TextEditingController _controller = TextEditingController(text: widget.value);
-
-  @override
-  void didUpdateWidget(covariant _PhoneField oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (widget.value != _controller.text) {
-      _controller.value = TextEditingValue(
-        text: widget.value,
-        selection: TextSelection.collapsed(offset: widget.value.length),
-      );
-    }
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      height: context.rs(52),
-      decoration: BoxDecoration(
-        color: const Color(0xfffdfbf9),
-        borderRadius: BorderRadius.circular(ChRadii.button),
-        border: Border.all(color: ChColors.neutralN(300)),
-      ),
-      child: Row(
-        children: [
-          Padding(
-            padding: EdgeInsets.symmetric(horizontal: context.rs(12)),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Text('🇳🇬', style: TextStyle(fontSize: 20)),
-                SizedBox(width: context.rs(6)),
-                Text('+234', style: ChTextStyles.body(fontSize: 14, fontWeight: FontWeight.w500)),
-                SizedBox(width: context.rs(2)),
-                Icon(Icons.keyboard_arrow_down_rounded, size: context.rs(16), color: ChColors.neutralN(600)),
-              ],
-            ),
-          ),
-          Container(width: 1, height: context.rs(24), color: ChColors.neutralN(300)),
-          Expanded(
-            child: Padding(
-              padding: EdgeInsets.symmetric(horizontal: context.rs(10)),
-              child: TextField(
-                controller: _controller,
-                onChanged: widget.onChanged,
-                keyboardType: TextInputType.phone,
-                style: ChTextStyles.body(fontSize: 13),
-                decoration: InputDecoration(
-                  isDense: true,
-                  filled: false,
-                  border: InputBorder.none,
-                  enabledBorder: InputBorder.none,
-                  focusedBorder: InputBorder.none,
-                  disabledBorder: InputBorder.none,
-                  hintText: 'Enter phone number',
-                  hintStyle: ChTextStyles.body(fontSize: 12, color: ChColors.bodyText),
-                ),
-              ),
-            ),
-          ),
-          Padding(
-            padding: EdgeInsets.only(right: context.rs(12)),
-            child: Icon(Icons.call_outlined, size: context.rs(22), color: ChColors.neutralN(600)),
-          ),
-        ],
-      ),
-    );
-  }
-}

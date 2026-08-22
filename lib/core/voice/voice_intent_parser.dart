@@ -222,7 +222,12 @@ const _discoNameStopWords = {
 /// "IBEDC" is a utility company, so it tends to autocorrect it toward a
 /// real word/acronym it *does* know (e.g. "IBTC", a bank). A distance-2
 /// threshold catches that kind of near-miss without matching wildly
-/// unrelated words.
+/// unrelated words — but only among words spoken right after "from", since
+/// that's how a provider actually gets named ("...electricity from
+/// IBEDC"). Scanning every word in the sentence against short 4-6 letter
+/// codes produces false positives on ordinary words (e.g. plain "need" is
+/// edit-distance 2 from "PHED"), which wrongly picked a DISCO even when
+/// the resident never named one and just meant "use my saved meter".
 Disco? extractDisco(String text, List<Disco> discos) {
   final t = text.toLowerCase();
   for (final d in discos) {
@@ -236,9 +241,13 @@ Disco? extractDisco(String text, List<Disco> discos) {
     if (words.any(t.contains)) return d;
   }
 
+  final fromIndex = t.indexOf('from ');
+  if (fromIndex == -1) return null;
+  final afterFrom = t.substring(fromIndex + 'from '.length);
+
   Disco? closest;
   var bestDistance = 3;
-  for (final candidate in t.split(RegExp(r'\s+')).where((w) => w.length >= 3)) {
+  for (final candidate in afterFrom.split(RegExp(r'\s+')).where((w) => w.length >= 3)) {
     for (final d in discos) {
       final distance = _levenshtein(candidate, d.shortCode.toLowerCase());
       if (distance < bestDistance) {

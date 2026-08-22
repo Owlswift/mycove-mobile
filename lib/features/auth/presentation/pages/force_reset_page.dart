@@ -35,7 +35,7 @@ class _ForceResetPageState extends ConsumerState<ForceResetPage> {
     return count;
   }
 
-  void _continueFromPassword(String pass1, String pass2) {
+  Future<void> _continueFromPassword(String pass1, String pass2) async {
     if (_rulesMet(pass1) < 3) {
       setState(
         () => _passwordError =
@@ -47,10 +47,18 @@ class _ForceResetPageState extends ConsumerState<ForceResetPage> {
       setState(() => _passwordError = 'Passwords do not match.');
       return;
     }
-    setState(() {
-      _passwordError = '';
-      _step = 1;
-    });
+    setState(() => _passwordError = '');
+
+    // A household-invited member's profile is already complete — same
+    // house as whoever invited them (see HouseholdService.approveInvite),
+    // and their name came from the invite itself. Nothing left for them to
+    // fill in, so skip straight past the profile step admin-created
+    // accounts still need.
+    if (ref.read(appStateProvider).currentUser?.invitedByName != null) {
+      await ref.read(appStateProvider.notifier).completeForceReset();
+      return;
+    }
+    setState(() => _step = 1);
   }
 
   void _showHelp(BuildContext context) {
@@ -103,7 +111,7 @@ class _PasswordStep extends ConsumerWidget {
 
   final String error;
   final VoidCallback onBack;
-  final void Function(String pass1, String pass2) onContinue;
+  final Future<void> Function(String pass1, String pass2) onContinue;
   final int Function(String password) rulesMet;
   final VoidCallback onShowHelp;
 
@@ -280,16 +288,16 @@ class _PasswordStep extends ConsumerWidget {
               ],
             ),
           ),
-          if (error.isNotEmpty) ...[
+          if (error.isNotEmpty || s.resetMsg.isNotEmpty) ...[
             const SizedBox(height: 12),
             Text(
-              error,
+              error.isNotEmpty ? error : s.resetMsg,
               style: ChTextStyles.body(fontSize: 13, color: ChColors.danger),
             ),
           ],
           const SizedBox(height: 18),
           GestureDetector(
-            onTap: () => onContinue(s.newPass1, s.newPass2),
+            onTap: s.isLoading ? null : () => onContinue(s.newPass1, s.newPass2),
             child: Container(
               width: double.infinity,
               padding: const EdgeInsets.symmetric(
@@ -300,7 +308,15 @@ class _PasswordStep extends ConsumerWidget {
                 color: ChColors.accent2,
                 borderRadius: BorderRadius.circular(ChRadii.button),
               ),
-              child: Stack(
+              child: s.isLoading
+                  ? Center(
+                      child: SizedBox(
+                        width: context.rs(20),
+                        height: context.rs(20),
+                        child: const CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                      ),
+                    )
+                  : Stack(
                 alignment: Alignment.center,
                 children: [
                   Text(

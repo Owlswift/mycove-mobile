@@ -95,7 +95,7 @@ class CommunityHubApi {
 
   // ── Dues & levies ─────────────────────────────────────────────────────
   Future<Map<String, dynamic>> dues() async => _map(await _dio.get('/dues'));
-  Future<List<dynamic>> levies() async => _list(await _dio.get('/levies'));
+  Future<Map<String, dynamic>> levies() async => _map(await _dio.get('/levies'));
   Future<void> payLevy(String id) => _dio.post('/levies/$id/pay');
 
   Future<int> walletBalance() async =>
@@ -173,6 +173,8 @@ class CommunityHubApi {
       _dio.post('/visitor-passes/$visitorPassId/exit');
   Future<List<dynamic>> accessLog() async =>
       _list(await _dio.get('/access-log'));
+  Future<List<dynamic>> duesOwing() async =>
+      _list(await _dio.get('/dues/owing'));
 
   // ── Projects ──────────────────────────────────────────────────────────
   Future<List<dynamic>> projects() async => _list(await _dio.get('/projects'));
@@ -307,4 +309,18 @@ class CommunityHubApi {
 
   Future<List<dynamic>> utilityPurchases() async =>
       _list(await _dio.get('/utilities/purchases'));
+
+  // ── Household ────────────────────────────────────────────────────────
+  Future<List<dynamic>> householdMembers() async =>
+      _list(await _dio.get('/household/members'));
+  Future<List<dynamic>> householdInvites() async =>
+      _list(await _dio.get('/household/invites'));
+  Future<Map<String, dynamic>> sendHouseholdInvite({
+    required String fullName,
+    required String phone,
+  }) async => _map(
+    await _dio.post('/household/invite', data: {'fullName': fullName, 'phone': phone}),
+  );
+  Future<void> cancelHouseholdInvite(String id) =>
+      _dio.delete('/household/invite/$id');
 }

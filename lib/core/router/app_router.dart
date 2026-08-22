@@ -13,6 +13,7 @@ import '../../features/auth/presentation/pages/otp_page.dart';
 import '../../features/auth/presentation/pages/password_reset_success_page.dart';
 import '../../features/auth/presentation/pages/welcome_page.dart';
 import '../../features/guard/presentation/pages/guard_code_page.dart';
+import '../../features/guard/presentation/pages/guard_dues_page.dart';
 import '../../features/guard/presentation/pages/guard_log_page.dart';
 import '../../features/guard/presentation/pages/guard_result_page.dart';
 import '../../features/guard/presentation/pages/guard_scan_page.dart';
@@ -31,6 +32,8 @@ import '../../features/resident/presentation/pages/electricity_enter_meter_page.
 import '../../features/resident/presentation/pages/electricity_payment_page.dart';
 import '../../features/resident/presentation/pages/electricity_select_meter_page.dart';
 import '../../features/resident/presentation/pages/electricity_select_provider_page.dart';
+import '../../features/resident/presentation/pages/household_page.dart';
+import '../../features/resident/presentation/pages/invite_resident_page.dart';
 import '../../features/resident/presentation/pages/meeting_detail_page.dart';
 import '../../features/resident/presentation/pages/meetings_page.dart';
 import '../../features/resident/presentation/pages/notifications_page.dart';
@@ -158,6 +161,16 @@ final routerProvider = Provider<GoRouter>((ref) {
                       GoRoute(
                         path: 'voice',
                         builder: (_, _) => const VoiceSettingsPage(),
+                      ),
+                      GoRoute(
+                        path: 'household',
+                        builder: (_, _) => const HouseholdPage(),
+                        routes: [
+                          GoRoute(
+                            path: 'invite',
+                            builder: (_, _) => const InviteResidentPage(),
+                          ),
+                        ],
                       ),
                     ],
                   ),
@@ -336,6 +349,14 @@ final routerProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: '/guard/log',
                 builder: (_, _) => const GuardLogPage(),
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: '/guard/dues',
+                builder: (_, _) => const GuardDuesPage(),
               ),
             ],
           ),

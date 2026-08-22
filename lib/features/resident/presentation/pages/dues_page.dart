@@ -20,6 +20,7 @@ class DuesPage extends ConsumerWidget {
     final s = ref.watch(appStateProvider);
     final notifier = ref.read(appStateProvider.notifier);
     final hasBalance = s.duesBalance > 0;
+    final duesLiable = s.currentUser?.duesLiable ?? true;
 
     Future<void> pay(String levyId) async {
       final error = await notifier.payLevy(levyId);
@@ -38,6 +39,10 @@ class DuesPage extends ConsumerWidget {
             physics: const AlwaysScrollableScrollPhysics(),
             padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
             children: [
+              if (!duesLiable) ...[
+                _NotLiableBanner(invitedByName: s.currentUser?.invitedByName),
+                const SizedBox(height: 14),
+              ],
               Container(
                 width: double.infinity,
                 padding: const EdgeInsets.all(20),
@@ -51,11 +56,14 @@ class DuesPage extends ConsumerWidget {
                 ),
                 child: Column(
                   children: [
-                    Text('Outstanding balance', style: ChTextStyles.body(fontSize: 13, color: Colors.white.withValues(alpha: 0.8))),
+                    Text(
+                      duesLiable ? 'Outstanding balance' : 'Household outstanding balance',
+                      style: ChTextStyles.body(fontSize: 13, color: Colors.white.withValues(alpha: 0.8)),
+                    ),
                     const SizedBox(height: 6),
                     Text(s.duesBalanceLabel, style: ChTextStyles.heading(fontSize: 30, color: Colors.white)),
                     const SizedBox(height: 16),
-                    if (hasBalance)
+                    if (hasBalance && duesLiable)
                       GestureDetector(
                         onTap: () {
                           notifier.resetPayment();
@@ -70,7 +78,7 @@ class DuesPage extends ConsumerWidget {
                           ),
                         ),
                       )
-                    else
+                    else if (!hasBalance)
                       Text(
                         '✓ Fully paid up',
                         style: ChTextStyles.body(fontSize: 14, fontWeight: FontWeight.w600, color: Colors.white),
@@ -150,17 +158,23 @@ class DuesPage extends ConsumerWidget {
                         ),
                       ),
                       if (lv.status == LevyStatus.unpaid)
-                        GestureDetector(
-                          onTap: () => pay(lv.id),
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                            decoration: BoxDecoration(color: ChColors.accent2, borderRadius: BorderRadius.circular(ChRadii.pill)),
-                            child: Text(
-                              'Pay',
-                              style: ChTextStyles.body(fontSize: 12.5, fontWeight: FontWeight.w600, color: Colors.white),
+                        if (duesLiable)
+                          GestureDetector(
+                            onTap: () => pay(lv.id),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                              decoration: BoxDecoration(color: ChColors.accent2, borderRadius: BorderRadius.circular(ChRadii.pill)),
+                              child: Text(
+                                'Pay',
+                                style: ChTextStyles.body(fontSize: 12.5, fontWeight: FontWeight.w600, color: Colors.white),
+                              ),
                             ),
-                          ),
-                        )
+                          )
+                        else
+                          Text(
+                            'Owed',
+                            style: ChTextStyles.body(fontSize: 12, fontWeight: FontWeight.w700, color: ChColors.danger),
+                          )
                       else
                         Text(
                           'Paid',
@@ -174,6 +188,42 @@ class DuesPage extends ConsumerWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+/// Shown above the balance/history/levies sections for a resident who
+/// joined via a household invitation — they aren't personally charged (see
+/// User.duesLiable), but can still see the household's actual dues/levy
+/// standing below; they just can't pay it themselves from here.
+class _NotLiableBanner extends StatelessWidget {
+  const _NotLiableBanner({required this.invitedByName});
+
+  final String? invitedByName;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: BoxDecoration(
+        color: ChColors.surface,
+        borderRadius: BorderRadius.circular(ChRadii.card),
+      ),
+      child: Row(
+        children: [
+          Icon(Icons.info_outline, size: 18, color: ChColors.accent2),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              invitedByName != null
+                  ? "You're not billed for dues or levies — this is $invitedByName's household standing, for your information."
+                  : "You're not billed for dues or levies — this is your household's standing, for your information.",
+              style: ChTextStyles.body(fontSize: 12.5, color: ChColors.bodyText, height: 1.4),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

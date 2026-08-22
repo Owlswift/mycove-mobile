@@ -38,9 +38,18 @@ class _VoiceSettingsPageState extends ConsumerState<VoiceSettingsPage> {
 
     return Column(
       children: [
-        ChGenericHeader(title: 'Assistant Voice', centerTitle: true, onBack: () => context.pop()),
+        ChGenericHeader(
+          title: 'Assistant Voice',
+          centerTitle: true,
+          onBack: () => context.pop(),
+        ),
         Padding(
-          padding: EdgeInsets.fromLTRB(context.rs(20), 0, context.rs(20), context.rs(10)),
+          padding: EdgeInsets.fromLTRB(
+            context.rs(20),
+            0,
+            context.rs(20),
+            context.rs(10),
+          ),
           child: Align(
             alignment: Alignment.centerLeft,
             child: Text(
@@ -52,27 +61,52 @@ class _VoiceSettingsPageState extends ConsumerState<VoiceSettingsPage> {
         Expanded(
           child: _loading
               ? const Center(child: CircularProgressIndicator())
-              : s.availableVoices.isEmpty
-                  ? Center(
-                      child: Text(
-                        "Couldn't find any voices on this device.",
-                        style: ChTextStyles.body(fontSize: 13.5, color: ChColors.bodyText),
-                      ),
-                    )
-                  : ListView.separated(
-                      padding: EdgeInsets.fromLTRB(context.rs(20), 0, context.rs(20), context.rs(24)),
-                      itemCount: s.availableVoices.length,
-                      separatorBuilder: (_, _) => SizedBox(height: context.rs(10)),
-                      itemBuilder: (_, i) {
-                        final voice = s.availableVoices[i];
-                        final selected = s.selectedVoice == voice;
-                        return _VoiceTile(
-                          voice: voice,
-                          selected: selected,
-                          onTap: () => notifier.selectVoice(voice),
-                        );
-                      },
-                    ),
+              : RefreshIndicator(
+                  onRefresh: notifier.loadAvailableVoices,
+                  child: s.availableVoices.isEmpty
+                      ? ListView(
+                          physics: const AlwaysScrollableScrollPhysics(),
+                          padding: EdgeInsets.fromLTRB(
+                            context.rs(20),
+                            context.rs(40),
+                            context.rs(20),
+                            context.rs(24),
+                          ),
+                          children: [
+                            Center(
+                              child: Text(
+                                "Couldn't find any voices on this device.",
+                                textAlign: TextAlign.center,
+                                style: ChTextStyles.body(
+                                  fontSize: 13.5,
+                                  color: ChColors.bodyText,
+                                ),
+                              ),
+                            ),
+                          ],
+                        )
+                      : ListView.separated(
+                          physics: const AlwaysScrollableScrollPhysics(),
+                          padding: EdgeInsets.fromLTRB(
+                            context.rs(20),
+                            0,
+                            context.rs(20),
+                            context.rs(24),
+                          ),
+                          itemCount: s.availableVoices.length,
+                          separatorBuilder: (_, _) =>
+                              SizedBox(height: context.rs(10)),
+                          itemBuilder: (_, i) {
+                            final voice = s.availableVoices[i];
+                            final selected = s.selectedVoice == voice;
+                            return _VoiceTile(
+                              voice: voice,
+                              selected: selected,
+                              onTap: () => notifier.selectVoice(voice),
+                            );
+                          },
+                        ),
+                ),
         ),
       ],
     );
@@ -80,7 +114,11 @@ class _VoiceSettingsPageState extends ConsumerState<VoiceSettingsPage> {
 }
 
 class _VoiceTile extends StatelessWidget {
-  const _VoiceTile({required this.voice, required this.selected, required this.onTap});
+  const _VoiceTile({
+    required this.voice,
+    required this.selected,
+    required this.onTap,
+  });
 
   final TtsVoiceOption voice;
   final bool selected;
@@ -96,7 +134,9 @@ class _VoiceTile extends StatelessWidget {
         decoration: BoxDecoration(
           color: selected ? ChColors.accent2N(100) : ChColors.surface,
           borderRadius: BorderRadius.circular(ChRadii.md),
-          border: Border.all(color: selected ? ChColors.accent2 : Colors.transparent),
+          border: Border.all(
+            color: selected ? ChColors.accent2 : Colors.transparent,
+          ),
           boxShadow: selected ? null : ChColors.cardShadow,
         ),
         child: Row(
@@ -107,14 +147,29 @@ class _VoiceTile extends StatelessWidget {
                 children: [
                   Text(
                     voice.name,
-                    style: ChTextStyles.body(fontSize: 14, fontWeight: FontWeight.w700, color: ChColors.text),
+                    style: ChTextStyles.body(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w700,
+                      color: ChColors.text,
+                    ),
                   ),
                   SizedBox(height: context.rs(2)),
-                  Text(voice.locale, style: ChTextStyles.body(fontSize: 12, color: ChColors.bodyText)),
+                  Text(
+                    voice.locale,
+                    style: ChTextStyles.body(
+                      fontSize: 12,
+                      color: ChColors.bodyText,
+                    ),
+                  ),
                 ],
               ),
             ),
-            if (selected) Icon(Icons.check_circle_rounded, color: ChColors.accent2, size: context.rs(20)),
+            if (selected)
+              Icon(
+                Icons.check_circle_rounded,
+                color: ChColors.accent2,
+                size: context.rs(20),
+              ),
           ],
         ),
       ),

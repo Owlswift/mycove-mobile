@@ -20,9 +20,12 @@ import '../core/push/push_service.dart';
 import '../core/voice/voice_intent_parser.dart';
 import '../data/community_hub_api.dart';
 import '../data/models/access_log_entry.dart';
+import '../data/models/owing_resident.dart';
 import '../data/models/announcement.dart';
 import '../data/models/complaint_item.dart';
 import '../data/models/dues_entry.dart';
+import '../data/models/household_invite.dart';
+import '../data/models/household_member.dart';
 import '../data/models/levy.dart';
 import '../data/models/meeting.dart';
 import '../data/models/my_pledge.dart';
@@ -69,9 +72,10 @@ class AppNotifier extends StateNotifier<AppState> {
     addListener((state) {
       if (state.voiceResponse.isNotEmpty && state.voiceResponse != _lastSpokenResponse) {
         _lastSpokenResponse = state.voiceResponse;
-        unawaited(_tts.stop().then((_) => _tts.speak(state.voiceResponse)));
+        unawaited(_speak(state.voiceResponse));
       }
     });
+    unawaited(_configureTts());
     unawaited(_restoreSavedVoice());
     _bootstrap();
   }
@@ -102,7 +106,6 @@ class AppNotifier extends StateNotifier<AppState> {
   _VoiceFlow _voiceContext = _VoiceFlow.none;
   // Caps auto-restarting the mic after unparsed/failed turns, so a broken
   // recognizer can't loop forever without the resident tapping anything.
-  int _consecutiveVoiceErrors = 0;
   // Non-null exactly while asking "which meter?" — a resident with more
   // than one saved meter is never assumed to mean "the" one, so this holds
   // the choices (and the already-known amount) until one is picked, either
@@ -782,6 +785,8 @@ class AppNotifier extends StateNotifier<AppState> {
       _api.discos(),
       _api.walletBalance(),
       _api.utilityPurchases(),
+      _api.householdMembers(),
+      _api.householdInvites(),
     ]);
 
     final announcements = (results[0] as List)
@@ -791,7 +796,7 @@ class AppNotifier extends StateNotifier<AppState> {
         .map((j) => Meeting.fromJson(j as Map<String, dynamic>))
         .toList();
     final dues = results[2] as Map<String, dynamic>;
-    final levies = (results[3] as List)
+    final levies = ((results[3] as Map<String, dynamic>)['levies'] as List)
         .map((j) => Levy.fromJson(j as Map<String, dynamic>))
         .toList();
     final visitorPasses = (results[4] as List)
@@ -830,6 +835,12 @@ class AppNotifier extends StateNotifier<AppState> {
     final utilityPurchases = (results[14] as List)
         .map((j) => UtilityPurchase.fromJson(j as Map<String, dynamic>))
         .toList();
+    final householdMembers = (results[15] as List)
+        .map((j) => HouseholdMember.fromJson(j as Map<String, dynamic>))
+        .toList();
+    final householdInvites = (results[16] as List)
+        .map((j) => HouseholdInvite.fromJson(j as Map<String, dynamic>))
+        .toList();
 
     state = state.copyWith(
       announcements: announcements,
@@ -854,14 +865,49 @@ class AppNotifier extends StateNotifier<AppState> {
       discos: discos,
       walletBalance: walletBalance,
       utilityPurchases: utilityPurchases,
+      householdMembers: householdMembers,
+      householdInvites: householdInvites,
     );
   }
 
+  // ── Household ────────────────────────────────────────────────────────
+  Future<void> _refreshHousehold() async {
+    final results = await Future.wait([_api.householdMembers(), _api.householdInvites()]);
+    state = state.copyWith(
+      householdMembers: results[0].map((j) => HouseholdMember.fromJson(j as Map<String, dynamic>)).toList(),
+      householdInvites: results[1].map((j) => HouseholdInvite.fromJson(j as Map<String, dynamic>)).toList(),
+    );
+  }
+
+  Future<String?> sendHouseholdInvite({required String fullName, required String phone}) async {
+    try {
+      await _api.sendHouseholdInvite(fullName: fullName, phone: _digitsOnly(phone));
+      await _refreshHousehold();
+      return null;
+    } catch (e) {
+      return extractMessage(e);
+    }
+  }
+
+  Future<String?> cancelHouseholdInvite(String id) async {
+    try {
+      await _api.cancelHouseholdInvite(id);
+      await _refreshHousehold();
+      return null;
+    } catch (e) {
+      return extractMessage(e);
+    }
+  }
+
   Future<void> _bootstrapGuard() async {
-    final accessLog = (await _api.accessLog())
+    final results = await Future.wait([_api.accessLog(), _api.duesOwing()]);
+    final accessLog = results[0]
         .map((j) => AccessLogEntry.fromJson(j as Map<String, dynamic>))
         .toList();
-    state = state.copyWith(accessLog: accessLog);
+    final owingResidents = results[1]
+        .map((j) => OwingResident.fromJson(j as Map<String, dynamic>))
+        .toList();
+    state = state.copyWith(accessLog: accessLog, owingResidents: owingResidents);
   }
 
   // ── Meetings ──────────────────────────────────────────────────────────
@@ -925,7 +971,7 @@ class AppNotifier extends StateNotifier<AppState> {
   Future<String?> payLevy(String id) async {
     try {
       await _api.payLevy(id);
-      final levies = (await _api.levies())
+      final levies = ((await _api.levies())['levies'] as List)
           .map((j) => Levy.fromJson(j as Map<String, dynamic>))
           .toList();
       state = state.copyWith(levies: levies);
@@ -1425,12 +1471,10 @@ class AppNotifier extends StateNotifier<AppState> {
   Future<void> startVoiceListening() async {
     if (state.voiceStage == VoiceStage.listening) return;
     // initialize() is safe to call repeatedly, but it's a real (if small)
-    // async platform-channel round trip each time — continuous listening
-    // re-arms this method after nearly every turn, so re-initializing an
-    // already-initialized engine on every single turn is pure overhead.
-    // Only re-attempt it if it hasn't succeeded yet (including retrying
-    // after an earlier failure). The onError callback registered here is
-    // persistent for the plugin's whole lifetime, not just this one call —
+    // async platform-channel round trip each time, so only re-attempt it if
+    // it hasn't succeeded yet (including retrying after an earlier
+    // failure). The onError callback registered here is persistent for the
+    // plugin's whole lifetime, not just this one call —
     // it fires for every later listen() session too, which is exactly why
     // _handleSpeechError has to cope with more than just init-time failures.
     if (!_speechInitialized) {
@@ -1469,20 +1513,17 @@ class AppNotifier extends StateNotifier<AppState> {
   /// `error.permanent == false` covers the routine, expected stuff — no
   /// speech detected in the window, a recognition timeout — which is NOT
   /// the same as "can't access the microphone" and shouldn't be shown as
-  /// an alarming failure; it's most of what a continuous-listening session
-  /// naturally hits every time the resident pauses. Only a `permanent`
-  /// error (denied permission, no recognizer available) is a real failure.
+  /// an alarming failure. Only a `permanent` error (denied permission, no
+  /// recognizer available) is a real failure.
   void _handleSpeechError(SpeechRecognitionError error) {
     // `permanent` turned out not to mean "real failure" in practice — it's
     // true for the routine end of pretty much any listen() session,
-    // including plain silence, since that one session can't be resumed
-    // (a fresh listen() call is always needed either way). Continuous
-    // listening hits that constantly, so keying off it was still showing
-    // "can't access the microphone" for completely normal silence. The
-    // actual error code is the reliable signal — only a real permission
-    // problem is genuinely "can't access the microphone"; everything else
-    // (no speech heard, a timeout, a transient network/server hiccup)
-    // isn't a hardware/access failure and shouldn't be shown as one.
+    // including plain silence, since that one session can't be resumed (a
+    // fresh listen() call is always needed either way). The actual error
+    // code is the reliable signal — only a real permission problem is
+    // genuinely "can't access the microphone"; everything else (no speech
+    // heard, a timeout, a transient network/server hiccup) isn't a
+    // hardware/access failure and shouldn't be shown as one.
     if (error.errorMsg.contains('permission')) {
       _speechInitialized = false;
       state = state.copyWith(
@@ -1491,12 +1532,9 @@ class AppNotifier extends StateNotifier<AppState> {
       );
       return;
     }
-    _consecutiveVoiceErrors++;
-    if (_consecutiveVoiceErrors < 2) {
-      unawaited(startVoiceListening());
-    } else {
-      state = state.copyWith(voiceStage: VoiceStage.idle, voiceResponse: '');
-    }
+    // No speech detected / a routine timeout — just go quiet and wait for
+    // the resident to tap the mic again rather than re-arming automatically.
+    state = state.copyWith(voiceStage: VoiceStage.idle, voiceResponse: '');
   }
 
   Future<void> stopVoiceListening() => _speech.stop();
@@ -1509,7 +1547,6 @@ class AppNotifier extends StateNotifier<AppState> {
     if (_speech.isListening) _speech.stop();
     unawaited(_tts.stop());
     _voiceContext = _VoiceFlow.none;
-    _consecutiveVoiceErrors = 0;
     _pendingMeterChoices = null;
     _pendingMeterChoiceAmount = null;
     _pendingDuesBreakdown = false;
@@ -1517,6 +1554,44 @@ class AppNotifier extends StateNotifier<AppState> {
   }
 
   // ── Assistant voice (TTS) settings ───────────────────────────────────
+
+  /// Without this, [_tts] inherits whatever `AVAudioSession` category
+  /// [_speech] (speech_to_text) last set while listening — which is a
+  /// *record* category, not a playback one. iOS then silently drops the
+  /// synthesizer's audio some of the time instead of erroring, which is
+  /// exactly why the assistant's spoken reply was intermittent: it
+  /// depended on whatever audio-session state happened to be left over
+  /// from the last time the mic was used. Explicitly claiming a playback
+  /// category before ever speaking makes every reply audible regardless of
+  /// what STT did beforehand. No-ops harmlessly on Android.
+  Future<void> _configureTts() async {
+    try {
+      await _tts.setSharedInstance(true);
+      await _tts.setIosAudioCategory(
+        IosTextToSpeechAudioCategory.playback,
+        [
+          IosTextToSpeechAudioCategoryOptions.duckOthers,
+          IosTextToSpeechAudioCategoryOptions.mixWithOthers,
+        ],
+        IosTextToSpeechAudioMode.voicePrompt,
+      );
+      await _tts.awaitSpeakCompletion(true);
+    } catch (_) {
+      // iOS-only configuration — safe to ignore on platforms/plugin
+      // versions where these calls aren't supported.
+    }
+  }
+
+  /// The one path everything speaks through. [_speech]'s listen() sessions
+  /// switch the shared `AVAudioSession` to a record category — re-asserting
+  /// the playback category right before every single speak() call (not just
+  /// once at startup) is what makes the reply audible every time regardless
+  /// of whether the mic was just used.
+  Future<void> _speak(String text) async {
+    await _configureTts();
+    await _tts.stop();
+    await _tts.speak(text);
+  }
 
   Future<void> _restoreSavedVoice() async {
     final saved = await _voiceSettingsStorage.readVoice();
@@ -1552,19 +1627,13 @@ class AppNotifier extends StateNotifier<AppState> {
     await _tts.setVoice(voice.toVoiceMap());
     await _voiceSettingsStorage.setVoice(voice.name, voice.locale);
     state = state.copyWith(selectedVoice: voice);
-    await _tts.speak("This is how I'll sound from now on.");
+    await _speak("This is how I'll sound from now on.");
   }
 
-  /// Speaks [message], counts it as a failed turn, and — unless two in a
-  /// row have now failed — automatically re-arms the mic instead of making
-  /// the resident tap again. This is the hands-free/continuous-listening
-  /// behavior; the cap exists so a broken recognizer can't loop forever.
+  /// Speaks [message] and stops — the resident taps the mic again if they
+  /// want to try once more, rather than the app re-arming itself.
   Future<void> _registerVoiceFailure(String message) async {
-    _consecutiveVoiceErrors++;
     state = state.copyWith(voiceStage: VoiceStage.error, voiceResponse: message);
-    if (_consecutiveVoiceErrors < 2) {
-      await startVoiceListening();
-    }
   }
 
   Future<void> _handleVoiceTranscript(String transcript) async {
@@ -1580,7 +1649,6 @@ class AppNotifier extends StateNotifier<AppState> {
     // below: it pre-empts generic parsing entirely for this one turn.
     if (_pendingDuesBreakdown) {
       _pendingDuesBreakdown = false;
-      _consecutiveVoiceErrors = 0;
       if (looksLikeConfirmation(text)) {
         final payments = state.duesHistory.where((e) => e.type == DuesEntryType.payment);
         final totalPaid = payments.fold<int>(0, (sum, e) => sum + e.amount);
@@ -1610,8 +1678,7 @@ class AppNotifier extends StateNotifier<AppState> {
         resetElectricityForm();
         _voiceContext = _VoiceFlow.electricity;
         prefillElectricityAmountOnly(amount);
-        state = state.copyWith(voiceNavigationTarget: '/resident/electricity');
-        await startVoiceListening();
+        state = state.copyWith(voiceStage: VoiceStage.idle, voiceNavigationTarget: '/resident/electricity');
         return;
       }
       final chosen = matchMeterChoice(text, _pendingMeterChoices!);
@@ -1620,9 +1687,11 @@ class AppNotifier extends StateNotifier<AppState> {
         _pendingMeterChoices = null;
         _pendingMeterChoiceAmount = null;
         applyVoiceElectricityMeter(chosen, amount);
-        _consecutiveVoiceErrors = 0;
-        state = state.copyWith(voiceResponse: '', voiceNavigationTarget: '/resident/electricity/confirm');
-        await startVoiceListening();
+        state = state.copyWith(
+          voiceStage: VoiceStage.idle,
+          voiceResponse: '',
+          voiceNavigationTarget: '/resident/electricity/confirm',
+        );
         return;
       }
       await _registerVoiceFailure('Sorry, which meter — say the provider name, or tap one below.');
@@ -1631,8 +1700,9 @@ class AppNotifier extends StateNotifier<AppState> {
 
     // Mid-electricity-flow, awaiting a meter number (a disco's been picked,
     // nothing verified yet) — spoken digits go straight into the field and
-    // auto-trigger verification, same as tapping "Verify Meter" would, then
-    // keep listening for the yes/no that follows on the Confirm screen.
+    // auto-trigger verification, same as tapping "Verify Meter" would. The
+    // resident taps the mic again to speak the yes/no that follows on the
+    // Confirm screen.
     if (_voiceContext == _VoiceFlow.electricity &&
         state.elecDiscoCode.isNotEmpty &&
         state.elecVerifiedName == null) {
@@ -1641,12 +1711,11 @@ class AppNotifier extends StateNotifier<AppState> {
         onElecMeterNumber(digits);
         final verified = await verifyElecMeter();
         if (verified) {
-          _consecutiveVoiceErrors = 0;
           state = state.copyWith(
+            voiceStage: VoiceStage.idle,
             voiceResponse: '',
             voiceNavigationTarget: '/resident/electricity/confirm',
           );
-          await startVoiceListening();
         } else {
           await _registerVoiceFailure("I couldn't verify that meter. Please say it again.");
         }
@@ -1664,7 +1733,6 @@ class AppNotifier extends StateNotifier<AppState> {
         final amount = int.tryParse(state.elecAmount.trim()) ?? 0;
         final skipToPayment = state.elecAmountPrefilled && amount >= 500;
         _voiceContext = _VoiceFlow.none;
-        _consecutiveVoiceErrors = 0;
         state = state.copyWith(
           voiceStage: VoiceStage.idle,
           voiceResponse: '',
@@ -1680,12 +1748,10 @@ class AppNotifier extends StateNotifier<AppState> {
         resetElectricityForm();
         _voiceContext = _VoiceFlow.electricity;
         prefillElectricityAmountOnly(int.tryParse(amount.trim()) ?? 0);
-        state = state.copyWith(voiceNavigationTarget: '/resident/electricity');
-        await startVoiceListening();
+        state = state.copyWith(voiceStage: VoiceStage.idle, voiceNavigationTarget: '/resident/electricity');
         return;
       }
-      state = state.copyWith(voiceResponse: 'Sorry, was that a yes or a no?');
-      await startVoiceListening();
+      state = state.copyWith(voiceStage: VoiceStage.idle, voiceResponse: 'Sorry, was that a yes or a no?');
       return;
     }
 
@@ -1703,12 +1769,11 @@ class AppNotifier extends StateNotifier<AppState> {
       final disco = extractDisco(text, state.discos);
       if (disco != null) {
         onElecDisco(disco.code, disco.name);
-        _consecutiveVoiceErrors = 0;
         state = state.copyWith(
+          voiceStage: VoiceStage.idle,
           voiceResponse: '',
           voiceNavigationTarget: '/resident/electricity/meter',
         );
-        await startVoiceListening();
         return;
       }
       await _registerVoiceFailure('Sorry, which provider — for example Ikeja Electric or Eko Electric?');
@@ -1751,7 +1816,6 @@ class AppNotifier extends StateNotifier<AppState> {
           (int.tryParse(state.airtimeAmount.trim()) ?? 0) > 0;
       if (readyToConfirm && looksLikeConfirmation(text)) {
         _voiceContext = _VoiceFlow.none;
-        _consecutiveVoiceErrors = 0;
         state = state.copyWith(
           voiceStage: VoiceStage.idle,
           voiceResponse: '',
@@ -1760,9 +1824,7 @@ class AppNotifier extends StateNotifier<AppState> {
         return;
       }
       if (amount != null || network != null) {
-        _consecutiveVoiceErrors = 0;
-        state = state.copyWith(voiceStage: VoiceStage.listening, voiceResponse: '');
-        await startVoiceListening();
+        state = state.copyWith(voiceStage: VoiceStage.idle, voiceResponse: '');
         return;
       }
       // Neither a correction nor "confirm" — fall through to generic
@@ -1809,7 +1871,6 @@ class AppNotifier extends StateNotifier<AppState> {
   /// [_handleVoiceTranscript] sees the follow-up yes/no.
   Future<void> _answerCheckDues() async {
     _pendingDuesBreakdown = true;
-    _consecutiveVoiceErrors = 0;
     // Levies are a separate concept from dues (one-off named charges), but
     // "what are my outstanding levies" routes here too (see the parser) —
     // mention them so that phrasing gets a complete answer, not just dues.
@@ -1819,20 +1880,17 @@ class AppNotifier extends StateNotifier<AppState> {
         : ' You also have ${unpaidLevies.length} unpaid ${unpaidLevies.length == 1 ? 'levy' : 'levies'} '
             'totaling ${formatNaira(unpaidLevies.fold<int>(0, (sum, l) => sum + l.amount))}.';
     state = state.copyWith(
+      voiceStage: VoiceStage.idle,
       voiceResponse:
           'You currently owe ${state.duesBalanceLabel} in estate dues.$leviesClause Would you like a breakdown?',
     );
-    await startVoiceListening();
   }
 
   Future<void> _answerDuesMonthsPaid() async {
-    _consecutiveVoiceErrors = 0;
-    state = state.copyWith(
-      voiceResponse: "You've paid dues for ${state.duesMonthsPaid} month"
-          '${state.duesMonthsPaid == 1 ? '' : 's'} this year.',
-      voiceNavigationTarget: '/resident/dues',
+    _showTerminalResponse(
+      "You've paid dues for ${state.duesMonthsPaid} month${state.duesMonthsPaid == 1 ? '' : 's'} this year.",
+      navigateTo: '/resident/dues',
     );
-    await startVoiceListening();
   }
 
   static const _monthLabels = [
@@ -1850,29 +1908,26 @@ class AppNotifier extends StateNotifier<AppState> {
             p.createdAt.month == resolvedMonth &&
             p.createdAt.year == year)
         .fold<int>(0, (sum, p) => sum + p.amount);
-    _consecutiveVoiceErrors = 0;
     state = state.copyWith(
+      voiceStage: VoiceStage.idle,
       voiceResponse: 'You spent ${formatNaira(total)} on electricity in ${_monthLabels[resolvedMonth - 1]}.',
       voiceNavigationTarget: '/resident/utility-history',
       historyFilterMonth: resolvedMonth,
       historyFilterYear: year,
     );
-    await startVoiceListening();
   }
 
   Future<void> _answerNextMeeting() async {
-    _consecutiveVoiceErrors = 0;
     final upcoming = state.meetings.where((m) => m.scheduledAt.isAfter(DateTime.now())).toList();
     if (upcoming.isEmpty) {
-      state = state.copyWith(voiceResponse: 'You have no upcoming meetings scheduled.');
+      _showTerminalResponse('You have no upcoming meetings scheduled.');
     } else {
       final next = upcoming.first;
-      state = state.copyWith(
-        voiceResponse: 'Your next meeting is "${next.title}" on ${next.date} at ${next.time}, ${next.location}.',
-        voiceNavigationTarget: '/resident/meetings/${next.id}',
+      _showTerminalResponse(
+        'Your next meeting is "${next.title}" on ${next.date} at ${next.time}, ${next.location}.',
+        navigateTo: '/resident/meetings/${next.id}',
       );
     }
-    await startVoiceListening();
   }
 
   Future<void> _answerVisitorCount(int? weekCount) async {
@@ -1882,33 +1937,30 @@ class AppNotifier extends StateNotifier<AppState> {
     // the pass was merely issued) — a resident could issue a pass that's
     // never used, which shouldn't count as "having had" that visitor.
     final count = state.visitorPasses.where((p) => p.enteredAt?.isAfter(since) ?? false).length;
-    _consecutiveVoiceErrors = 0;
-    state = state.copyWith(
-      voiceResponse: 'You\'ve had $count visitor${count == 1 ? '' : 's'} in the past $weeks week${weeks == 1 ? '' : 's'}.',
-      voiceNavigationTarget: '/resident/visitor',
+    _showTerminalResponse(
+      'You\'ve had $count visitor${count == 1 ? '' : 's'} in the past $weeks week${weeks == 1 ? '' : 's'}.',
+      navigateTo: '/resident/visitor',
     );
-    await startVoiceListening();
   }
 
   Future<void> _answerNewUpdates() async {
-    _consecutiveVoiceErrors = 0;
     final unread = state.announcements.where((a) => a.unread).length;
     final speech = state.announcements.isEmpty
         ? 'No new updates right now.'
         : unread > 0
             ? 'You have $unread new update${unread == 1 ? '' : 's'}. The latest is: ${state.announcements.first.title}.'
             : 'No new updates — the latest was: ${state.announcements.first.title}.';
-    state = state.copyWith(voiceResponse: speech, voiceNavigationTarget: '/resident/announcements');
-    await startVoiceListening();
+    _showTerminalResponse(speech, navigateTo: '/resident/announcements');
   }
 
   void clearHistoryFilter() => state = state.copyWith(historyFilterMonth: null, historyFilterYear: null);
 
   /// Calls /voice/prepare for BUY_ELECTRICITY — the one intent where the
   /// backend knows something the client doesn't (the saved meter). Branches
-  /// three ways: still missing an amount (keep listening), a meter was
-  /// resolved (jump to Confirm, pre-filled), or none exists (jump to the
-  /// start of the wizard, keeping the amount so it's never asked twice).
+  /// three ways: still missing an amount (asks and waits for the resident
+  /// to tap the mic again), a meter was resolved (jump to Confirm,
+  /// pre-filled), or none exists (jump to the start of the wizard, keeping
+  /// the amount so it's never asked twice).
   ///
   /// [disco] is whatever [extractDisco] found in the SAME utterance that
   /// gave the amount (e.g. "500 naira from IBEDC") — a resident who names a
@@ -1921,10 +1973,10 @@ class AppNotifier extends StateNotifier<AppState> {
       final matchingMeter = state.utilityMeters
           .cast<UtilityMeter?>()
           .firstWhere((m) => m?.discoCode == disco.code, orElse: () => null);
-      _consecutiveVoiceErrors = 0;
       if (matchingMeter != null) {
         applyVoiceElectricityMeter(matchingMeter, amount);
         state = state.copyWith(
+          voiceStage: VoiceStage.idle,
           voiceResponse: '',
           voiceNavigationTarget: '/resident/electricity/confirm',
         );
@@ -1934,11 +1986,11 @@ class AppNotifier extends StateNotifier<AppState> {
         // instead of also asking "which provider?".
         prefillElectricityDiscoAndAmount(disco, amount);
         state = state.copyWith(
+          voiceStage: VoiceStage.idle,
           voiceResponse: '',
           voiceNavigationTarget: '/resident/electricity/meter',
         );
       }
-      await startVoiceListening();
       return;
     }
     // More than one saved meter — a resident is never assumed to mean "the"
@@ -1949,10 +2001,10 @@ class AppNotifier extends StateNotifier<AppState> {
       _pendingMeterChoices = state.utilityMeters;
       _pendingMeterChoiceAmount = amount;
       state = state.copyWith(
+        voiceStage: VoiceStage.idle,
         voiceResponse: 'Which meter would you like to use?',
         voiceNavigationTarget: '/resident/electricity/select-meter',
       );
-      await startVoiceListening();
       return;
     }
     try {
@@ -1960,8 +2012,7 @@ class AppNotifier extends StateNotifier<AppState> {
       final speech = result['speech'] as String? ?? '';
 
       if (result['needsClarification'] != null) {
-        state = state.copyWith(voiceStage: VoiceStage.listening, voiceResponse: speech);
-        await startVoiceListening();
+        state = state.copyWith(voiceStage: VoiceStage.idle, voiceResponse: speech);
         return;
       }
       if (result['needsConfirmation'] == true) {
@@ -1971,21 +2022,20 @@ class AppNotifier extends StateNotifier<AppState> {
         final meter = state.utilityMeters
             .cast<UtilityMeter?>()
             .firstWhere((m) => m?.id == meterId, orElse: () => null);
-        _consecutiveVoiceErrors = 0;
         if (meter != null) {
           applyVoiceElectricityMeter(meter, resolvedAmount);
           state = state.copyWith(
+            voiceStage: VoiceStage.idle,
             voiceResponse: '',
             voiceNavigationTarget: '/resident/electricity/confirm',
           );
-          await startVoiceListening();
         } else {
           prefillElectricityAmountOnly(resolvedAmount);
           state = state.copyWith(
+            voiceStage: VoiceStage.idle,
             voiceResponse: '',
             voiceNavigationTarget: '/resident/electricity',
           );
-          await startVoiceListening();
         }
         return;
       }
@@ -1994,10 +2044,12 @@ class AppNotifier extends StateNotifier<AppState> {
       // text) is a "start the wizard" case; anything else (e.g.
       // insufficient balance) is a flat, terminal rejection.
       if (state.utilityMeters.isEmpty && amount != null) {
-        _consecutiveVoiceErrors = 0;
         prefillElectricityAmountOnly(amount);
-        state = state.copyWith(voiceResponse: speech, voiceNavigationTarget: '/resident/electricity');
-        await startVoiceListening();
+        state = state.copyWith(
+          voiceStage: VoiceStage.idle,
+          voiceResponse: speech,
+          voiceNavigationTarget: '/resident/electricity',
+        );
         return;
       }
       _voiceContext = _VoiceFlow.none;
@@ -2013,7 +2065,6 @@ class AppNotifier extends StateNotifier<AppState> {
   /// landing on the real screen with whatever's already known filled in.
   void _startAirtimeVoice({int? amount, String? network}) {
     _voiceContext = _VoiceFlow.airtime;
-    _consecutiveVoiceErrors = 0;
     state = state.copyWith(
       airtimeNetwork: network ?? '',
       airtimePhone: state.currentUser?.phone ?? '',
@@ -2031,7 +2082,6 @@ class AppNotifier extends StateNotifier<AppState> {
   Future<void> _answerReadOnlyVoiceIntent(String intentApi) async {
     try {
       final result = await _api.voicePrepare(intent: intentApi);
-      _consecutiveVoiceErrors = 0;
       _showTerminalResponse(
         result['speech'] as String? ?? '',
         navigateTo: '/resident/utility-history',

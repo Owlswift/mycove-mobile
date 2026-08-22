@@ -35,7 +35,7 @@ class ChTheme {
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: ChColors.text,
+        fillColor: ChColors.inputFill,
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 13),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(ChRadii.button),

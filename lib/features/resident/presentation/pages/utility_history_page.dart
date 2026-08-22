@@ -13,8 +13,18 @@ import '../../../../state/app_notifier.dart';
 import '../../../../state/app_state.dart';
 
 const _monthLabels = [
-  'January', 'February', 'March', 'April', 'May', 'June',
-  'July', 'August', 'September', 'October', 'November', 'December',
+  'January',
+  'February',
+  'March',
+  'April',
+  'May',
+  'June',
+  'July',
+  'August',
+  'September',
+  'October',
+  'November',
+  'December',
 ];
 
 class UtilityHistoryPage extends ConsumerWidget {
@@ -36,7 +46,11 @@ class UtilityHistoryPage extends ConsumerWidget {
     final filterYear = s.historyFilterYear;
     if (filterMonth != null && filterYear != null) {
       purchases = purchases
-          .where((p) => p.createdAt.month == filterMonth && p.createdAt.year == filterYear)
+          .where(
+            (p) =>
+                p.createdAt.month == filterMonth &&
+                p.createdAt.year == filterYear,
+          )
           .toList();
     }
     final title = switch (type) {
@@ -57,7 +71,12 @@ class UtilityHistoryPage extends ConsumerWidget {
         ),
         if (filterMonth != null && filterYear != null)
           Padding(
-            padding: EdgeInsets.fromLTRB(context.rs(20), 0, context.rs(20), context.rs(14)),
+            padding: EdgeInsets.fromLTRB(
+              context.rs(20),
+              0,
+              context.rs(20),
+              context.rs(14),
+            ),
             child: Container(
               width: double.infinity,
               padding: EdgeInsets.all(context.rs(16)),
@@ -70,12 +89,20 @@ class UtilityHistoryPage extends ConsumerWidget {
                 children: [
                   Text(
                     'Total in ${_monthLabels[filterMonth - 1]}',
-                    style: ChTextStyles.body(fontSize: 12.5, color: Colors.white.withValues(alpha: 0.8)),
+                    style: ChTextStyles.body(
+                      fontSize: 12.5,
+                      color: Colors.white.withValues(alpha: 0.8),
+                    ),
                   ),
                   SizedBox(height: context.rs(4)),
                   Text(
-                    formatNaira(purchases.fold<int>(0, (sum, p) => sum + p.amount)),
-                    style: ChTextStyles.heading(fontSize: 26, color: Colors.white),
+                    formatNaira(
+                      purchases.fold<int>(0, (sum, p) => sum + p.amount),
+                    ),
+                    style: ChTextStyles.heading(
+                      fontSize: 26,
+                      color: Colors.white,
+                    ),
                   ),
                 ],
               ),
@@ -83,7 +110,12 @@ class UtilityHistoryPage extends ConsumerWidget {
           ),
         if (type == null && filterMonth == null)
           Padding(
-            padding: EdgeInsets.fromLTRB(context.rs(20), 0, context.rs(20), context.rs(14)),
+            padding: EdgeInsets.fromLTRB(
+              context.rs(20),
+              0,
+              context.rs(20),
+              context.rs(14),
+            ),
             child: Container(
               width: double.infinity,
               padding: EdgeInsets.all(context.rs(16)),
@@ -96,36 +128,62 @@ class UtilityHistoryPage extends ConsumerWidget {
                 children: [
                   Text(
                     'CommunityHub Balance',
-                    style: ChTextStyles.body(fontSize: 12.5, color: Colors.white.withValues(alpha: 0.8)),
+                    style: ChTextStyles.body(
+                      fontSize: 12.5,
+                      color: Colors.white.withValues(alpha: 0.8),
+                    ),
                   ),
                   SizedBox(height: context.rs(4)),
                   Text(
                     s.walletBalanceLabel,
-                    style: ChTextStyles.heading(fontSize: 26, color: Colors.white),
+                    style: ChTextStyles.heading(
+                      fontSize: 26,
+                      color: Colors.white,
+                    ),
                   ),
                 ],
               ),
             ),
           ),
         Expanded(
-          child: purchases.isEmpty
-              ? Center(
-                  child: Text(
-                    'No purchases yet.',
-                    style: ChTextStyles.body(fontSize: 13.5, color: ChColors.bodyText),
+          child: RefreshIndicator(
+            onRefresh: notifier.refreshResident,
+            child: purchases.isEmpty
+                ? ListView(
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    padding: EdgeInsets.fromLTRB(
+                      context.rs(20),
+                      context.rs(40),
+                      context.rs(20),
+                      context.rs(24),
+                    ),
+                    children: [
+                      Center(
+                        child: Text(
+                          'No purchases yet.',
+                          textAlign: TextAlign.center,
+                          style: ChTextStyles.body(
+                            fontSize: 13.5,
+                            color: ChColors.bodyText,
+                          ),
+                        ),
+                      ),
+                    ],
+                  )
+                : ListView.separated(
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    padding: EdgeInsets.fromLTRB(
+                      context.rs(20),
+                      0,
+                      context.rs(20),
+                      context.rs(24),
+                    ),
+                    itemCount: purchases.length,
+                    separatorBuilder: (_, _) =>
+                        SizedBox(height: context.rs(10)),
+                    itemBuilder: (_, i) => _HistoryTile(purchase: purchases[i]),
                   ),
-                )
-              : ListView.separated(
-                  padding: EdgeInsets.fromLTRB(
-                    context.rs(20),
-                    0,
-                    context.rs(20),
-                    context.rs(24),
-                  ),
-                  itemCount: purchases.length,
-                  separatorBuilder: (_, _) => SizedBox(height: context.rs(10)),
-                  itemBuilder: (_, i) => _HistoryTile(purchase: purchases[i]),
-                ),
+          ),
         ),
       ],
     );
@@ -168,25 +226,39 @@ class _HistoryTile extends StatelessWidget {
               children: [
                 Text(
                   formatNaira(purchase.amount),
-                  style: ChTextStyles.body(fontSize: 14.5, fontWeight: FontWeight.w700, color: ChColors.text),
+                  style: ChTextStyles.body(
+                    fontSize: 14.5,
+                    fontWeight: FontWeight.w700,
+                    color: ChColors.text,
+                  ),
                 ),
                 SizedBox(height: context.rs(3)),
                 Text(
                   relativeTime(purchase.createdAt),
-                  style: ChTextStyles.body(fontSize: 12, color: ChColors.bodyText),
+                  style: ChTextStyles.body(
+                    fontSize: 12,
+                    color: ChColors.bodyText,
+                  ),
                 ),
               ],
             ),
           ),
           Container(
-            padding: EdgeInsets.symmetric(horizontal: context.rs(10), vertical: context.rs(5)),
+            padding: EdgeInsets.symmetric(
+              horizontal: context.rs(10),
+              vertical: context.rs(5),
+            ),
             decoration: BoxDecoration(
               color: statusColor.withValues(alpha: 0.12),
               borderRadius: BorderRadius.circular(ChRadii.pill),
             ),
             child: Text(
               statusLabel,
-              style: ChTextStyles.body(fontSize: 11.5, fontWeight: FontWeight.w700, color: statusColor),
+              style: ChTextStyles.body(
+                fontSize: 11.5,
+                fontWeight: FontWeight.w700,
+                color: statusColor,
+              ),
             ),
           ),
         ],

@@ -16,6 +16,8 @@ class CurrentUser {
     this.estateName,
     this.estateAddress,
     this.hasPin = false,
+    this.duesLiable = true,
+    this.invitedByName,
   });
 
   factory CurrentUser.fromJson(Map<String, dynamic> json) {
@@ -33,6 +35,8 @@ class CurrentUser {
       estateName: json['estateName'] as String?,
       estateAddress: json['estateAddress'] as String?,
       hasPin: json['hasPin'] as bool? ?? false,
+      duesLiable: json['duesLiable'] as bool? ?? true,
+      invitedByName: json['invitedByName'] as String?,
     );
   }
 
@@ -49,6 +53,11 @@ class CurrentUser {
   final String? estateName;
   final String? estateAddress;
   final bool hasPin;
+  /// False for a resident who joined via a household invitation — their
+  /// household's dues/levy obligation is already covered by whoever
+  /// invited them (see [invitedByName]).
+  final bool duesLiable;
+  final String? invitedByName;
 
   String get first => fullName.split(' ').first;
 }

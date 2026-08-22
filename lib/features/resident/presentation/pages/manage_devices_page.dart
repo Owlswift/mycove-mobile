@@ -89,25 +89,37 @@ class _ManageDevicesPageState extends ConsumerState<ManageDevicesPage> {
               ? const Center(
                   child: CircularProgressIndicator(color: ChColors.accent2),
                 )
-              : sessions.isEmpty
-              ? Center(
-                  child: Text(
-                    'No other devices are logged in.',
-                    style: ChTextStyles.body(
-                      fontSize: 14,
-                      color: ChColors.bodyText,
-                    ),
-                  ),
-                )
-              : ListView.separated(
-                  padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
-                  itemCount: sessions.length,
-                  separatorBuilder: (_, _) => const SizedBox(height: 12),
-                  itemBuilder: (context, i) => _DeviceTile(
-                    session: sessions[i],
-                    isCurrent: sessions[i].jti == _currentJti,
-                    onRevoke: () => _revoke(sessions[i]),
-                  ),
+              : RefreshIndicator(
+                  onRefresh: _load,
+                  child: sessions.isEmpty
+                      ? ListView(
+                          physics: const AlwaysScrollableScrollPhysics(),
+                          padding: const EdgeInsets.fromLTRB(20, 40, 20, 24),
+                          children: [
+                            Center(
+                              child: Text(
+                                'No other devices are logged in.',
+                                textAlign: TextAlign.center,
+                                style: ChTextStyles.body(
+                                  fontSize: 14,
+                                  color: ChColors.bodyText,
+                                ),
+                              ),
+                            ),
+                          ],
+                        )
+                      : ListView.separated(
+                          physics: const AlwaysScrollableScrollPhysics(),
+                          padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
+                          itemCount: sessions.length,
+                          separatorBuilder: (_, _) =>
+                              const SizedBox(height: 12),
+                          itemBuilder: (context, i) => _DeviceTile(
+                            session: sessions[i],
+                            isCurrent: sessions[i].jti == _currentJti,
+                            onRevoke: () => _revoke(sessions[i]),
+                          ),
+                        ),
                 ),
         ),
       ],
