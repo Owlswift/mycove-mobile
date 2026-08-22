@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 
 import '../../../../core/theme/ch_colors.dart';
 import '../../../../core/theme/ch_responsive.dart';
@@ -27,11 +26,13 @@ class BuyAirtimePage extends ConsumerStatefulWidget {
 }
 
 class _BuyAirtimePageState extends ConsumerState<BuyAirtimePage> {
-  final _amountController = TextEditingController();
+  late final _amountController = TextEditingController(text: ref.read(appStateProvider).airtimeAmount);
+  late final _phoneController = TextEditingController(text: ref.read(appStateProvider).airtimePhone);
 
   @override
   void dispose() {
     _amountController.dispose();
+    _phoneController.dispose();
     super.dispose();
   }
 
@@ -44,6 +45,16 @@ class _BuyAirtimePageState extends ConsumerState<BuyAirtimePage> {
   Widget build(BuildContext context) {
     final s = ref.watch(appStateProvider);
     final notifier = ref.read(appStateProvider.notifier);
+
+    // A follow-up spoken correction (e.g. "MTN 1000" after landing here
+    // with everything blank) writes straight into AppState — these fields
+    // aren't seeded again after initState, so keep them synced live.
+    ref.listen<String>(appStateProvider.select((s) => s.airtimeAmount), (prev, next) {
+      if (_amountController.text != next) _amountController.text = next;
+    });
+    ref.listen<String>(appStateProvider.select((s) => s.airtimePhone), (prev, next) {
+      if (_phoneController.text != next) _phoneController.text = next;
+    });
 
     return Column(
       children: [
@@ -83,6 +94,7 @@ class _BuyAirtimePageState extends ConsumerState<BuyAirtimePage> {
                 ),
                 SizedBox(height: context.rs(5)),
                 TextField(
+                  controller: _phoneController,
                   keyboardType: TextInputType.phone,
                   onChanged: notifier.onAirtimePhone,
                   decoration: const InputDecoration(hintText: '08012345678'),
@@ -125,12 +137,7 @@ class _BuyAirtimePageState extends ConsumerState<BuyAirtimePage> {
                   isLoading: s.utilityLoading,
                   onPressed: s.utilityLoading
                       ? null
-                      : () async {
-                          final success = await notifier.buyAirtime();
-                          if (success && context.mounted) {
-                            context.push('/resident/airtime/success');
-                          }
-                        },
+                      : () => notifier.requestAuthorization('airtime'),
                 ),
               ],
             ),

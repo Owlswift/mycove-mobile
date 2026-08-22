@@ -64,6 +64,7 @@ class _ForceResetPageState extends ConsumerState<ForceResetPage> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
+            style: TextButton.styleFrom(foregroundColor: ChColors.text),
             child: const Text('OK'),
           ),
         ],
@@ -495,6 +496,7 @@ class _ProfileStep extends ConsumerWidget {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
+            style: TextButton.styleFrom(foregroundColor: ChColors.text),
             child: const Text('OK'),
           ),
         ],

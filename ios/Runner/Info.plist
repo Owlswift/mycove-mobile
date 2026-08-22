@@ -28,6 +28,10 @@
 	<true/>
 	<key>NSFaceIDUsageDescription</key>
 	<string>Use Face ID to quickly and securely unlock CommunityHub.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>CommunityHub uses your microphone to hear voice commands like "buy electricity".</string>
+	<key>NSSpeechRecognitionUsageDescription</key>
+	<string>CommunityHub converts your voice commands to text to understand what you're asking for.</string>
 	<key>UIBackgroundModes</key>
 	<array>
 		<string>remote-notification</string>

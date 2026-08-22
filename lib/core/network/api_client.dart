@@ -1,21 +1,20 @@
-import 'dart:io';
-
 import 'package:dio/dio.dart';
 import 'api_exception.dart';
 import 'estate_storage.dart';
 import 'token_storage.dart';
 
-/// iOS Simulator shares the Mac's localhost, so it reaches the API
-/// directly. Android emulators don't — 10.0.2.2 is the standard alias an
-/// Android emulator uses to reach the host machine's localhost. Neither
-/// alias reaches the dev machine from a physical device on the same
-/// Wi-Fi — pass the Mac's LAN IP explicitly for those, e.g.:
+/// localhost/10.0.2.2 only resolve to the dev machine from a simulator or
+/// emulator — a physical device on the same Wi-Fi network needs the Mac's
+/// actual LAN IP instead. That IP changes with the network you're on, so
+/// this default will need updating when it does; override per-run instead
+/// of editing this when convenient:
 /// flutter run --dart-define=API_BASE_URL=http://192.168.1.23:3000/api
 const _baseUrlOverride = String.fromEnvironment('API_BASE_URL');
+const _devLanIp = '192.168.100.175';
 
 String get _baseUrl {
   if (_baseUrlOverride.isNotEmpty) return _baseUrlOverride;
-  return Platform.isAndroid ? 'http://10.0.2.2:3000/api' : 'http://localhost:3000/api';
+  return 'http://$_devLanIp:3000/api';
 }
 
 class ApiClient {

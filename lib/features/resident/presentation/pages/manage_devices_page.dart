@@ -52,6 +52,7 @@ class _ManageDevicesPageState extends ConsumerState<ManageDevicesPage> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
+            style: TextButton.styleFrom(foregroundColor: ChColors.text),
             child: const Text('Cancel'),
           ),
           TextButton(

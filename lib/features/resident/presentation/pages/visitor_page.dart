@@ -110,19 +110,19 @@ class _VisitorPageState extends ConsumerState<VisitorPage> {
                                         Row(
                                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                           children: [
-                                            Expanded(child: Text(p.name, style: ChTextStyles.body(fontSize: 15, fontWeight: FontWeight.w600))),
+                                            Expanded(child: Text(p.name, style: ChTextStyles.body(fontSize: 13, fontWeight: FontWeight.w500, color: ChColors.text))),
                                             _StatusPill(p: p),
                                           ],
                                         ),
                                         const SizedBox(height: 4),
                                         Text(
                                           p.plate == '—' ? p.visitLabel : '${p.plate} · ${p.visitLabel}',
-                                          style: ChTextStyles.body(fontSize: 13, color: ChColors.bodyText),
+                                          style: ChTextStyles.body(fontSize: 11.5, color: ChColors.bodyText),
                                         ),
                                         const SizedBox(height: 2),
                                         Text(
                                           DateFormat('EEE, MMM d · h:mm a').format(p.createdAt),
-                                          style: ChTextStyles.body(fontSize: 11.5, color: ChColors.neutralN(500)),
+                                          style: ChTextStyles.body(fontSize: 11.5, color: ChColors.bodyText),
                                         ),
                                       ],
                                     ),

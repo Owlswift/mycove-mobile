@@ -117,7 +117,7 @@ class _DiscoTile extends StatelessWidget {
         padding: EdgeInsets.symmetric(vertical: context.rs(10)),
         child: Row(
           children: [
-            _DiscoLogo(disco: disco, size: context.rs(42)),
+            DiscoLogo(disco: disco, size: context.rs(42)),
             SizedBox(width: context.rs(12)),
             Expanded(
               child: Column(
@@ -135,31 +135,6 @@ class _DiscoTile extends StatelessWidget {
             Icon(Icons.chevron_right, color: ChColors.bodyText, size: context.rs(20)),
           ],
         ),
-      ),
-    );
-  }
-}
-
-/// Real logo asset if one's been added for this DISCO yet (matched by
-/// [disco.shortCode] lowercased, see [discoLogoAsset]); falls back to a
-/// generic bolt icon otherwise, since logos are added incrementally.
-/// Standalone — no background box — so each logo's own art shows as-is.
-class _DiscoLogo extends StatelessWidget {
-  const _DiscoLogo({required this.disco, required this.size});
-
-  final Disco disco;
-  final double size;
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      width: size,
-      height: size,
-      child: Image.asset(
-        discoLogoAsset(disco),
-        fit: BoxFit.contain,
-        errorBuilder: (_, _, _) =>
-            Icon(Icons.bolt_rounded, color: ChColors.accent2, size: size * 0.7),
       ),
     );
   }

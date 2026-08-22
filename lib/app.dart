@@ -34,6 +34,16 @@ class CommunityHubApp extends ConsumerStatefulWidget {
 
 class _CommunityHubAppState extends ConsumerState<CommunityHubApp>
     with WidgetsBindingObserver {
+  // `inactive` fires for plenty of things that aren't "the resident left
+  // the app" — pulling down Control Center, a phone call banner, a share
+  // sheet, or our own Face ID/Touch ID prompt all dip through `inactive`
+  // without the app ever truly leaving the foreground. Only `paused` means
+  // the app actually stopped being visible (home button, app switcher, or
+  // the screen locking) — tracking the last state lets `resumed` be
+  // treated as "really coming back" only when it follows a genuine pause,
+  // which is what should gate both the data refresh and the biometric lock.
+  AppLifecycleState? _lastLifecycleState;
+
   @override
   void initState() {
     super.initState();
@@ -48,9 +58,10 @@ class _CommunityHubAppState extends ConsumerState<CommunityHubApp>
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    // Covers both re-opening from the app switcher and opening via a tapped
-    // push notification — either way the data on screen may be stale.
-    if (state == AppLifecycleState.resumed) {
+    final wasPaused = _lastLifecycleState == AppLifecycleState.paused ||
+        _lastLifecycleState == AppLifecycleState.hidden;
+    _lastLifecycleState = state;
+    if (state == AppLifecycleState.resumed && wasPaused) {
       ref.read(appStateProvider.notifier).refreshOnResume();
     }
   }

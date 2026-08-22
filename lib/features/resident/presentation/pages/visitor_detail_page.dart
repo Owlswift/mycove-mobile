@@ -61,7 +61,11 @@ class _VisitorDetailPageState extends ConsumerState<VisitorDetailPage> {
         title: const Text('Revoke this pass?'),
         content: Text('${pass.name} will no longer be able to use this pass code. This cannot be undone.'),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            style: TextButton.styleFrom(foregroundColor: ChColors.text),
+            child: const Text('Cancel'),
+          ),
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
             style: TextButton.styleFrom(foregroundColor: ChColors.danger),

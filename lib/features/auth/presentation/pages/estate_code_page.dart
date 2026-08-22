@@ -169,6 +169,7 @@ class EstateCodePage extends ConsumerWidget {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
+            style: TextButton.styleFrom(foregroundColor: ChColors.text),
             child: const Text('OK'),
           ),
         ],

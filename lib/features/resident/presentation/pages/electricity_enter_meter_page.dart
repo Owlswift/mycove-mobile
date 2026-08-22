@@ -8,6 +8,7 @@ import '../../../../core/theme/ch_spacing.dart';
 import '../../../../core/theme/ch_text_styles.dart';
 import '../../../../core/widgets/ch_button.dart';
 import '../../../../core/widgets/ch_generic_header.dart';
+import '../../../../data/models/utility_meter.dart';
 import '../../../../state/app_notifier.dart';
 import '../widgets/utility_wizard_stepper.dart';
 
@@ -19,7 +20,7 @@ class ElectricityEnterMeterPage extends ConsumerStatefulWidget {
 }
 
 class _ElectricityEnterMeterPageState extends ConsumerState<ElectricityEnterMeterPage> {
-  final _meterController = TextEditingController();
+  late final _meterController = TextEditingController(text: ref.read(appStateProvider).elecMeterNumber);
 
   @override
   void dispose() {
@@ -31,6 +32,13 @@ class _ElectricityEnterMeterPageState extends ConsumerState<ElectricityEnterMete
   Widget build(BuildContext context) {
     final s = ref.watch(appStateProvider);
     final notifier = ref.read(appStateProvider.notifier);
+
+    // A spoken meter number is written straight into AppState by the voice
+    // pipeline (see AppNotifier._handleVoiceTranscript) so it can
+    // auto-verify — keep the visible field in sync while on this page.
+    ref.listen<String>(appStateProvider.select((s) => s.elecMeterNumber), (prev, next) {
+      if (_meterController.text != next) _meterController.text = next;
+    });
 
     return Column(
       children: [
@@ -53,6 +61,40 @@ class _ElectricityEnterMeterPageState extends ConsumerState<ElectricityEnterMete
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text('Enter Meter Details', style: ChTextStyles.heading(fontSize: 16)),
+                SizedBox(height: context.rs(14)),
+                if (s.elecDiscoCode.isNotEmpty)
+                  Container(
+                    width: double.infinity,
+                    padding: EdgeInsets.all(context.rs(12)),
+                    decoration: BoxDecoration(
+                      color: ChColors.surfaceSunken,
+                      borderRadius: BorderRadius.circular(ChRadii.md),
+                    ),
+                    child: Row(
+                      children: [
+                        DiscoLogo(
+                          disco: Disco(s.elecDiscoCode, discoShortCode(s.discos, s.elecDiscoCode), s.elecDiscoName),
+                          size: context.rs(32),
+                        ),
+                        SizedBox(width: context.rs(10)),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                discoShortCode(s.discos, s.elecDiscoCode),
+                                style: ChTextStyles.body(fontSize: 13.5, fontWeight: FontWeight.w700, color: ChColors.text),
+                              ),
+                              Text(
+                                s.elecDiscoName,
+                                style: ChTextStyles.body(fontSize: 12, color: ChColors.bodyText),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                 SizedBox(height: context.rs(20)),
                 Text('Meter Type', style: ChTextStyles.body(fontSize: 14, color: ChColors.text, fontWeight: FontWeight.w700)),
                 SizedBox(height: context.rs(8)),

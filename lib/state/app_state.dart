@@ -14,6 +14,7 @@ import '../data/models/project.dart';
 import '../data/models/rules_section.dart';
 import '../data/models/session_info.dart';
 import '../data/models/spotlight.dart';
+import '../data/models/tts_voice_option.dart';
 import '../data/models/utility_meter.dart';
 import '../data/models/utility_purchase.dart';
 import '../data/models/visitor_pass.dart';
@@ -37,6 +38,8 @@ enum AuthStage {
 enum Role { resident, guard }
 
 enum PaymentStep { idle, processing, success }
+
+enum VoiceStage { idle, listening, processing, error }
 
 String formatNaira(int amount) => '₦${NumberFormat('#,##0').format(amount)}';
 
@@ -94,6 +97,17 @@ class AppState {
     this.paymentStep = PaymentStep.idle,
     this.paymentReference,
     this.duesBalance = 0,
+    this.duesMonthsPaid = 0,
+    this.walletBalance = 0,
+    this.historyFilterMonth,
+    this.historyFilterYear,
+    this.voiceStage = VoiceStage.idle,
+    this.voiceTranscript = '',
+    this.voiceResponse = '',
+    this.voiceNavigationTarget,
+    this.pendingAuthorizationFor,
+    this.selectedVoice,
+    List<TtsVoiceOption>? availableVoices,
     List<DuesEntry>? duesHistory,
     this.guardCode = '',
     this.guardResult,
@@ -125,6 +139,7 @@ class AppState {
     this.elecMeterType = 'PREPAID',
     this.elecPhone = '',
     this.elecAmount = '',
+    this.elecAmountPrefilled = false,
     this.elecVerifiedName,
     this.elecVerifiedAddress,
     List<UtilityMeter>? utilityMeters,
@@ -146,7 +161,8 @@ class AppState {
        complaints = complaints ?? [],
        utilityMeters = utilityMeters ?? [],
        utilityPurchases = utilityPurchases ?? [],
-       discos = discos ?? [];
+       discos = discos ?? [],
+       availableVoices = availableVoices ?? [];
 
   final AuthStage authStage;
   final Role role;
@@ -224,6 +240,39 @@ class AppState {
   final PaymentStep paymentStep;
   final String? paymentReference;
   final int duesBalance;
+
+  /// How many months of dues have been paid so far in the current dues
+  /// year — computed server-side (`computeDuesAccrual`), resets each
+  /// calendar year. Answers the voice assistant's "how many months have I
+  /// paid" question.
+  final int duesMonthsPaid;
+  final int walletBalance;
+
+  /// Set by voice's "how much electricity did I buy in [month]" intent so
+  /// `UtilityHistoryPage` can show a filtered/summed view — null means "no
+  /// filter, show everything" (the page's default/manual-navigation state).
+  final int? historyFilterMonth;
+  final int? historyFilterYear;
+  final VoiceStage voiceStage;
+  final String voiceTranscript;
+  final String voiceResponse;
+
+  /// A route for [ResidentShell] to `go()` to, set by the voice pipeline
+  /// once it knows enough to jump the resident straight to a real wizard
+  /// screen — see [AppNotifier]'s voice dispatch.
+  final String? voiceNavigationTarget;
+
+  /// `'electricity'|'airtime'`, set by voice OR by the real Pay/Buy Airtime
+  /// buttons — one field, one consumer ([ResidentShell]), so both paths run
+  /// through identical authorization + execution + navigation logic.
+  final String? pendingAuthorizationFor;
+
+  /// Null means "no preference set, use the device's default TTS voice."
+  final TtsVoiceOption? selectedVoice;
+
+  /// Populated lazily (only once the voice-settings row is opened, not at
+  /// bootstrap) via `flutter_tts`'s `getVoices` — filtered to English.
+  final List<TtsVoiceOption> availableVoices;
   final List<DuesEntry> duesHistory;
 
   final String guardCode;
@@ -266,6 +315,11 @@ class AppState {
   final String elecMeterType;
   final String elecPhone;
   final String elecAmount;
+
+  /// True only when [elecAmount] was filled in by voice before the meter
+  /// steps ran — the only thing `ElectricityConfirmMeterPage`'s Proceed
+  /// button checks to decide whether to skip the Amount step entirely.
+  final bool elecAmountPrefilled;
   final String? elecVerifiedName;
   final String? elecVerifiedAddress;
 
@@ -277,6 +331,7 @@ class AppState {
   }
 
   String get duesBalanceLabel => formatNaira(duesBalance);
+  String get walletBalanceLabel => formatNaira(walletBalance);
   String get duesBalanceLabelPre =>
       formatNaira(lastPayment?.amount ?? duesBalance);
   String get receiptAmountLabel => formatNaira(lastPayment?.amount ?? 0);
@@ -328,6 +383,17 @@ class AppState {
     PaymentStep? paymentStep,
     Object? paymentReference = _sentinel,
     int? duesBalance,
+    int? duesMonthsPaid,
+    int? walletBalance,
+    Object? historyFilterMonth = _sentinel,
+    Object? historyFilterYear = _sentinel,
+    VoiceStage? voiceStage,
+    String? voiceTranscript,
+    String? voiceResponse,
+    Object? voiceNavigationTarget = _sentinel,
+    Object? pendingAuthorizationFor = _sentinel,
+    Object? selectedVoice = _sentinel,
+    List<TtsVoiceOption>? availableVoices,
     List<DuesEntry>? duesHistory,
     String? guardCode,
     Object? guardResult = _sentinel,
@@ -363,6 +429,7 @@ class AppState {
     String? elecMeterType,
     String? elecPhone,
     String? elecAmount,
+    bool? elecAmountPrefilled,
     Object? elecVerifiedName = _sentinel,
     Object? elecVerifiedAddress = _sentinel,
   }) {
@@ -438,6 +505,27 @@ class AppState {
           ? this.paymentReference
           : paymentReference as String?,
       duesBalance: duesBalance ?? this.duesBalance,
+      duesMonthsPaid: duesMonthsPaid ?? this.duesMonthsPaid,
+      walletBalance: walletBalance ?? this.walletBalance,
+      historyFilterMonth: identical(historyFilterMonth, _sentinel)
+          ? this.historyFilterMonth
+          : historyFilterMonth as int?,
+      historyFilterYear: identical(historyFilterYear, _sentinel)
+          ? this.historyFilterYear
+          : historyFilterYear as int?,
+      voiceStage: voiceStage ?? this.voiceStage,
+      voiceTranscript: voiceTranscript ?? this.voiceTranscript,
+      voiceResponse: voiceResponse ?? this.voiceResponse,
+      voiceNavigationTarget: identical(voiceNavigationTarget, _sentinel)
+          ? this.voiceNavigationTarget
+          : voiceNavigationTarget as String?,
+      pendingAuthorizationFor: identical(pendingAuthorizationFor, _sentinel)
+          ? this.pendingAuthorizationFor
+          : pendingAuthorizationFor as String?,
+      selectedVoice: identical(selectedVoice, _sentinel)
+          ? this.selectedVoice
+          : selectedVoice as TtsVoiceOption?,
+      availableVoices: availableVoices ?? this.availableVoices,
       duesHistory: duesHistory ?? this.duesHistory,
       guardCode: guardCode ?? this.guardCode,
       guardResult: identical(guardResult, _sentinel)
@@ -479,6 +567,7 @@ class AppState {
       elecMeterType: elecMeterType ?? this.elecMeterType,
       elecPhone: elecPhone ?? this.elecPhone,
       elecAmount: elecAmount ?? this.elecAmount,
+      elecAmountPrefilled: elecAmountPrefilled ?? this.elecAmountPrefilled,
       elecVerifiedName: identical(elecVerifiedName, _sentinel)
           ? this.elecVerifiedName
           : elecVerifiedName as String?,

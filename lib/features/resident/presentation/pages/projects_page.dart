@@ -79,7 +79,7 @@ class _ProjectsPageState extends ConsumerState<ProjectsPage> {
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Text(p.title, style: ChTextStyles.body(fontSize: 15, fontWeight: FontWeight.w700)),
+                                    Text(p.title, style: ChTextStyles.body(fontSize: 13, fontWeight: FontWeight.w700, color: ChColors.text)),
                                     const SizedBox(height: 6),
                                     Container(
                                       padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 3),

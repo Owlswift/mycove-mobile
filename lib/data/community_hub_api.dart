@@ -98,6 +98,26 @@ class CommunityHubApi {
   Future<List<dynamic>> levies() async => _list(await _dio.get('/levies'));
   Future<void> payLevy(String id) => _dio.post('/levies/$id/pay');
 
+  Future<int> walletBalance() async =>
+      (_map(await _dio.get('/wallet/balance'))['balance'] as num).toInt();
+
+  Future<Map<String, dynamic>> voicePrepare({
+    required String intent,
+    int? amount,
+    String? network,
+    String? meterId,
+  }) async => _map(
+    await _dio.post(
+      '/voice/prepare',
+      data: {'intent': intent, 'amount': ?amount, 'network': ?network, 'meterId': ?meterId},
+    ),
+  );
+
+  Future<void> setPin(String pin) => _dio.post('/auth/pin/set', data: {'pin': pin});
+
+  Future<bool> verifyPin(String pin) async =>
+      _map(await _dio.post('/auth/pin/verify', data: {'pin': pin}))['valid'] as bool;
+
   // ── Payments ──────────────────────────────────────────────────────────
   Future<Map<String, dynamic>> initiatePayment({
     required int amount,

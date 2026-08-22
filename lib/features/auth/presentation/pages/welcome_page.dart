@@ -5,6 +5,7 @@ import '../../../../core/theme/ch_colors.dart';
 import '../../../../core/theme/ch_responsive.dart';
 import '../../../../core/theme/ch_spacing.dart';
 import '../../../../core/theme/ch_text_styles.dart';
+import '../../../../core/widgets/ch_brand_mark.dart';
 import '../../../../state/app_notifier.dart';
 
 /// The very first screen a fresh install sees, before any estate has been
@@ -26,7 +27,7 @@ class WelcomePage extends ConsumerWidget {
           child: Column(
             children: [
               SizedBox(height: context.rs(8)),
-              const _BrandMark(),
+              const ChBrandMark(),
               SizedBox(height: context.rs(10)),
               RichText(
                 text: TextSpan(
@@ -186,35 +187,6 @@ class WelcomePage extends ConsumerWidget {
             ],
           ),
         ),
-      ),
-    );
-  }
-}
-
-/// House-with-family mark — no single Material icon matches the mockup's
-/// custom logo, so this composites the closest built-in shapes: a house
-/// outline with a family silhouette nested inside it.
-class _BrandMark extends StatelessWidget {
-  const _BrandMark();
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      width: context.rs(58),
-      height: context.rs(58),
-      child: Stack(
-        alignment: Alignment.center,
-        children: [
-          Icon(Icons.home_rounded, size: context.rs(58), color: ChColors.accent2),
-          Padding(
-            padding: EdgeInsets.only(top: context.rs(22)),
-            child: Icon(
-              Icons.family_restroom_rounded,
-              size: context.rs(22),
-              color: ChColors.accent2N(100),
-            ),
-          ),
-        ],
       ),
     );
   }

@@ -25,7 +25,11 @@ class SosPage extends ConsumerWidget {
         title: const Text('Send SOS alert?'),
         content: const Text('Estate security and your emergency contact will be notified immediately, along with your location.'),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            style: TextButton.styleFrom(foregroundColor: ChColors.text),
+            child: const Text('Cancel'),
+          ),
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
             style: TextButton.styleFrom(foregroundColor: ChColors.danger),

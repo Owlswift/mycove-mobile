@@ -1,8 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/theme/ch_colors.dart';
 import '../../../../core/theme/ch_responsive.dart';
+import '../../../../state/app_notifier.dart';
+import '../../../../state/app_state.dart';
+import 'authorization_sheet.dart';
+import 'voice_status_bar.dart';
 
 const _tabLabels = ['Home', 'Notices', 'Projects', 'Dues', 'Pass'];
 const _tabIcons = [
@@ -19,15 +24,53 @@ const _tabIcons = [
 /// Backed by StatefulShellRoute.indexedStack: each tab's page tree (and its
 /// own push stack) stays alive in an IndexedStack, so switching tabs is
 /// instant instead of tearing down and rebuilding the destination page.
-class ResidentShell extends StatelessWidget {
+class ResidentShell extends ConsumerWidget {
   const ResidentShell({super.key, required this.navigationShell});
 
   final StatefulNavigationShell navigationShell;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final notifier = ref.read(appStateProvider.notifier);
+
+    // Single bridge from voice's pure-state pipeline to real navigation and
+    // authorization — see AppNotifier's class-level voice comment. Both
+    // fields can be set together (voice already knows enough to jump
+    // straight to payment), so both branches are checked on every change.
+    ref.listen<AppState>(appStateProvider, (prev, next) async {
+      if (next.voiceNavigationTarget != null &&
+          next.voiceNavigationTarget != prev?.voiceNavigationTarget) {
+        final target = next.voiceNavigationTarget!;
+        notifier.clearVoiceNavigationTarget();
+        context.go(target);
+      }
+      if (next.pendingAuthorizationFor != null &&
+          next.pendingAuthorizationFor != prev?.pendingAuthorizationFor) {
+        final kind = next.pendingAuthorizationFor!;
+        notifier.clearPendingAuthorization();
+        final authorized = await showAuthorizationSheet(context, ref);
+        if (!context.mounted) return;
+        if (!authorized) return;
+        final ok = kind == 'electricity' ? await notifier.buyElectricity() : await notifier.buyAirtime();
+        if (ok && context.mounted) context.go('/resident/$kind/success');
+      }
+    });
+
     return Scaffold(
-      body: SafeArea(bottom: false, child: navigationShell),
+      body: SafeArea(
+        bottom: false,
+        child: Stack(
+          children: [
+            navigationShell,
+            Positioned(
+              left: 0,
+              right: 0,
+              bottom: 0,
+              child: const VoiceStatusBar(),
+            ),
+          ],
+        ),
+      ),
       // Must be the real BottomNavigationBar widget: a custom Row of
       // Expanded+InkWell here collapses this Scaffold's body to zero height
       // (Scaffold's body renders blank, nav bar pinned under the status bar)
@@ -44,7 +87,7 @@ class ResidentShell extends StatelessWidget {
           backgroundColor: ChColors.surface,
           elevation: 0,
           selectedItemColor: ChColors.accent2,
-          unselectedItemColor: ChColors.neutralN(500),
+          unselectedItemColor: ChColors.bodyText,
           selectedLabelStyle: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.w600),
           unselectedLabelStyle: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.w500),
           items: [

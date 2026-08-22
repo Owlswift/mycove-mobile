@@ -4,7 +4,10 @@ import 'dart:math';
 
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_tts/flutter_tts.dart';
 import 'package:local_auth/local_auth.dart';
+import 'package:speech_to_text/speech_recognition_error.dart';
+import 'package:speech_to_text/speech_to_text.dart';
 
 import '../core/network/api_client.dart';
 import '../core/network/api_exception.dart';
@@ -12,7 +15,9 @@ import '../core/network/biometric_storage.dart';
 import '../core/network/estate_storage.dart';
 import '../core/network/jwt_decode.dart';
 import '../core/network/token_storage.dart';
+import '../core/network/voice_settings_storage.dart';
 import '../core/push/push_service.dart';
+import '../core/voice/voice_intent_parser.dart';
 import '../data/community_hub_api.dart';
 import '../data/models/access_log_entry.dart';
 import '../data/models/announcement.dart';
@@ -28,6 +33,7 @@ import '../data/models/project.dart';
 import '../data/models/rules_section.dart';
 import '../data/models/session_info.dart';
 import '../data/models/spotlight.dart';
+import '../data/models/tts_voice_option.dart';
 import '../data/models/utility_meter.dart';
 import '../data/models/utility_purchase.dart';
 import '../data/models/visitor_pass.dart';
@@ -45,6 +51,8 @@ Role _roleFromApi(String value) =>
 String _roleToApi(Role role) => role == Role.guard ? 'GUARD' : 'RESIDENT';
 String _digitsOnly(String v) => v.replaceAll(RegExp(r'\D'), '');
 
+enum _VoiceFlow { none, electricity, airtime }
+
 class AppNotifier extends StateNotifier<AppState> {
   AppNotifier(
     this._api,
@@ -55,6 +63,16 @@ class AppNotifier extends StateNotifier<AppState> {
   ]) : _biometricStorage = biometricStorage ?? const BiometricStorage(),
        super(AppState()) {
     ApiClient.instance.onAccountDeactivated = _handleAccountDeactivated;
+    // Speaks the voice assistant's response out loud whenever it changes —
+    // hooked here rather than at each of the many call sites that set
+    // voiceResponse, since AppNotifier already sees every state change.
+    addListener((state) {
+      if (state.voiceResponse.isNotEmpty && state.voiceResponse != _lastSpokenResponse) {
+        _lastSpokenResponse = state.voiceResponse;
+        unawaited(_tts.stop().then((_) => _tts.speak(state.voiceResponse)));
+      }
+    });
+    unawaited(_restoreSavedVoice());
     _bootstrap();
   }
 
@@ -62,9 +80,40 @@ class AppNotifier extends StateNotifier<AppState> {
   final TokenStorage _tokenStorage;
   final EstateStorage _estateStorage;
   final BiometricStorage _biometricStorage;
+  final VoiceSettingsStorage _voiceSettingsStorage = const VoiceSettingsStorage();
   final Ref _ref;
   final _random = Random();
   final _localAuth = LocalAuthentication();
+  // True while a biometric prompt we ourselves triggered is up (or in the
+  // brief window right after it closes) — see refreshOnResume/
+  // unlockWithBiometrics for why this exists.
+  bool _biometricPromptActive = false;
+  final _speech = SpeechToText();
+  bool _speechInitialized = false;
+  final _tts = FlutterTts();
+  // Guards the addListener-driven speak-on-change hook above from
+  // re-speaking the same text on every unrelated state mutation.
+  String? _lastSpokenResponse;
+  // Which real screen voice is currently mid-flow with — drives how the
+  // NEXT utterance is interpreted (a bare "20000" means different things
+  // depending on whether we're still resolving BUY_ELECTRICITY's amount, or
+  // reading back a meter number, or answering a yes/no). Not part of
+  // AppState since no widget needs to read it directly.
+  _VoiceFlow _voiceContext = _VoiceFlow.none;
+  // Caps auto-restarting the mic after unparsed/failed turns, so a broken
+  // recognizer can't loop forever without the resident tapping anything.
+  int _consecutiveVoiceErrors = 0;
+  // Non-null exactly while asking "which meter?" — a resident with more
+  // than one saved meter is never assumed to mean "the" one, so this holds
+  // the choices (and the already-known amount) until one is picked, either
+  // by voice (matchMeterChoice) or by tapping a card on the select-meter
+  // screen (which bypasses voice entirely and just proceeds normally).
+  List<UtilityMeter>? _pendingMeterChoices;
+  int? _pendingMeterChoiceAmount;
+  // True exactly while asking "would you like a breakdown?" after speaking
+  // the estate dues balance — the next utterance is a yes/no answer to
+  // that, not a fresh top-level command.
+  bool _pendingDuesBreakdown = false;
 
   /// Gate on a validated estate code before anything else — this app is
   /// shared across estates, so a fresh install doesn't know which estate's
@@ -256,8 +305,9 @@ class AppNotifier extends StateNotifier<AppState> {
   /// rather than blocking the data fetch behind it.
   Future<void> _enterApp() async {
     final biometricEnabled = await _biometricStorage.readEnabled();
+    final hasPin = state.currentUser?.hasPin ?? false;
     state = state.copyWith(
-      authStage: biometricEnabled ? AuthStage.locked : AuthStage.app,
+      authStage: biometricEnabled && hasPin ? AuthStage.locked : AuthStage.app,
       biometricEnabled: biometricEnabled,
     );
   }
@@ -562,8 +612,15 @@ class AppNotifier extends StateNotifier<AppState> {
   /// No-ops outside the logged-in app state (e.g. mid-login) since there's
   /// nothing to refresh yet.
   Future<void> refreshOnResume() async {
+    // Presenting the native Face ID/Touch ID system prompt itself fires an
+    // app-resume lifecycle event when it dismisses — without this guard,
+    // that spurious resume looks identical to "the user backgrounded and
+    // returned," so unlockWithBiometrics()'s own success would immediately
+    // trigger this method to lock the app right back, forever (the exact
+    // "unlock, instantly locks again" loop).
+    if (_biometricPromptActive) return;
     if (state.authStage != AuthStage.app) return;
-    if (state.biometricEnabled) {
+    if (state.biometricEnabled && (state.currentUser?.hasPin ?? false)) {
       state = state.copyWith(authStage: AuthStage.locked);
       return;
     }
@@ -589,6 +646,10 @@ class AppNotifier extends StateNotifier<AppState> {
   /// [refreshOnResume] paused (or what [_tryAutoLogin] deferred on cold
   /// start) by re-running the same data bootstrap.
   Future<bool> unlockWithBiometrics() async {
+    // Set for the whole call, not just around authenticate() — the
+    // resume event this guards against can land either while the native
+    // prompt is up or in the brief window right after it closes.
+    _biometricPromptActive = true;
     try {
       final ok = await _localAuth.authenticate(
         localizedReason: 'Unlock CommunityHub',
@@ -598,15 +659,32 @@ class AppNotifier extends StateNotifier<AppState> {
         ),
       );
       if (!ok) return false;
-      state = state.copyWith(authStage: AuthStage.app);
-      if (state.role == Role.guard) {
-        await _bootstrapGuard();
-      } else {
-        await _bootstrapResident();
-      }
+      await _resumeAppAfterUnlock();
       return true;
     } catch (_) {
       return false;
+    } finally {
+      _biometricPromptActive = false;
+    }
+  }
+
+  /// The transaction PIN as a fallback unlock method, for when biometrics
+  /// isn't available or isn't cooperating (wrong finger, Face ID blocked by
+  /// a mask, etc.) — verifies against the same PIN used to authorize
+  /// purchases, then does exactly what a successful biometric check does.
+  Future<bool> unlockWithPin(String pin) async {
+    final valid = await verifyTransactionPin(pin);
+    if (!valid) return false;
+    await _resumeAppAfterUnlock();
+    return true;
+  }
+
+  Future<void> _resumeAppAfterUnlock() async {
+    state = state.copyWith(authStage: AuthStage.app);
+    if (state.role == Role.guard) {
+      await _bootstrapGuard();
+    } else {
+      await _bootstrapResident();
     }
   }
 
@@ -614,6 +692,11 @@ class AppNotifier extends StateNotifier<AppState> {
   /// then, before persisting the flag, so turning it on always proves the
   /// device's biometrics actually work for this user.
   Future<bool> enableBiometrics() async {
+    // Same spurious-resume risk as unlockWithBiometrics: if the prompt's
+    // dismissal resume event lands right after biometricEnabled flips to
+    // true below, refreshOnResume would otherwise lock the app the instant
+    // it's turned on.
+    _biometricPromptActive = true;
     try {
       final ok = await _localAuth.authenticate(
         localizedReason: 'Confirm to enable biometric unlock',
@@ -625,6 +708,8 @@ class AppNotifier extends StateNotifier<AppState> {
       return true;
     } catch (_) {
       return false;
+    } finally {
+      _biometricPromptActive = false;
     }
   }
 
@@ -695,6 +780,8 @@ class AppNotifier extends StateNotifier<AppState> {
       _api.myPledges(),
       _api.utilityMeters(),
       _api.discos(),
+      _api.walletBalance(),
+      _api.utilityPurchases(),
     ]);
 
     final announcements = (results[0] as List)
@@ -736,11 +823,19 @@ class AppNotifier extends StateNotifier<AppState> {
     final discos = (results[12] as List)
         .map((j) => Disco.fromJson(j as Map<String, dynamic>))
         .toList();
+    final walletBalance = results[13] as int;
+    // Full history, not merged with whatever was already in memory — this
+    // is the source of truth bootstrap sets; buyElectricity()/buyAirtime()
+    // still prepend the just-made purchase on top of it afterward.
+    final utilityPurchases = (results[14] as List)
+        .map((j) => UtilityPurchase.fromJson(j as Map<String, dynamic>))
+        .toList();
 
     state = state.copyWith(
       announcements: announcements,
       meetings: meetings,
       duesBalance: dues['balance'] as int,
+      duesMonthsPaid: dues['monthsPaid'] as int? ?? 0,
       duesHistory: (dues['history'] as List)
           .map((j) => DuesEntry.fromJson(j as Map<String, dynamic>))
           .toList(),
@@ -757,6 +852,8 @@ class AppNotifier extends StateNotifier<AppState> {
       myPledges: myPledges,
       utilityMeters: utilityMeters,
       discos: discos,
+      walletBalance: walletBalance,
+      utilityPurchases: utilityPurchases,
     );
   }
 
@@ -1065,12 +1162,15 @@ class AppNotifier extends StateNotifier<AppState> {
 
   // ── Utilities: airtime ───────────────────────────────────────────────
 
-  void resetAirtimeForm() => state = state.copyWith(
-    airtimeNetwork: '',
-    airtimePhone: '',
-    airtimeAmount: '',
-    utilityError: '',
-  );
+  void resetAirtimeForm() {
+    _voiceContext = _VoiceFlow.none;
+    state = state.copyWith(
+      airtimeNetwork: '',
+      airtimePhone: '',
+      airtimeAmount: '',
+      utilityError: '',
+    );
+  }
   void onAirtimeNetwork(String v) => state = state.copyWith(airtimeNetwork: v);
   void onAirtimePhone(String v) => state = state.copyWith(airtimePhone: v);
   void onAirtimeAmount(String v) => state = state.copyWith(airtimeAmount: v);
@@ -1095,10 +1195,16 @@ class AppNotifier extends StateNotifier<AppState> {
         amount: amount,
       );
       final purchase = UtilityPurchase.fromJson(json);
+      // A SUCCESSFUL or PENDING purchase both debit the wallet server-side
+      // (see UtilitiesService.finalizePurchase) — refresh so the balance
+      // shown next isn't stale.
+      final walletBalance = await _api.walletBalance();
+      _voiceContext = _VoiceFlow.none;
       state = state.copyWith(
         utilityLoading: false,
         lastUtilityPurchase: purchase,
         utilityPurchases: [purchase, ...state.utilityPurchases],
+        walletBalance: walletBalance,
       );
       return true;
     } catch (e) {
@@ -1116,17 +1222,23 @@ class AppNotifier extends StateNotifier<AppState> {
   /// form (disco, meter number, etc.) untouched.
   void clearUtilityError() => state = state.copyWith(utilityError: '');
 
-  void resetElectricityForm() => state = state.copyWith(
-    elecDiscoCode: '',
-    elecDiscoName: '',
-    elecMeterNumber: '',
-    elecMeterType: 'PREPAID',
-    elecPhone: '',
-    elecAmount: '',
-    elecVerifiedName: null,
-    elecVerifiedAddress: null,
-    utilityError: '',
-  );
+  void resetElectricityForm() {
+    _voiceContext = _VoiceFlow.none;
+    _pendingMeterChoices = null;
+    _pendingMeterChoiceAmount = null;
+    state = state.copyWith(
+      elecDiscoCode: '',
+      elecDiscoName: '',
+      elecMeterNumber: '',
+      elecMeterType: 'PREPAID',
+      elecPhone: '',
+      elecAmount: '',
+      elecAmountPrefilled: false,
+      elecVerifiedName: null,
+      elecVerifiedAddress: null,
+      utilityError: '',
+    );
+  }
 
   /// Pre-fills the form from a previously-saved, already-verified meter —
   /// lets a returning resident skip straight to Confirm Details (step 3)
@@ -1141,6 +1253,57 @@ class AppNotifier extends StateNotifier<AppState> {
     elecAmount: '',
     elecVerifiedName: meter.customerName ?? '',
     elecVerifiedAddress: meter.address,
+    utilityError: '',
+  );
+
+  /// Voice equivalent of [useExistingMeter] that also already knows the
+  /// amount, in one shot — sets [AppState.elecAmountPrefilled] so
+  /// `ElectricityConfirmMeterPage`'s Proceed button knows to skip straight
+  /// to Payment instead of asking for an amount it already has.
+  void applyVoiceElectricityMeter(UtilityMeter meter, int amount) =>
+      state = state.copyWith(
+        elecDiscoCode: meter.discoCode,
+        elecDiscoName: meter.discoName,
+        elecMeterNumber: meter.meterNumber,
+        elecMeterType: meterTypeToJson(meter.meterType),
+        elecPhone: '',
+        elecAmount: amount.toString(),
+        elecAmountPrefilled: true,
+        elecVerifiedName: meter.customerName ?? '',
+        elecVerifiedAddress: meter.address,
+        utilityError: '',
+      );
+
+  /// Voice's "no saved meter" branch — same field-clearing as
+  /// [resetElectricityForm] but keeps the already-known amount instead of
+  /// wiping it, so the resident isn't asked for it again after typing/
+  /// saying their meter number.
+  void prefillElectricityAmountOnly(int amount) => state = state.copyWith(
+    elecDiscoCode: '',
+    elecDiscoName: '',
+    elecMeterNumber: '',
+    elecMeterType: 'PREPAID',
+    elecPhone: '',
+    elecAmount: amount.toString(),
+    elecAmountPrefilled: true,
+    elecVerifiedName: null,
+    elecVerifiedAddress: null,
+    utilityError: '',
+  );
+
+  /// Same as [prefillElectricityAmountOnly] but the provider is already
+  /// known too (named in the same utterance as the amount) — used so the
+  /// resident isn't asked "which provider?" for something they already said.
+  void prefillElectricityDiscoAndAmount(Disco disco, int amount) => state = state.copyWith(
+    elecDiscoCode: disco.code,
+    elecDiscoName: disco.name,
+    elecMeterNumber: '',
+    elecMeterType: 'PREPAID',
+    elecPhone: '',
+    elecAmount: amount.toString(),
+    elecAmountPrefilled: true,
+    elecVerifiedName: null,
+    elecVerifiedAddress: null,
     utilityError: '',
   );
 
@@ -1194,8 +1357,13 @@ class AppNotifier extends StateNotifier<AppState> {
 
   Future<bool> buyElectricity() async {
     final amount = int.tryParse(state.elecAmount.trim());
+    // No wizard page ever collects a phone number for this flow — fall
+    // back to the resident's own account phone rather than requiring one.
+    final phone = state.elecPhone.trim().isNotEmpty
+        ? state.elecPhone.trim()
+        : (state.currentUser?.phone ?? '');
     if (state.elecVerifiedName == null ||
-        state.elecPhone.trim().isEmpty ||
+        phone.isEmpty ||
         amount == null ||
         amount < 500) {
       state = state.copyWith(
@@ -1215,10 +1383,12 @@ class AppNotifier extends StateNotifier<AppState> {
       final meter = UtilityMeter.fromJson(meterJson);
       final purchaseJson = await _api.buyElectricity(
         meterId: meter.id,
-        phone: state.elecPhone.trim(),
+        phone: phone,
         amount: amount,
       );
       final purchase = UtilityPurchase.fromJson(purchaseJson);
+      final walletBalance = await _api.walletBalance();
+      _voiceContext = _VoiceFlow.none;
       state = state.copyWith(
         utilityLoading: false,
         lastUtilityPurchase: purchase,
@@ -1228,10 +1398,712 @@ class AppNotifier extends StateNotifier<AppState> {
           for (final m in state.utilityMeters)
             if (m.id != meter.id) m,
         ],
+        walletBalance: walletBalance,
+        elecAmountPrefilled: false,
       );
       return true;
     } catch (e) {
       state = state.copyWith(utilityLoading: false, utilityError: extractMessage(e));
+      return false;
+    }
+  }
+
+  // ── Voice assistant ──────────────────────────────────────────────────
+  //
+  // Voice -> speech-to-text (on-device, via [_speech]) -> a small offline
+  // keyword/number parser ([parseVoiceCommand], no LLM) -> for
+  // BUY_ELECTRICITY, POST /voice/prepare (the only intent where the
+  // backend knows something the client doesn't: the saved meter) -> the
+  // result drives the REAL wizard screens via [AppState.voiceNavigationTarget]
+  // (consumed by ResidentShell, which does the actual `go()`). A purchase
+  // never executes from here — it always ends on the real Pay/Buy Airtime
+  // button, gated by [AppState.pendingAuthorizationFor] (biometrics or PIN,
+  // see AuthorizationSheet), same as a manual tap would be. Voice is a new
+  // front door onto that already-real transaction engine, not a parallel
+  // one, and it never accepts a spoken PIN — authorization is always typed.
+
+  Future<void> startVoiceListening() async {
+    if (state.voiceStage == VoiceStage.listening) return;
+    // initialize() is safe to call repeatedly, but it's a real (if small)
+    // async platform-channel round trip each time — continuous listening
+    // re-arms this method after nearly every turn, so re-initializing an
+    // already-initialized engine on every single turn is pure overhead.
+    // Only re-attempt it if it hasn't succeeded yet (including retrying
+    // after an earlier failure). The onError callback registered here is
+    // persistent for the plugin's whole lifetime, not just this one call —
+    // it fires for every later listen() session too, which is exactly why
+    // _handleSpeechError has to cope with more than just init-time failures.
+    if (!_speechInitialized) {
+      _speechInitialized = await _speech.initialize(onError: _handleSpeechError);
+    }
+    if (!_speechInitialized) {
+      state = state.copyWith(
+        voiceStage: VoiceStage.error,
+        voiceResponse: 'Speech recognition is not available on this device.',
+      );
+      return;
+    }
+    state = state.copyWith(voiceStage: VoiceStage.listening, voiceTranscript: '');
+    // A meter number is 10-13 digits, often read out slowly digit-by-digit
+    // with brief natural pauses between groups — the default 3s pauseFor
+    // was cutting that off mid-number and finalizing "meter number is" on
+    // its own, before any digits, which then failed to parse as anything.
+    // Same condition _handleVoiceTranscript uses to know it's expecting a
+    // meter number, so this only relaxes timing exactly where that's needed.
+    final awaitingMeterNumber = _voiceContext == _VoiceFlow.electricity &&
+        state.elecDiscoCode.isNotEmpty &&
+        state.elecVerifiedName == null;
+    await _speech.listen(
+      onResult: (result) {
+        state = state.copyWith(voiceTranscript: result.recognizedWords);
+        if (result.finalResult) _handleVoiceTranscript(result.recognizedWords);
+      },
+      listenOptions: SpeechListenOptions(
+        partialResults: true,
+        pauseFor: Duration(seconds: awaitingMeterNumber ? 6 : 3),
+        listenFor: Duration(seconds: awaitingMeterNumber ? 20 : 15),
+      ),
+    );
+  }
+
+  /// `error.permanent == false` covers the routine, expected stuff — no
+  /// speech detected in the window, a recognition timeout — which is NOT
+  /// the same as "can't access the microphone" and shouldn't be shown as
+  /// an alarming failure; it's most of what a continuous-listening session
+  /// naturally hits every time the resident pauses. Only a `permanent`
+  /// error (denied permission, no recognizer available) is a real failure.
+  void _handleSpeechError(SpeechRecognitionError error) {
+    // `permanent` turned out not to mean "real failure" in practice — it's
+    // true for the routine end of pretty much any listen() session,
+    // including plain silence, since that one session can't be resumed
+    // (a fresh listen() call is always needed either way). Continuous
+    // listening hits that constantly, so keying off it was still showing
+    // "can't access the microphone" for completely normal silence. The
+    // actual error code is the reliable signal — only a real permission
+    // problem is genuinely "can't access the microphone"; everything else
+    // (no speech heard, a timeout, a transient network/server hiccup)
+    // isn't a hardware/access failure and shouldn't be shown as one.
+    if (error.errorMsg.contains('permission')) {
+      _speechInitialized = false;
+      state = state.copyWith(
+        voiceStage: VoiceStage.error,
+        voiceResponse: "Couldn't access the microphone. Check the microphone permission in Settings.",
+      );
+      return;
+    }
+    _consecutiveVoiceErrors++;
+    if (_consecutiveVoiceErrors < 2) {
+      unawaited(startVoiceListening());
+    } else {
+      state = state.copyWith(voiceStage: VoiceStage.idle, voiceResponse: '');
+    }
+  }
+
+  Future<void> stopVoiceListening() => _speech.stop();
+
+  /// Stops listening and returns to a clean slate — the mic overlay's
+  /// dismiss (✕) and the electricity/airtime forms' own reset methods both
+  /// route through here (indirectly, via `_voiceContext = none`) so a voice
+  /// session never lingers past the flow it was driving.
+  void dismissVoice() {
+    if (_speech.isListening) _speech.stop();
+    unawaited(_tts.stop());
+    _voiceContext = _VoiceFlow.none;
+    _consecutiveVoiceErrors = 0;
+    _pendingMeterChoices = null;
+    _pendingMeterChoiceAmount = null;
+    _pendingDuesBreakdown = false;
+    state = state.copyWith(voiceStage: VoiceStage.idle, voiceResponse: '', voiceTranscript: '');
+  }
+
+  // ── Assistant voice (TTS) settings ───────────────────────────────────
+
+  Future<void> _restoreSavedVoice() async {
+    final saved = await _voiceSettingsStorage.readVoice();
+    if (saved == null) return;
+    final voice = TtsVoiceOption(name: saved.name, locale: saved.locale);
+    try {
+      await _tts.setVoice(voice.toVoiceMap());
+      state = state.copyWith(selectedVoice: voice);
+    } catch (_) {
+      // The saved voice may no longer exist on this device (OS update,
+      // different device) — fall back silently to the system default
+      // rather than surfacing an error for a cosmetic preference.
+    }
+  }
+
+  /// Lazy — only called when the voice-settings row is actually opened, not
+  /// at bootstrap, since most residents will never change this.
+  Future<void> loadAvailableVoices() async {
+    try {
+      final raw = await _tts.getVoices as List<dynamic>;
+      final voices = raw
+          .cast<Map<dynamic, dynamic>>()
+          .map(TtsVoiceOption.fromMap)
+          .where((v) => v.locale.toLowerCase().startsWith('en'))
+          .toList();
+      state = state.copyWith(availableVoices: voices);
+    } catch (_) {
+      state = state.copyWith(availableVoices: const []);
+    }
+  }
+
+  Future<void> selectVoice(TtsVoiceOption voice) async {
+    await _tts.setVoice(voice.toVoiceMap());
+    await _voiceSettingsStorage.setVoice(voice.name, voice.locale);
+    state = state.copyWith(selectedVoice: voice);
+    await _tts.speak("This is how I'll sound from now on.");
+  }
+
+  /// Speaks [message], counts it as a failed turn, and — unless two in a
+  /// row have now failed — automatically re-arms the mic instead of making
+  /// the resident tap again. This is the hands-free/continuous-listening
+  /// behavior; the cap exists so a broken recognizer can't loop forever.
+  Future<void> _registerVoiceFailure(String message) async {
+    _consecutiveVoiceErrors++;
+    state = state.copyWith(voiceStage: VoiceStage.error, voiceResponse: message);
+    if (_consecutiveVoiceErrors < 2) {
+      await startVoiceListening();
+    }
+  }
+
+  Future<void> _handleVoiceTranscript(String transcript) async {
+    final text = transcript.trim();
+    if (text.isEmpty) {
+      state = state.copyWith(voiceStage: VoiceStage.idle);
+      return;
+    }
+    state = state.copyWith(voiceStage: VoiceStage.processing);
+
+    // Awaiting a yes/no on "would you like a breakdown?" — checked before
+    // absolutely everything else, same reasoning as the meter-choice check
+    // below: it pre-empts generic parsing entirely for this one turn.
+    if (_pendingDuesBreakdown) {
+      _pendingDuesBreakdown = false;
+      _consecutiveVoiceErrors = 0;
+      if (looksLikeConfirmation(text)) {
+        final payments = state.duesHistory.where((e) => e.type == DuesEntryType.payment);
+        final totalPaid = payments.fold<int>(0, (sum, e) => sum + e.amount);
+        state = state.copyWith(
+          voiceResponse: "You've made ${payments.length} payment${payments.length == 1 ? '' : 's'} "
+              'totaling ${formatNaira(totalPaid)}. Your current outstanding balance is '
+              "${state.duesBalanceLabel}. Here's the full breakdown.",
+          voiceNavigationTarget: '/resident/dues',
+        );
+      } else {
+        state = state.copyWith(voiceStage: VoiceStage.idle, voiceResponse: '');
+      }
+      return;
+    }
+
+    // Awaiting a choice among more than one saved meter — checked before
+    // anything else electricity-related, since it pre-empts the normal
+    // /voice/prepare round trip entirely (see _resolveElectricityIntent).
+    if (_voiceContext == _VoiceFlow.electricity && _pendingMeterChoices != null) {
+      if (looksLikeCancellation(text)) {
+        // "None of these" / "cancel" here means the meter they want isn't
+        // saved yet — same as tapping "Add New Meter" on the select-meter
+        // screen — not "abandon the purchase entirely".
+        final amount = _pendingMeterChoiceAmount!;
+        _pendingMeterChoices = null;
+        _pendingMeterChoiceAmount = null;
+        resetElectricityForm();
+        _voiceContext = _VoiceFlow.electricity;
+        prefillElectricityAmountOnly(amount);
+        state = state.copyWith(voiceNavigationTarget: '/resident/electricity');
+        await startVoiceListening();
+        return;
+      }
+      final chosen = matchMeterChoice(text, _pendingMeterChoices!);
+      if (chosen != null) {
+        final amount = _pendingMeterChoiceAmount!;
+        _pendingMeterChoices = null;
+        _pendingMeterChoiceAmount = null;
+        applyVoiceElectricityMeter(chosen, amount);
+        _consecutiveVoiceErrors = 0;
+        state = state.copyWith(voiceResponse: '', voiceNavigationTarget: '/resident/electricity/confirm');
+        await startVoiceListening();
+        return;
+      }
+      await _registerVoiceFailure('Sorry, which meter — say the provider name, or tap one below.');
+      return;
+    }
+
+    // Mid-electricity-flow, awaiting a meter number (a disco's been picked,
+    // nothing verified yet) — spoken digits go straight into the field and
+    // auto-trigger verification, same as tapping "Verify Meter" would, then
+    // keep listening for the yes/no that follows on the Confirm screen.
+    if (_voiceContext == _VoiceFlow.electricity &&
+        state.elecDiscoCode.isNotEmpty &&
+        state.elecVerifiedName == null) {
+      final digits = extractDigitsOnly(text);
+      if (digits != null) {
+        onElecMeterNumber(digits);
+        final verified = await verifyElecMeter();
+        if (verified) {
+          _consecutiveVoiceErrors = 0;
+          state = state.copyWith(
+            voiceResponse: '',
+            voiceNavigationTarget: '/resident/electricity/confirm',
+          );
+          await startVoiceListening();
+        } else {
+          await _registerVoiceFailure("I couldn't verify that meter. Please say it again.");
+        }
+        return;
+      }
+      // Not digits (e.g. "cancel") — fall through to generic handling below.
+    }
+
+    // Mid-electricity-flow, awaiting the meter-confirm yes/no — a spoken
+    // "yes" behaves exactly like tapping Proceed, "no" like "Not this meter?".
+    if (_voiceContext == _VoiceFlow.electricity &&
+        state.elecVerifiedName != null &&
+        state.elecAmount.trim().isNotEmpty) {
+      if (looksLikeConfirmation(text)) {
+        final amount = int.tryParse(state.elecAmount.trim()) ?? 0;
+        final skipToPayment = state.elecAmountPrefilled && amount >= 500;
+        _voiceContext = _VoiceFlow.none;
+        _consecutiveVoiceErrors = 0;
+        state = state.copyWith(
+          voiceStage: VoiceStage.idle,
+          voiceResponse: '',
+          voiceNavigationTarget: skipToPayment
+              ? '/resident/electricity/payment'
+              : '/resident/electricity/amount',
+          pendingAuthorizationFor: skipToPayment ? 'electricity' : null,
+        );
+        return;
+      }
+      if (looksLikeCancellation(text)) {
+        final amount = state.elecAmount;
+        resetElectricityForm();
+        _voiceContext = _VoiceFlow.electricity;
+        prefillElectricityAmountOnly(int.tryParse(amount.trim()) ?? 0);
+        state = state.copyWith(voiceNavigationTarget: '/resident/electricity');
+        await startVoiceListening();
+        return;
+      }
+      state = state.copyWith(voiceResponse: 'Sorry, was that a yes or a no?');
+      await startVoiceListening();
+      return;
+    }
+
+    // Mid-electricity-flow, awaiting a spoken DISCO (amount is already
+    // known — this is the "no saved meter" branch — but no provider has
+    // been picked yet, so meter entry can't start).
+    if (_voiceContext == _VoiceFlow.electricity &&
+        state.elecDiscoCode.isEmpty &&
+        state.elecVerifiedName == null &&
+        state.elecAmount.trim().isNotEmpty) {
+      if (looksLikeCancellation(text)) {
+        dismissVoice();
+        return;
+      }
+      final disco = extractDisco(text, state.discos);
+      if (disco != null) {
+        onElecDisco(disco.code, disco.name);
+        _consecutiveVoiceErrors = 0;
+        state = state.copyWith(
+          voiceResponse: '',
+          voiceNavigationTarget: '/resident/electricity/meter',
+        );
+        await startVoiceListening();
+        return;
+      }
+      await _registerVoiceFailure('Sorry, which provider — for example Ikeja Electric or Eko Electric?');
+      return;
+    }
+
+    // Mid-electricity-flow, still waiting on an amount (BUY_ELECTRICITY was
+    // recognized but no meter lookup has happened yet).
+    if (_voiceContext == _VoiceFlow.electricity &&
+        state.elecDiscoCode.isEmpty &&
+        state.elecVerifiedName == null &&
+        state.elecAmount.trim().isEmpty) {
+      if (looksLikeCancellation(text)) {
+        dismissVoice();
+        return;
+      }
+      final amount = parseVoiceCommand(text)?.amount ?? extractAmount(text);
+      if (amount != null) {
+        await _resolveElectricityIntent(amount, disco: extractDisco(text, state.discos));
+        return;
+      }
+      await _registerVoiceFailure('Sorry, how much electricity would you like to buy?');
+      return;
+    }
+
+    // Mid-airtime-flow — corrections fill the real screen's fields live;
+    // once everything needed is known, a confirmation utterance authorizes.
+    if (_voiceContext == _VoiceFlow.airtime) {
+      if (looksLikeCancellation(text)) {
+        resetAirtimeForm();
+        state = state.copyWith(voiceStage: VoiceStage.idle, voiceResponse: '');
+        return;
+      }
+      final amount = extractAmount(text);
+      final network = extractNetwork(text);
+      if (amount != null) onAirtimeAmount(amount.toString());
+      if (network != null) onAirtimeNetwork(network);
+      final readyToConfirm = state.airtimeNetwork.isNotEmpty &&
+          state.airtimePhone.trim().isNotEmpty &&
+          (int.tryParse(state.airtimeAmount.trim()) ?? 0) > 0;
+      if (readyToConfirm && looksLikeConfirmation(text)) {
+        _voiceContext = _VoiceFlow.none;
+        _consecutiveVoiceErrors = 0;
+        state = state.copyWith(
+          voiceStage: VoiceStage.idle,
+          voiceResponse: '',
+          pendingAuthorizationFor: 'airtime',
+        );
+        return;
+      }
+      if (amount != null || network != null) {
+        _consecutiveVoiceErrors = 0;
+        state = state.copyWith(voiceStage: VoiceStage.listening, voiceResponse: '');
+        await startVoiceListening();
+        return;
+      }
+      // Neither a correction nor "confirm" — fall through to generic
+      // handling below (lets a resident pivot to an unrelated command).
+    }
+
+    // Generic top-level intent recognition.
+    final parsed = parseVoiceCommand(text);
+    if (parsed == null) {
+      await _registerVoiceFailure(
+        'Sorry, I didn\'t understand that. Try "buy electricity" or "what\'s my balance".',
+      );
+      return;
+    }
+    switch (parsed.intent) {
+      case VoiceIntent.buyElectricity:
+        resetElectricityForm();
+        _voiceContext = _VoiceFlow.electricity;
+        await _resolveElectricityIntent(parsed.amount, disco: extractDisco(text, state.discos));
+      case VoiceIntent.buyAirtime:
+        _startAirtimeVoice(amount: parsed.amount, network: parsed.network);
+      case VoiceIntent.checkBalance:
+        await _answerReadOnlyVoiceIntent('CHECK_BALANCE');
+      case VoiceIntent.transactionHistory:
+        await _answerReadOnlyVoiceIntent('TRANSACTION_HISTORY');
+      case VoiceIntent.checkDues:
+        await _answerCheckDues();
+      case VoiceIntent.duesMonthsPaid:
+        await _answerDuesMonthsPaid();
+      case VoiceIntent.electricitySpendByMonth:
+        await _answerElectricitySpendByMonth(parsed.month);
+      case VoiceIntent.nextMeeting:
+        await _answerNextMeeting();
+      case VoiceIntent.visitorCount:
+        await _answerVisitorCount(parsed.weekCount);
+      case VoiceIntent.newUpdates:
+        await _answerNewUpdates();
+    }
+  }
+
+  /// Speaks the dues balance and asks whether the resident wants a
+  /// breakdown — the answer only comes (and only then does this navigate
+  /// anywhere) once `_pendingDuesBreakdown`'s check at the top of
+  /// [_handleVoiceTranscript] sees the follow-up yes/no.
+  Future<void> _answerCheckDues() async {
+    _pendingDuesBreakdown = true;
+    _consecutiveVoiceErrors = 0;
+    // Levies are a separate concept from dues (one-off named charges), but
+    // "what are my outstanding levies" routes here too (see the parser) —
+    // mention them so that phrasing gets a complete answer, not just dues.
+    final unpaidLevies = state.levies.where((l) => l.status == LevyStatus.unpaid).toList();
+    final leviesClause = unpaidLevies.isEmpty
+        ? ''
+        : ' You also have ${unpaidLevies.length} unpaid ${unpaidLevies.length == 1 ? 'levy' : 'levies'} '
+            'totaling ${formatNaira(unpaidLevies.fold<int>(0, (sum, l) => sum + l.amount))}.';
+    state = state.copyWith(
+      voiceResponse:
+          'You currently owe ${state.duesBalanceLabel} in estate dues.$leviesClause Would you like a breakdown?',
+    );
+    await startVoiceListening();
+  }
+
+  Future<void> _answerDuesMonthsPaid() async {
+    _consecutiveVoiceErrors = 0;
+    state = state.copyWith(
+      voiceResponse: "You've paid dues for ${state.duesMonthsPaid} month"
+          '${state.duesMonthsPaid == 1 ? '' : 's'} this year.',
+      voiceNavigationTarget: '/resident/dues',
+    );
+    await startVoiceListening();
+  }
+
+  static const _monthLabels = [
+    'January', 'February', 'March', 'April', 'May', 'June',
+    'July', 'August', 'September', 'October', 'November', 'December',
+  ];
+
+  Future<void> _answerElectricitySpendByMonth(int? month) async {
+    final resolvedMonth = month ?? DateTime.now().month;
+    final year = DateTime.now().year;
+    final total = state.utilityPurchases
+        .where((p) =>
+            p.type == 'ELECTRICITY' &&
+            p.status == UtilityPurchaseStatus.successful &&
+            p.createdAt.month == resolvedMonth &&
+            p.createdAt.year == year)
+        .fold<int>(0, (sum, p) => sum + p.amount);
+    _consecutiveVoiceErrors = 0;
+    state = state.copyWith(
+      voiceResponse: 'You spent ${formatNaira(total)} on electricity in ${_monthLabels[resolvedMonth - 1]}.',
+      voiceNavigationTarget: '/resident/utility-history',
+      historyFilterMonth: resolvedMonth,
+      historyFilterYear: year,
+    );
+    await startVoiceListening();
+  }
+
+  Future<void> _answerNextMeeting() async {
+    _consecutiveVoiceErrors = 0;
+    final upcoming = state.meetings.where((m) => m.scheduledAt.isAfter(DateTime.now())).toList();
+    if (upcoming.isEmpty) {
+      state = state.copyWith(voiceResponse: 'You have no upcoming meetings scheduled.');
+    } else {
+      final next = upcoming.first;
+      state = state.copyWith(
+        voiceResponse: 'Your next meeting is "${next.title}" on ${next.date} at ${next.time}, ${next.location}.',
+        voiceNavigationTarget: '/resident/meetings/${next.id}',
+      );
+    }
+    await startVoiceListening();
+  }
+
+  Future<void> _answerVisitorCount(int? weekCount) async {
+    final weeks = weekCount ?? 1;
+    final since = DateTime.now().subtract(Duration(days: 7 * weeks));
+    // enteredAt is when the visitor actually arrived, not createdAt (when
+    // the pass was merely issued) — a resident could issue a pass that's
+    // never used, which shouldn't count as "having had" that visitor.
+    final count = state.visitorPasses.where((p) => p.enteredAt?.isAfter(since) ?? false).length;
+    _consecutiveVoiceErrors = 0;
+    state = state.copyWith(
+      voiceResponse: 'You\'ve had $count visitor${count == 1 ? '' : 's'} in the past $weeks week${weeks == 1 ? '' : 's'}.',
+      voiceNavigationTarget: '/resident/visitor',
+    );
+    await startVoiceListening();
+  }
+
+  Future<void> _answerNewUpdates() async {
+    _consecutiveVoiceErrors = 0;
+    final unread = state.announcements.where((a) => a.unread).length;
+    final speech = state.announcements.isEmpty
+        ? 'No new updates right now.'
+        : unread > 0
+            ? 'You have $unread new update${unread == 1 ? '' : 's'}. The latest is: ${state.announcements.first.title}.'
+            : 'No new updates — the latest was: ${state.announcements.first.title}.';
+    state = state.copyWith(voiceResponse: speech, voiceNavigationTarget: '/resident/announcements');
+    await startVoiceListening();
+  }
+
+  void clearHistoryFilter() => state = state.copyWith(historyFilterMonth: null, historyFilterYear: null);
+
+  /// Calls /voice/prepare for BUY_ELECTRICITY — the one intent where the
+  /// backend knows something the client doesn't (the saved meter). Branches
+  /// three ways: still missing an amount (keep listening), a meter was
+  /// resolved (jump to Confirm, pre-filled), or none exists (jump to the
+  /// start of the wizard, keeping the amount so it's never asked twice).
+  ///
+  /// [disco] is whatever [extractDisco] found in the SAME utterance that
+  /// gave the amount (e.g. "500 naira from IBEDC") — a resident who names a
+  /// specific provider is never assumed to mean whichever meter happens to
+  /// be saved, even if there's only one. It takes priority over both the
+  /// single-saved-meter shortcut and the multi-meter "which one?" question.
+  Future<void> _resolveElectricityIntent(int? amount, {Disco? disco}) async {
+    _voiceContext = _VoiceFlow.electricity;
+    if (amount != null && disco != null) {
+      final matchingMeter = state.utilityMeters
+          .cast<UtilityMeter?>()
+          .firstWhere((m) => m?.discoCode == disco.code, orElse: () => null);
+      _consecutiveVoiceErrors = 0;
+      if (matchingMeter != null) {
+        applyVoiceElectricityMeter(matchingMeter, amount);
+        state = state.copyWith(
+          voiceResponse: '',
+          voiceNavigationTarget: '/resident/electricity/confirm',
+        );
+      } else {
+        // Named a provider with no saved meter on it — the provider is
+        // already known, so skip straight to entering a meter number
+        // instead of also asking "which provider?".
+        prefillElectricityDiscoAndAmount(disco, amount);
+        state = state.copyWith(
+          voiceResponse: '',
+          voiceNavigationTarget: '/resident/electricity/meter',
+        );
+      }
+      await startVoiceListening();
+      return;
+    }
+    // More than one saved meter — a resident is never assumed to mean "the"
+    // meter, so ask which one instead of letting the backend silently pick
+    // its own most-recent fallback (only reachable once the amount is
+    // actually known, otherwise this would ask before the amount question).
+    if (amount != null && state.utilityMeters.length > 1) {
+      _pendingMeterChoices = state.utilityMeters;
+      _pendingMeterChoiceAmount = amount;
+      state = state.copyWith(
+        voiceResponse: 'Which meter would you like to use?',
+        voiceNavigationTarget: '/resident/electricity/select-meter',
+      );
+      await startVoiceListening();
+      return;
+    }
+    try {
+      final result = await _api.voicePrepare(intent: 'BUY_ELECTRICITY', amount: amount);
+      final speech = result['speech'] as String? ?? '';
+
+      if (result['needsClarification'] != null) {
+        state = state.copyWith(voiceStage: VoiceStage.listening, voiceResponse: speech);
+        await startVoiceListening();
+        return;
+      }
+      if (result['needsConfirmation'] == true) {
+        final command = result['command'] as Map<String, dynamic>?;
+        final meterId = command?['meterId'] as String?;
+        final resolvedAmount = command?['amount'] as int? ?? amount ?? 0;
+        final meter = state.utilityMeters
+            .cast<UtilityMeter?>()
+            .firstWhere((m) => m?.id == meterId, orElse: () => null);
+        _consecutiveVoiceErrors = 0;
+        if (meter != null) {
+          applyVoiceElectricityMeter(meter, resolvedAmount);
+          state = state.copyWith(
+            voiceResponse: '',
+            voiceNavigationTarget: '/resident/electricity/confirm',
+          );
+          await startVoiceListening();
+        } else {
+          prefillElectricityAmountOnly(resolvedAmount);
+          state = state.copyWith(
+            voiceResponse: '',
+            voiceNavigationTarget: '/resident/electricity',
+          );
+          await startVoiceListening();
+        }
+        return;
+      }
+      // ok:false — no saved meter at all (client already knows this from
+      // utilityMeters, more reliable than matching the backend's message
+      // text) is a "start the wizard" case; anything else (e.g.
+      // insufficient balance) is a flat, terminal rejection.
+      if (state.utilityMeters.isEmpty && amount != null) {
+        _consecutiveVoiceErrors = 0;
+        prefillElectricityAmountOnly(amount);
+        state = state.copyWith(voiceResponse: speech, voiceNavigationTarget: '/resident/electricity');
+        await startVoiceListening();
+        return;
+      }
+      _voiceContext = _VoiceFlow.none;
+      await _registerVoiceFailure(speech);
+    } catch (e) {
+      _voiceContext = _VoiceFlow.none;
+      await _registerVoiceFailure(extractMessage(e));
+    }
+  }
+
+  /// BUY_AIRTIME resolves fully client-side — the real endpoint already
+  /// validates everything server-side, so there's no round trip before
+  /// landing on the real screen with whatever's already known filled in.
+  void _startAirtimeVoice({int? amount, String? network}) {
+    _voiceContext = _VoiceFlow.airtime;
+    _consecutiveVoiceErrors = 0;
+    state = state.copyWith(
+      airtimeNetwork: network ?? '',
+      airtimePhone: state.currentUser?.phone ?? '',
+      airtimeAmount: amount != null ? amount.toString() : '',
+      utilityError: '',
+      voiceStage: VoiceStage.idle,
+      voiceResponse: '',
+      voiceNavigationTarget: '/resident/airtime',
+    );
+  }
+
+  /// CHECK_BALANCE/TRANSACTION_HISTORY both answer AND land the resident on
+  /// the real transactions screen — voice isn't just a talking speaker here,
+  /// it's a front door onto the same page a tap would reach.
+  Future<void> _answerReadOnlyVoiceIntent(String intentApi) async {
+    try {
+      final result = await _api.voicePrepare(intent: intentApi);
+      _consecutiveVoiceErrors = 0;
+      _showTerminalResponse(
+        result['speech'] as String? ?? '',
+        navigateTo: '/resident/utility-history',
+      );
+    } catch (e) {
+      await _registerVoiceFailure(extractMessage(e));
+    }
+  }
+
+  /// Shows a spoken/text answer that isn't itself a real-screen hand-off
+  /// (unlike the electricity/airtime flows, which clear voiceResponse the
+  /// instant they navigate) — and clears it a few seconds later so it
+  /// doesn't linger on screen indefinitely. Guarded so a newer response or
+  /// stage change in the meantime isn't clobbered.
+  void _showTerminalResponse(String message, {String? navigateTo}) {
+    state = state.copyWith(
+      voiceStage: VoiceStage.idle,
+      voiceResponse: message,
+      voiceNavigationTarget: navigateTo,
+    );
+    Future.delayed(const Duration(seconds: 6), () {
+      if (state.voiceResponse == message && state.voiceStage == VoiceStage.idle) {
+        state = state.copyWith(voiceResponse: '');
+      }
+    });
+  }
+
+  void clearVoiceNavigationTarget() => state = state.copyWith(voiceNavigationTarget: null);
+
+  /// Set by voice OR by the real Pay/Buy Airtime buttons — ResidentShell is
+  /// the single consumer, so both paths run through identical authorization
+  /// + execution + navigation logic.
+  void requestAuthorization(String kind) =>
+      state = state.copyWith(pendingAuthorizationFor: kind);
+
+  void clearPendingAuthorization() => state = state.copyWith(pendingAuthorizationFor: null);
+
+  /// Used by AuthorizationSheet's biometric branch — distinct from
+  /// [unlockWithBiometrics] (which additionally flips authStage): this one
+  /// only proves presence for a single purchase.
+  Future<bool> authenticateForPurchase() async {
+    // Same spurious-resume risk as unlockWithBiometrics: without this
+    // guard, a resident with app-lock biometrics enabled would find the
+    // app locking itself mid-purchase, right as this prompt closes.
+    _biometricPromptActive = true;
+    try {
+      return await _localAuth.authenticate(
+        localizedReason: 'Confirm this purchase',
+        options: const AuthenticationOptions(biometricOnly: true, stickyAuth: true),
+      );
+    } catch (_) {
+      return false;
+    } finally {
+      _biometricPromptActive = false;
+    }
+  }
+
+  Future<bool> setTransactionPin(String pin) async {
+    try {
+      await _api.setPin(pin);
+      final user = CurrentUser.fromJson(await _api.me());
+      state = state.copyWith(currentUser: user);
+      return true;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  Future<bool> verifyTransactionPin(String pin) async {
+    try {
+      return await _api.verifyPin(pin);
+    } catch (_) {
       return false;
     }
   }

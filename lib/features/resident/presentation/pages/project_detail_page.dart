@@ -31,7 +31,7 @@ class ProjectDetailPage extends ConsumerWidget {
             error: (e, _) => Center(
               child: Text(
                 'Could not load this project.',
-                style: ChTextStyles.body(fontSize: 14, color: ChColors.bodyText),
+                style: ChTextStyles.body(fontSize: 14, color: ChColors.text),
               ),
             ),
             data: (json) {
@@ -69,7 +69,7 @@ class ProjectDetailPage extends ConsumerWidget {
                         ),
                       Row(
                         children: [
-                          Expanded(child: Text(json['title'] as String, style: ChTextStyles.heading(fontSize: 20))),
+                          Expanded(child: Text(json['title'] as String, style: ChTextStyles.heading(fontSize: 13))),
                           Container(
                             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                             decoration: BoxDecoration(

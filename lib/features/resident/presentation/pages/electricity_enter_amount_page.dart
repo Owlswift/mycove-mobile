@@ -31,7 +31,7 @@ class ElectricityEnterAmountPage extends ConsumerStatefulWidget {
 }
 
 class _ElectricityEnterAmountPageState extends ConsumerState<ElectricityEnterAmountPage> {
-  final _amountController = TextEditingController();
+  late final _amountController = TextEditingController(text: ref.read(appStateProvider).elecAmount);
   final _amountFocus = FocusNode();
 
   @override

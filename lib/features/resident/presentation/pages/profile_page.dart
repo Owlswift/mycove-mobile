@@ -135,6 +135,22 @@ class ProfilePage extends ConsumerWidget {
                       ),
                       _linkRow(
                         context,
+                        icon: Icons.pin_outlined,
+                        label: (s.currentUser?.hasPin ?? false)
+                            ? 'Change Transaction PIN'
+                            : 'Set Transaction PIN',
+                        showBorder: true,
+                        onTap: () => context.push('/resident/profile/pin'),
+                      ),
+                      _linkRow(
+                        context,
+                        icon: Icons.record_voice_over_outlined,
+                        label: 'Assistant Voice',
+                        showBorder: true,
+                        onTap: () => context.push('/resident/profile/voice'),
+                      ),
+                      _linkRow(
+                        context,
                         icon: Icons.shield_outlined,
                         label: 'Emergency SOS',
                         iconColor: ChColors.danger,
@@ -173,9 +189,19 @@ class ProfilePage extends ConsumerWidget {
                         ),
                         SizedBox(width: context.rs(12)),
                         Expanded(
-                          child: Text(
-                            'Biometric Login',
-                            style: ChTextStyles.body(fontSize: 14),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Biometric Login',
+                                style: ChTextStyles.body(fontSize: 14),
+                              ),
+                              if (!(s.currentUser?.hasPin ?? false))
+                                Text(
+                                  'Also requires a transaction PIN',
+                                  style: ChTextStyles.body(fontSize: 11.5, color: ChColors.bodyText),
+                                ),
+                            ],
                           ),
                         ),
                         Switch(
@@ -183,7 +209,14 @@ class ProfilePage extends ConsumerWidget {
                           activeThumbColor: ChColors.accent2,
                           onChanged: (value) async {
                             if (value) {
-                              await notifier.enableBiometrics();
+                              final ok = await notifier.enableBiometrics();
+                              if (ok && !(s.currentUser?.hasPin ?? false) && context.mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text('Set a transaction PIN too so the lock screen can use both.'),
+                                  ),
+                                );
+                              }
                             } else {
                               await notifier.disableBiometrics();
                             }

@@ -81,11 +81,11 @@ class _AnnouncementsPageState extends ConsumerState<AnnouncementsPage> {
                                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                 children: [
                                   ChTag(label: item.category, background: ChColors.accent2N(100), foreground: ChColors.accent2N(800)),
-                                  Text(item.date, style: ChTextStyles.body(fontSize: 12, color: ChColors.bodyText)),
+                                  Text(item.date, style: ChTextStyles.body(fontSize: 12, color: ChColors.text)),
                                 ],
                               ),
                               const SizedBox(height: 8),
-                              Text(item.title, style: ChTextStyles.body(fontSize: 15, fontWeight: FontWeight.w600)),
+                              Text(item.title, style: ChTextStyles.body(fontSize: 13, fontWeight: FontWeight.w500, color: ChColors.text)),
                             ],
                           ),
                         ),

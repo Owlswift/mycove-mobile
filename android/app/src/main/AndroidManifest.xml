@@ -1,6 +1,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <!-- Required on Android 13+ to show notifications (push and local). -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
+    <!-- Required by speech_to_text for voice commands. -->
+    <uses-permission android:name="android.permission.RECORD_AUDIO"/>
     <application
         android:label="communityhub"
         android:name="${applicationName}"
@@ -57,6 +59,11 @@
         <intent>
             <action android:name="android.intent.action.SEND"/>
             <data android:mimeType="text/plain"/>
+        </intent>
+        <!-- Required by speech_to_text on Android 11+ (API 30+) so the
+             on-device speech recognition service is visible to the app. -->
+        <intent>
+            <action android:name="android.speech.RecognitionService"/>
         </intent>
     </queries>
 </manifest>

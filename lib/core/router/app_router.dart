@@ -29,6 +29,7 @@ import '../../features/resident/presentation/pages/electricity_confirm_meter_pag
 import '../../features/resident/presentation/pages/electricity_enter_amount_page.dart';
 import '../../features/resident/presentation/pages/electricity_enter_meter_page.dart';
 import '../../features/resident/presentation/pages/electricity_payment_page.dart';
+import '../../features/resident/presentation/pages/electricity_select_meter_page.dart';
 import '../../features/resident/presentation/pages/electricity_select_provider_page.dart';
 import '../../features/resident/presentation/pages/meeting_detail_page.dart';
 import '../../features/resident/presentation/pages/meetings_page.dart';
@@ -45,8 +46,10 @@ import '../../features/resident/presentation/pages/sos_page.dart';
 import '../../features/resident/presentation/pages/utility_history_page.dart';
 import '../../features/resident/presentation/pages/utility_purchase_success_page.dart';
 import '../../features/resident/presentation/pages/visitor_create_page.dart';
+import '../../features/resident/presentation/pages/set_pin_page.dart';
 import '../../features/resident/presentation/pages/visitor_detail_page.dart';
 import '../../features/resident/presentation/pages/visitor_page.dart';
+import '../../features/resident/presentation/pages/voice_settings_page.dart';
 import '../../features/resident/presentation/widgets/resident_shell.dart';
 import '../../state/app_notifier.dart';
 import '../../state/app_state.dart';
@@ -148,6 +151,14 @@ final routerProvider = Provider<GoRouter>((ref) {
                         path: 'devices',
                         builder: (_, _) => const ManageDevicesPage(),
                       ),
+                      GoRoute(
+                        path: 'pin',
+                        builder: (_, _) => const SetPinPage(),
+                      ),
+                      GoRoute(
+                        path: 'voice',
+                        builder: (_, _) => const VoiceSettingsPage(),
+                      ),
                     ],
                   ),
                   GoRoute(
@@ -201,6 +212,10 @@ final routerProvider = Provider<GoRouter>((ref) {
                         builder: (_, _) => const ElectricityEnterMeterPage(),
                       ),
                       GoRoute(
+                        path: 'select-meter',
+                        builder: (_, _) => const ElectricitySelectMeterPage(),
+                      ),
+                      GoRoute(
                         path: 'confirm',
                         builder: (_, _) => const ElectricityConfirmMeterPage(),
                       ),
@@ -220,8 +235,7 @@ final routerProvider = Provider<GoRouter>((ref) {
                   ),
                   GoRoute(
                     path: 'utility-history',
-                    builder: (_, s) =>
-                        UtilityHistoryPage(type: s.extra as String? ?? 'ELECTRICITY'),
+                    builder: (_, s) => UtilityHistoryPage(type: s.extra as String?),
                   ),
                 ],
               ),

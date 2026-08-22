@@ -13,8 +13,20 @@ import '../../../../data/models/notification_item.dart';
 import '../../../../data/models/poll.dart';
 import '../../../../data/models/spotlight.dart';
 import '../../../../data/models/utility_meter.dart';
+import '../../../../data/models/utility_purchase.dart';
 import '../../../../state/app_notifier.dart';
 import '../../../../state/app_state.dart';
+
+/// The provider already returns this pre-formatted (e.g. "79.9 kWh") — see
+/// VtpassProvider/BuypowerProvider on the backend — so it's shown as-is.
+/// `utilityPurchases` is newest-first, so the first electricity purchase
+/// with units is the most recent one that actually vended.
+String? _lastElectricityUnits(List<UtilityPurchase> purchases) {
+  for (final p in purchases) {
+    if (p.type == 'ELECTRICITY' && p.units != null) return p.units;
+  }
+  return null;
+}
 
 String _greeting() {
   final hour = DateTime.now().hour;
@@ -95,6 +107,23 @@ class DashboardPage extends ConsumerWidget {
                         style: ChTextStyles.heading(fontSize: 24),
                       ),
                     ],
+                  ),
+                ),
+                GestureDetector(
+                  onTap: notifier.startVoiceListening,
+                  child: Container(
+                    width: context.rs(42),
+                    height: context.rs(42),
+                    margin: EdgeInsets.only(right: context.rs(10)),
+                    decoration: const BoxDecoration(
+                      color: ChColors.surfaceSunken,
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(
+                      Icons.mic_none_rounded,
+                      size: context.rs(21),
+                      color: ChColors.text,
+                    ),
                   ),
                 ),
                 GestureDetector(
@@ -312,7 +341,7 @@ class DashboardPage extends ConsumerWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            '0.0 kWh',
+                            _lastElectricityUnits(s.utilityPurchases) ?? '0.0 kWh',
                             style: ChTextStyles.heading(fontSize: 21),
                           ),
                           SizedBox(height: context.rs(4)),
@@ -340,7 +369,9 @@ class DashboardPage extends ConsumerWidget {
                           if (s.utilityMeters.isNotEmpty) ...[
                             SizedBox(height: context.rs(3)),
                             Text(
-                              'Meter: ${formatMeterNumber(s.utilityMeters.first.meterNumber)}',
+                              s.utilityMeters.length > 1
+                                  ? '${s.utilityMeters.length} meters saved'
+                                  : 'Meter: ${formatMeterNumber(s.utilityMeters.first.meterNumber)}',
                               style: ChTextStyles.body(
                                 fontSize: 10.5,
                                 color: ChColors.bodyText,
@@ -351,7 +382,9 @@ class DashboardPage extends ConsumerWidget {
                       ),
                       buttonLabel: 'Buy Electricity',
                       onTap: () {
-                        if (s.utilityMeters.isNotEmpty) {
+                        if (s.utilityMeters.length > 1) {
+                          context.push('/resident/electricity/select-meter');
+                        } else if (s.utilityMeters.isNotEmpty) {
                           notifier.useExistingMeter(s.utilityMeters.first);
                           context.push('/resident/electricity/confirm');
                         } else {

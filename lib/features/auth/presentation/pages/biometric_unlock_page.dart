@@ -3,15 +3,19 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/theme/ch_colors.dart';
 import '../../../../core/theme/ch_responsive.dart';
-import '../../../../core/theme/ch_spacing.dart';
 import '../../../../core/theme/ch_text_styles.dart';
+import '../../../../core/widgets/ch_brand_mark.dart';
 import '../../../../state/app_notifier.dart';
 
+const _pinLength = 4;
+
 /// Shown whenever a session is being restored silently (cold start, or
-/// resuming from the background) while biometric unlock is enabled — see
-/// AppNotifier._enterApp/refreshOnResume. Logging in with a password is
-/// never routed through here, since typing the password already was the
-/// authentication event.
+/// resuming from the background) while both biometric unlock AND a
+/// transaction PIN are set — see AppNotifier._enterApp/refreshOnResume,
+/// which only route here when both are true, so the keypad below always
+/// has a PIN to check against. Logging in with a password is never routed
+/// through here, since typing the password already was the authentication
+/// event.
 class BiometricUnlockPage extends ConsumerStatefulWidget {
   const BiometricUnlockPage({super.key});
 
@@ -22,6 +26,9 @@ class BiometricUnlockPage extends ConsumerStatefulWidget {
 
 class _BiometricUnlockPageState extends ConsumerState<BiometricUnlockPage> {
   bool _authenticating = false;
+  String _pin = '';
+  bool _pinBusy = false;
+  String? _pinError;
 
   @override
   void initState() {
@@ -36,90 +43,247 @@ class _BiometricUnlockPageState extends ConsumerState<BiometricUnlockPage> {
     if (mounted) setState(() => _authenticating = false);
   }
 
+  void _onDigit(String digit) {
+    if (_pinBusy || _pin.length >= _pinLength) return;
+    setState(() {
+      _pinError = null;
+      _pin += digit;
+    });
+    if (_pin.length == _pinLength) _submitPin();
+  }
+
+  void _onBackspace() {
+    if (_pinBusy || _pin.isEmpty) return;
+    setState(() => _pin = _pin.substring(0, _pin.length - 1));
+  }
+
+  Future<void> _submitPin() async {
+    if (_pin.length != _pinLength || _pinBusy) return;
+    setState(() {
+      _pinBusy = true;
+      _pinError = null;
+    });
+    final ok = await ref.read(appStateProvider.notifier).unlockWithPin(_pin);
+    if (!mounted) return;
+    if (ok) return;
+    setState(() {
+      _pinBusy = false;
+      _pin = '';
+      _pinError = 'Incorrect PIN. Please try again.';
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: ChColors.bg,
       body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 32),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Container(
-                width: context.rs(84),
-                height: context.rs(84),
-                decoration: const BoxDecoration(
-                  color: ChColors.accent2,
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(
-                  Icons.fingerprint,
-                  size: context.rs(44),
-                  color: Colors.white,
-                ),
-              ),
-              const SizedBox(height: 24),
-              Text(
-                'Unlock CommunityHub',
-                style: ChTextStyles.heading(fontSize: 20),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                'Use Face ID or Touch ID to continue.',
-                textAlign: TextAlign.center,
-                style: ChTextStyles.body(
-                  fontSize: 14,
-                  color: ChColors.bodyText,
-                ),
-              ),
-              const SizedBox(height: 32),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: _authenticating ? null : _unlock,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: ChColors.accent2,
-                    padding: const EdgeInsets.symmetric(vertical: 15),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(ChRadii.button),
-                    ),
-                  ),
-                  child: _authenticating
-                      ? const SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            color: Colors.white,
-                          ),
-                        )
-                      : Text(
-                          'Try Again',
-                          style: ChTextStyles.body(
-                            fontSize: 15,
-                            fontWeight: FontWeight.w600,
-                            color: Colors.white,
-                          ),
-                        ),
-                ),
-              ),
-              const SizedBox(height: 16),
-              TextButton(
-                onPressed: () => ref.read(appStateProvider.notifier).logout(),
-                child: Text(
-                  'Log Out',
-                  style: ChTextStyles.body(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    color: ChColors.bodyText,
-                  ),
-                ),
-              ),
-            ],
-          ),
+        child: _PinKeypadBody(
+          pin: _pin,
+          pinLength: _pinLength,
+          error: _pinError,
+          busy: _pinBusy,
+          biometricBusy: _authenticating,
+          onDigit: _onDigit,
+          onBackspace: _onBackspace,
+          onBiometric: _unlock,
+          onLogout: () => ref.read(appStateProvider.notifier).logout(),
         ),
       ),
     );
   }
 }
+
+class _PinKeypadBody extends StatelessWidget {
+  const _PinKeypadBody({
+    required this.pin,
+    required this.pinLength,
+    required this.error,
+    required this.busy,
+    required this.biometricBusy,
+    required this.onDigit,
+    required this.onBackspace,
+    required this.onBiometric,
+    required this.onLogout,
+  });
+
+  final String pin;
+  final int pinLength;
+  final String? error;
+  final bool busy;
+  final bool biometricBusy;
+  final ValueChanged<String> onDigit;
+  final VoidCallback onBackspace;
+  final VoidCallback onBiometric;
+  final VoidCallback onLogout;
+
+  static const _rows = [
+    [('1', ''), ('2', 'ABC'), ('3', 'DEF')],
+    [('4', 'GHI'), ('5', 'JKL'), ('6', 'MNO')],
+    [('7', 'PQRS'), ('8', 'TUV'), ('9', 'WXYZ')],
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+      child: Column(
+        children: [
+          const ChBrandMark(size: 52),
+          const SizedBox(height: 10),
+          RichText(
+            text: TextSpan(
+              style: ChTextStyles.heading(fontSize: 26),
+              children: [
+                const TextSpan(text: 'Community'),
+                TextSpan(text: 'Hub', style: ChTextStyles.heading(fontSize: 26, color: ChColors.accent2)),
+              ],
+            ),
+          ),
+          const SizedBox(height: 28),
+          Text('Welcome back', style: ChTextStyles.heading(fontSize: 20)),
+          const SizedBox(height: 6),
+          Text(
+            'Enter your PIN or use biometrics to continue',
+            textAlign: TextAlign.center,
+            style: ChTextStyles.body(fontSize: 14, color: ChColors.bodyText),
+          ),
+          const SizedBox(height: 28),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              for (var i = 0; i < pinLength; i++) ...[
+                if (i > 0) const SizedBox(width: 14),
+                _PinDot(filled: i < pin.length),
+              ],
+            ],
+          ),
+          SizedBox(
+            height: 28,
+            child: error != null
+                ? Padding(
+                    padding: const EdgeInsets.only(top: 10),
+                    child: Text(
+                      error!,
+                      style: ChTextStyles.body(fontSize: 13, color: ChColors.danger),
+                      textAlign: TextAlign.center,
+                    ),
+                  )
+                : null,
+          ),
+          const SizedBox(height: 8),
+          for (final row in _rows) ...[
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                for (final (digit, letters) in row)
+                  _KeypadKey(
+                    onTap: busy ? null : () => onDigit(digit),
+                    child: _DigitLabel(digit: digit, letters: letters),
+                  ),
+              ],
+            ),
+            const SizedBox(height: 6),
+          ],
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              _KeypadKey(
+                onTap: busy ? null : onBiometric,
+                background: ChColors.accent2N(100),
+                child: biometricBusy
+                    ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(strokeWidth: 2, color: ChColors.accent2),
+                      )
+                    : Icon(Icons.fingerprint, size: context.rs(28), color: ChColors.accent2),
+              ),
+              _KeypadKey(
+                onTap: busy ? null : () => onDigit('0'),
+                child: const _DigitLabel(digit: '0', letters: ''),
+              ),
+              _KeypadKey(
+                onTap: busy ? null : onBackspace,
+                child: Icon(Icons.backspace_outlined, size: context.rs(22), color: ChColors.text),
+              ),
+            ],
+          ),
+          const SizedBox(height: 20),
+          TextButton(
+            onPressed: onLogout,
+            child: Text(
+              'Log Out',
+              style: ChTextStyles.body(fontSize: 14, fontWeight: FontWeight.w600, color: ChColors.bodyText),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _PinDot extends StatelessWidget {
+  const _PinDot({required this.filled});
+
+  final bool filled;
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 150),
+      width: context.rs(14),
+      height: context.rs(14),
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: filled ? ChColors.accent2 : Colors.transparent,
+        border: Border.all(color: filled ? ChColors.accent2 : ChColors.neutralN(300), width: 1.5),
+      ),
+    );
+  }
+}
+
+class _KeypadKey extends StatelessWidget {
+  const _KeypadKey({required this.onTap, required this.child, this.background});
+
+  final VoidCallback? onTap;
+  final Widget child;
+  final Color? background;
+
+  @override
+  Widget build(BuildContext context) {
+    final size = context.rs(72);
+    return Material(
+      color: background ?? Colors.transparent,
+      shape: const CircleBorder(),
+      child: InkWell(
+        onTap: onTap,
+        customBorder: const CircleBorder(),
+        child: SizedBox(width: size, height: size, child: Center(child: child)),
+      ),
+    );
+  }
+}
+
+class _DigitLabel extends StatelessWidget {
+  const _DigitLabel({required this.digit, required this.letters});
+
+  final String digit;
+  final String letters;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(digit, style: ChTextStyles.heading(fontSize: 26)),
+        if (letters.isNotEmpty)
+          Text(
+            letters,
+            style: ChTextStyles.body(fontSize: 10, fontWeight: FontWeight.w600, color: ChColors.bodyText),
+          ),
+      ],
+    );
+  }
+}
+

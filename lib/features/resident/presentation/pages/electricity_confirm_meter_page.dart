@@ -91,7 +91,15 @@ class ElectricityConfirmMeterPage extends ConsumerWidget {
                   child: GestureDetector(
                     onTap: () {
                       notifier.resetElectricityForm();
-                      context.push('/resident/electricity');
+                      // go(), not push() — this screen is often reached by
+                      // *pushing* straight here from the dashboard's saved-
+                      // meter shortcut (skipping steps 1-2 entirely), so a
+                      // push here would leave this now-reset Confirm page
+                      // buried in the stack — tapping back on step 1 would
+                      // land on it showing blank fields instead of on the
+                      // dashboard. go() replaces the branch's stack with
+                      // the correct dashboard-then-step-1 hierarchy instead.
+                      context.go('/resident/electricity');
                     },
                     child: Text(
                       'Not this meter? Change provider or meter number',
@@ -106,7 +114,14 @@ class ElectricityConfirmMeterPage extends ConsumerWidget {
                 SizedBox(height: context.rs(20)),
                 ChButton(
                   label: 'Proceed',
-                  onPressed: () => context.push('/resident/electricity/amount'),
+                  onPressed: () {
+                    final amount = int.tryParse(s.elecAmount.trim()) ?? 0;
+                    if (s.elecAmountPrefilled && amount >= 500) {
+                      context.push('/resident/electricity/payment');
+                    } else {
+                      context.push('/resident/electricity/amount');
+                    }
+                  },
                 ),
               ],
             ),

@@ -23,6 +23,7 @@ class ElectricityPaymentPage extends ConsumerWidget {
     final notifier = ref.read(appStateProvider.notifier);
     final amount = int.tryParse(s.elecAmount.trim()) ?? 0;
     final total = amount + _transactionFee;
+    final hasSufficientBalance = s.walletBalance >= total;
 
     return Column(
       children: [
@@ -57,10 +58,12 @@ class ElectricityPaymentPage extends ConsumerWidget {
                 SizedBox(height: context.rs(24)),
                 Text('Select Payment Method', style: ChTextStyles.heading(fontSize: 16)),
                 SizedBox(height: context.rs(14)),
-                const _PaymentMethodTile(
+                _PaymentMethodTile(
                   icon: Icons.account_balance_wallet_rounded,
                   label: 'Wallet Balance',
+                  subtitle: s.walletBalanceLabel,
                   selected: true,
+                  insufficientBalance: !hasSufficientBalance,
                 ),
                 SizedBox(height: context.rs(10)),
                 const _PaymentMethodTile(
@@ -75,6 +78,13 @@ class ElectricityPaymentPage extends ConsumerWidget {
                   comingSoon: true,
                 ),
                 SizedBox(height: context.rs(24)),
+                if (!hasSufficientBalance) ...[
+                  Text(
+                    'Your wallet balance is too low for this purchase.',
+                    style: ChTextStyles.body(fontSize: 13, color: ChColors.danger),
+                  ),
+                  SizedBox(height: context.rs(12)),
+                ],
                 if (s.utilityError.isNotEmpty) ...[
                   Text(s.utilityError, style: ChTextStyles.body(fontSize: 13, color: ChColors.danger)),
                   SizedBox(height: context.rs(12)),
@@ -82,14 +92,9 @@ class ElectricityPaymentPage extends ConsumerWidget {
                 ChButton(
                   label: 'Pay ${formatNaira(total)}',
                   isLoading: s.utilityLoading,
-                  onPressed: s.utilityLoading
+                  onPressed: (s.utilityLoading || !hasSufficientBalance)
                       ? null
-                      : () async {
-                          final success = await notifier.buyElectricity();
-                          if (success && context.mounted) {
-                            context.push('/resident/electricity/success');
-                          }
-                        },
+                      : () => notifier.requestAuthorization('electricity'),
                 ),
               ],
             ),
@@ -137,17 +142,22 @@ class _PaymentMethodTile extends StatelessWidget {
   const _PaymentMethodTile({
     required this.icon,
     required this.label,
+    this.subtitle,
     this.selected = false,
     this.comingSoon = false,
+    this.insufficientBalance = false,
   });
 
   final IconData icon;
   final String label;
+  final String? subtitle;
   final bool selected;
   final bool comingSoon;
+  final bool insufficientBalance;
 
   @override
   Widget build(BuildContext context) {
+    final accentColor = insufficientBalance ? ChColors.danger : ChColors.accent2;
     return Opacity(
       opacity: comingSoon ? 0.5 : 1,
       child: GestureDetector(
@@ -159,32 +169,47 @@ class _PaymentMethodTile extends StatelessWidget {
         child: Container(
           padding: EdgeInsets.symmetric(horizontal: context.rs(14), vertical: context.rs(12)),
           decoration: BoxDecoration(
-            color: selected ? ChColors.accent2N(100) : ChColors.surface,
+            color: selected ? accentColor.withValues(alpha: 0.08) : ChColors.surface,
             borderRadius: BorderRadius.circular(ChRadii.md),
-            border: Border.all(color: selected ? ChColors.accent2 : ChColors.divider),
+            border: Border.all(color: selected ? accentColor : ChColors.divider),
           ),
           child: Row(
             children: [
               Icon(icon, color: ChColors.bodyText, size: context.rs(20)),
               SizedBox(width: context.rs(10)),
               Expanded(
-                child: Row(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      label,
-                      style: ChTextStyles.body(fontSize: 14, fontWeight: FontWeight.w600, color: ChColors.text),
-                    ),
-                    if (comingSoon) ...[
-                      SizedBox(width: context.rs(8)),
-                      Container(
-                        padding: EdgeInsets.symmetric(horizontal: context.rs(8), vertical: context.rs(3)),
-                        decoration: BoxDecoration(
-                          color: ChColors.surfaceSunken,
-                          borderRadius: BorderRadius.circular(ChRadii.pill),
+                    Row(
+                      children: [
+                        Text(
+                          label,
+                          style: ChTextStyles.body(fontSize: 14, fontWeight: FontWeight.w600, color: ChColors.text),
                         ),
-                        child: Text(
-                          'Coming soon',
-                          style: ChTextStyles.body(fontSize: 10.5, fontWeight: FontWeight.w600, color: ChColors.bodyText),
+                        if (comingSoon) ...[
+                          SizedBox(width: context.rs(8)),
+                          Container(
+                            padding: EdgeInsets.symmetric(horizontal: context.rs(8), vertical: context.rs(3)),
+                            decoration: BoxDecoration(
+                              color: ChColors.surfaceSunken,
+                              borderRadius: BorderRadius.circular(ChRadii.pill),
+                            ),
+                            child: Text(
+                              'Coming soon',
+                              style: ChTextStyles.body(fontSize: 10.5, fontWeight: FontWeight.w600, color: ChColors.bodyText),
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                    if (subtitle != null) ...[
+                      SizedBox(height: context.rs(2)),
+                      Text(
+                        insufficientBalance ? '$subtitle · Insufficient' : subtitle!,
+                        style: ChTextStyles.body(
+                          fontSize: 12,
+                          color: insufficientBalance ? ChColors.danger : ChColors.bodyText,
                         ),
                       ),
                     ],
@@ -193,7 +218,7 @@ class _PaymentMethodTile extends StatelessWidget {
               ),
               Icon(
                 selected ? Icons.check_circle_rounded : Icons.circle_outlined,
-                color: selected ? ChColors.accent2 : ChColors.divider,
+                color: selected ? accentColor : ChColors.divider,
                 size: context.rs(20),
               ),
             ],

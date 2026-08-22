@@ -4,6 +4,32 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/theme/ch_colors.dart';
 import '../../../../core/theme/ch_responsive.dart';
 import '../../../../core/theme/ch_text_styles.dart';
+import '../../../../data/models/utility_meter.dart';
+
+/// Real logo asset if one's been added for this DISCO yet (matched by
+/// [disco.shortCode] lowercased, see [discoLogoAsset]); falls back to a
+/// generic bolt icon otherwise, since logos are added incrementally.
+/// Standalone — no background box — so each logo's own art shows as-is.
+class DiscoLogo extends StatelessWidget {
+  const DiscoLogo({super.key, required this.disco, required this.size});
+
+  final Disco disco;
+  final double size;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: size,
+      height: size,
+      child: Image.asset(
+        discoLogoAsset(disco),
+        fit: BoxFit.contain,
+        errorBuilder: (_, _, _) =>
+            Icon(Icons.bolt_rounded, color: ChColors.accent2, size: size * 0.7),
+      ),
+    );
+  }
+}
 
 /// Trailing header icon on every step of the electricity wizard — pushes to
 /// the purchase history list.

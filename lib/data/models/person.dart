@@ -15,6 +15,7 @@ class CurrentUser {
     this.vehiclePlates = const [],
     this.estateName,
     this.estateAddress,
+    this.hasPin = false,
   });
 
   factory CurrentUser.fromJson(Map<String, dynamic> json) {
@@ -31,6 +32,7 @@ class CurrentUser {
       vehiclePlates: (json['vehiclePlates'] as List?)?.cast<String>() ?? const [],
       estateName: json['estateName'] as String?,
       estateAddress: json['estateAddress'] as String?,
+      hasPin: json['hasPin'] as bool? ?? false,
     );
   }
 
@@ -46,6 +48,7 @@ class CurrentUser {
   final List<String> vehiclePlates;
   final String? estateName;
   final String? estateAddress;
+  final bool hasPin;
 
   String get first => fullName.split(' ').first;
 }
