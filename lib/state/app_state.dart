@@ -44,6 +44,11 @@ enum PaymentStep { idle, processing, success }
 
 enum VoiceStage { idle, listening, processing, error }
 
+/// Read-aloud state for a meeting report — separate from [VoiceStage] since
+/// reading a report is a much longer-lived TTS session than a normal voice
+/// reply, with its own pause/resume, not just listen-then-speak-once.
+enum ReportPlaybackState { stopped, playing, paused }
+
 String formatNaira(int amount) => '₦${NumberFormat('#,##0').format(amount)}';
 
 class GuardResult {
@@ -109,6 +114,8 @@ class AppState {
     this.voiceResponse = '',
     this.voiceNavigationTarget,
     this.pendingAuthorizationFor,
+    this.reportPlaybackState = ReportPlaybackState.stopped,
+    this.activeReportMeetingId,
     this.selectedVoice,
     List<TtsVoiceOption>? availableVoices,
     List<DuesEntry>? duesHistory,
@@ -276,6 +283,14 @@ class AppState {
   /// through identical authorization + execution + navigation logic.
   final String? pendingAuthorizationFor;
 
+  /// Whether a meeting report is currently being read aloud — see
+  /// [AppNotifier.playMeetingReport]/pauseMeetingReport/resumeMeetingReport/
+  /// stopMeetingReport. [activeReportMeetingId] identifies *which* meeting
+  /// it belongs to, so a detail page for a different meeting doesn't show
+  /// playback controls for a report it isn't the one reading.
+  final ReportPlaybackState reportPlaybackState;
+  final String? activeReportMeetingId;
+
   /// Null means "no preference set, use the device's default TTS voice."
   final TtsVoiceOption? selectedVoice;
 
@@ -404,6 +419,8 @@ class AppState {
     String? voiceResponse,
     Object? voiceNavigationTarget = _sentinel,
     Object? pendingAuthorizationFor = _sentinel,
+    ReportPlaybackState? reportPlaybackState,
+    Object? activeReportMeetingId = _sentinel,
     Object? selectedVoice = _sentinel,
     List<TtsVoiceOption>? availableVoices,
     List<DuesEntry>? duesHistory,
@@ -537,6 +554,10 @@ class AppState {
       pendingAuthorizationFor: identical(pendingAuthorizationFor, _sentinel)
           ? this.pendingAuthorizationFor
           : pendingAuthorizationFor as String?,
+      reportPlaybackState: reportPlaybackState ?? this.reportPlaybackState,
+      activeReportMeetingId: identical(activeReportMeetingId, _sentinel)
+          ? this.activeReportMeetingId
+          : activeReportMeetingId as String?,
       selectedVoice: identical(selectedVoice, _sentinel)
           ? this.selectedVoice
           : selectedVoice as TtsVoiceOption?,

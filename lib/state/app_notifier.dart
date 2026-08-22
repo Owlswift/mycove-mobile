@@ -98,6 +98,12 @@ class AppNotifier extends StateNotifier<AppState> {
   // Guards the addListener-driven speak-on-change hook above from
   // re-speaking the same text on every unrelated state mutation.
   String? _lastSpokenResponse;
+  // The report currently being read aloud, and how far into it playback
+  // got — see playMeetingReport/pauseMeetingReport/resumeMeetingReport.
+  // Tracked here rather than in AppState since it's TTS-engine plumbing,
+  // not anything the UI reads directly.
+  String? _reportText;
+  int _reportOffset = 0;
   // Which real screen voice is currently mid-flow with — drives how the
   // NEXT utterance is interpreted (a bare "20000" means different things
   // depending on whether we're still resolving BUY_ELECTRICITY's amount, or
@@ -1593,6 +1599,75 @@ class AppNotifier extends StateNotifier<AppState> {
     await _tts.speak(text);
   }
 
+  // ── Meeting report read-aloud ────────────────────────────────────────
+  //
+  // A meeting report can be several paragraphs — much longer than a normal
+  // voice reply — so it gets its own pause/resume rather than the
+  // one-shot speak-and-forget [_speak] uses. flutter_tts's own pause() is
+  // unreliable across platforms (well-supported on iOS, patchy on
+  // Android), so "pause" here just stops playback and remembers how far
+  // in [_tts]'s progress handler got; "resume" re-speaks from that same
+  // point. That works identically everywhere instead of depending on
+  // native pause/resume support.
+
+  Future<void> playMeetingReport(String meetingId, String text) async {
+    _reportText = text;
+    _reportOffset = 0;
+    await _configureTts();
+    await _tts.stop();
+    _tts.setProgressHandler((text, start, end, word) => _reportOffset = start);
+    state = state.copyWith(
+      reportPlaybackState: ReportPlaybackState.playing,
+      activeReportMeetingId: meetingId,
+    );
+    await _tts.speak(text);
+    _handleReportSpeakSettled(meetingId);
+  }
+
+  Future<void> pauseMeetingReport() async {
+    if (_reportText == null) return;
+    await _tts.stop();
+    state = state.copyWith(reportPlaybackState: ReportPlaybackState.paused);
+  }
+
+  Future<void> resumeMeetingReport() async {
+    final text = _reportText;
+    final meetingId = state.activeReportMeetingId;
+    if (text == null || meetingId == null) return;
+    await _configureTts();
+    state = state.copyWith(reportPlaybackState: ReportPlaybackState.playing);
+    await _tts.speak(text.substring(_reportOffset.clamp(0, text.length)));
+    _handleReportSpeakSettled(meetingId);
+  }
+
+  /// `awaitSpeakCompletion(true)` (see [_configureTts]) makes `speak()`'s
+  /// own Future resolve whenever speech ends, for *any* reason — including
+  /// a deliberate stop() from pause/stop, not just reaching the end of the
+  /// text. So finishing speak() only means "read to completion" if nothing
+  /// else already moved playback out of "playing" in the meantime (pause
+  /// and stop both do that themselves before this ever runs).
+  void _handleReportSpeakSettled(String meetingId) {
+    if (state.reportPlaybackState == ReportPlaybackState.playing &&
+        state.activeReportMeetingId == meetingId) {
+      _reportText = null;
+      _reportOffset = 0;
+      state = state.copyWith(
+        reportPlaybackState: ReportPlaybackState.stopped,
+        activeReportMeetingId: null,
+      );
+    }
+  }
+
+  Future<void> stopMeetingReport() async {
+    await _tts.stop();
+    _reportText = null;
+    _reportOffset = 0;
+    state = state.copyWith(
+      reportPlaybackState: ReportPlaybackState.stopped,
+      activeReportMeetingId: null,
+    );
+  }
+
   Future<void> _restoreSavedVoice() async {
     final saved = await _voiceSettingsStorage.readVoice();
     if (saved == null) return;
@@ -1858,6 +1933,8 @@ class AppNotifier extends StateNotifier<AppState> {
         await _answerElectricitySpendByMonth(parsed.month);
       case VoiceIntent.nextMeeting:
         await _answerNextMeeting();
+      case VoiceIntent.lastMeetingReport:
+        await _answerLastMeetingReport();
       case VoiceIntent.visitorCount:
         await _answerVisitorCount(parsed.weekCount);
       case VoiceIntent.newUpdates:
@@ -1927,6 +2004,41 @@ class AppNotifier extends StateNotifier<AppState> {
         'Your next meeting is "${next.title}" on ${next.date} at ${next.time}, ${next.location}.',
         navigateTo: '/resident/meetings/${next.id}',
       );
+    }
+  }
+
+  /// The most recent meeting whose scheduled time has already passed —
+  /// shared by every "what happened at the last meeting"-style voice
+  /// answer. `null` means no past meeting exists at all yet.
+  Meeting? _lastPastMeeting() {
+    final past = state.meetings.where((m) => m.scheduledAt.isBefore(DateTime.now())).toList();
+    return past.isEmpty ? null : past.last;
+  }
+
+  /// Reads the secretary's actual report verbatim — never an AI
+  /// interpretation of it — for the most recent meeting that's already
+  /// happened. [state.meetings] only carries list-summary fields, so the
+  /// report text itself is fetched fresh from the detail endpoint.
+  Future<void> _answerLastMeetingReport() async {
+    final last = _lastPastMeeting();
+    if (last == null) {
+      _showTerminalResponse("You don't have any past meetings recorded yet.");
+      return;
+    }
+    state = state.copyWith(voiceStage: VoiceStage.idle, voiceNavigationTarget: '/resident/meetings/${last.id}');
+    try {
+      final detail = await _api.meeting(last.id);
+      final report = (detail['report'] as String?)?.trim();
+      if (report == null || report.isEmpty) {
+        await _speak('The last meeting was "${last.title}" on ${last.date}, but no report has been added yet.');
+        return;
+      }
+      await _speak(
+        'The last meeting was held on ${last.date}. Here is the meeting report documented by the secretary.',
+      );
+      await playMeetingReport(last.id, report);
+    } catch (e) {
+      await _speak("Sorry, I couldn't load the meeting report right now.");
     }
   }
 

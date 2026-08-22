@@ -17,6 +17,7 @@ enum VoiceIntent {
   duesMonthsPaid,
   electricitySpendByMonth,
   nextMeeting,
+  lastMeetingReport,
   visitorCount,
   newUpdates,
 }
@@ -119,6 +120,20 @@ ParsedVoiceCommand? parseVoiceCommand(String rawText) {
     'my wallet',
   ])) {
     return const ParsedVoiceCommand(intent: VoiceIntent.checkBalance);
+  }
+  // Checked before the generic 'meeting' match below — anything asking
+  // about what already happened (report/discussed/decided/etc.) means the
+  // last past meeting's report, not the upcoming one's date/time.
+  if (_matchesAny(text, [
+    'last meeting',
+    'previous meeting',
+    'meeting report',
+    'meeting minutes',
+    'what was discussed',
+    'what happened at',
+    'what happened in',
+  ])) {
+    return const ParsedVoiceCommand(intent: VoiceIntent.lastMeetingReport);
   }
   if (_matchesAny(text, ['next meeting', 'meeting'])) {
     return const ParsedVoiceCommand(intent: VoiceIntent.nextMeeting);
