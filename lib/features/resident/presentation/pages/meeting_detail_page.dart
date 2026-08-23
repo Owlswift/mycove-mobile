@@ -48,7 +48,7 @@ class MeetingDetailPage extends ConsumerWidget {
             error: (e, _) => Center(
               child: Text(
                 'Could not load this meeting.',
-                style: ChTextStyles.body(fontSize: 14, color: ChColors.bodyText),
+                style: ChTextStyles.body(fontSize: 14, color: ChColors.text),
               ),
             ),
             data: (json) {
@@ -73,13 +73,13 @@ class MeetingDetailPage extends ConsumerWidget {
                       const SizedBox(height: 8),
                       Text(
                         '${json['date']} at ${json['time']}',
-                        style: ChTextStyles.body(fontSize: 14, color: ChColors.bodyText),
+                        style: ChTextStyles.body(fontSize: 14, color: ChColors.text),
                       ),
-                      Text(json['location'] as String, style: ChTextStyles.body(fontSize: 14, color: ChColors.bodyText)),
+                      Text(json['location'] as String, style: ChTextStyles.body(fontSize: 14, color: ChColors.text)),
                       const SizedBox(height: 16),
                       Text(
                         'AGENDA',
-                        style: ChTextStyles.body(fontSize: 11, fontWeight: FontWeight.w700, color: ChColors.bodyText)
+                        style: ChTextStyles.body(fontSize: 11, fontWeight: FontWeight.w700, color: ChColors.text)
                             .copyWith(letterSpacing: 1),
                       ),
                       const SizedBox(height: 8),
@@ -103,7 +103,7 @@ class MeetingDetailPage extends ConsumerWidget {
                         const SizedBox(height: 16),
                         Text(
                           'MEETING REPORT',
-                          style: ChTextStyles.body(fontSize: 11, fontWeight: FontWeight.w700, color: ChColors.bodyText)
+                          style: ChTextStyles.body(fontSize: 11, fontWeight: FontWeight.w700, color: ChColors.text)
                               .copyWith(letterSpacing: 1),
                         ),
                         const SizedBox(height: 8),
@@ -132,7 +132,7 @@ class MeetingDetailPage extends ConsumerWidget {
                                 ),
                                 child: Text(
                                   t,
-                                  style: ChTextStyles.body(fontSize: 11.5, color: ChColors.bodyText),
+                                  style: ChTextStyles.body(fontSize: 11.5, color: ChColors.text),
                                 ),
                               ),
                           ],
@@ -253,14 +253,14 @@ class _ControlButton extends StatelessWidget {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(icon, size: 18, color: isSecondary ? ChColors.bodyText : Colors.white),
+            Icon(icon, size: 18, color: isSecondary ? ChColors.text : Colors.white),
             const SizedBox(width: 6),
             Text(
               label,
               style: ChTextStyles.body(
                 fontSize: 13,
                 fontWeight: FontWeight.w600,
-                color: isSecondary ? ChColors.bodyText : Colors.white,
+                color: isSecondary ? ChColors.text : Colors.white,
               ),
             ),
           ],

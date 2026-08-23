@@ -51,13 +51,10 @@ class _ForceResetPageState extends ConsumerState<ForceResetPage> {
 
     // A household-invited member's profile is already complete — same
     // house as whoever invited them (see HouseholdService.approveInvite),
-    // and their name came from the invite itself. Nothing left for them to
-    // fill in, so skip straight past the profile step admin-created
-    // accounts still need.
-    if (ref.read(appStateProvider).currentUser?.invitedByName != null) {
-      await ref.read(appStateProvider.notifier).completeForceReset();
-      return;
-    }
+    // and their name came from the invite itself, so they skip the full
+    // profile form. They still walk through an emergency-contact step,
+    // though: every other resident provides one during this wizard and
+    // the SOS screen leans on it.
     setState(() => _step = 1);
   }
 
@@ -94,6 +91,8 @@ class _ForceResetPageState extends ConsumerState<ForceResetPage> {
                 rulesMet: _rulesMet,
                 onShowHelp: () => _showHelp(context),
               )
+            : ref.read(appStateProvider).currentUser?.invitedByName != null
+            ? _HouseholdContactStep(onBack: () => setState(() => _step = 0))
             : _ProfileStep(onBack: () => setState(() => _step = 0)),
       ),
     );
@@ -483,6 +482,215 @@ class _RuleCheck extends StatelessWidget {
                 fontSize: 10.5,
                 height: 1.2,
               ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Emergency-contact step for household-invited members. Their name/house
+/// came from the invite (see HouseholdService.approveInvite), so instead
+/// of the full profile form they get this focused step: confirm who they
+/// are, optionally add an emergency contact, done. Same submit path as
+/// [_ProfileStep] — AppNotifier.completeForceReset already sends whatever
+/// contact fields were filled in.
+class _HouseholdContactStep extends ConsumerWidget {
+  const _HouseholdContactStep({required this.onBack});
+
+  final VoidCallback onBack;
+
+  void _showHelp(BuildContext context) {
+    showDialog<void>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Need help?'),
+        content: const Text(
+          'Contact your estate management office if you have trouble setting up your account.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            style: TextButton.styleFrom(foregroundColor: ChColors.text),
+            child: const Text('OK'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final s = ref.watch(appStateProvider);
+    final notifier = ref.read(appStateProvider.notifier);
+    final user = s.currentUser;
+
+    return SingleChildScrollView(
+      padding: const EdgeInsets.fromLTRB(20, 12, 20, 28),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              ChSquareIconButton(
+                icon: Icons.arrow_back,
+                onTap: onBack,
+                iconColor: ChColors.accent2,
+              ),
+              ChHelpPill(
+                onTap: () => _showHelp(context),
+                color: ChColors.accent2,
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          const _StepProgress(current: 1, total: 1),
+          const SizedBox(height: 16),
+          Center(
+            child: Text(
+              'Almost Done',
+              style: ChTextStyles.heading(fontSize: 26),
+              textAlign: TextAlign.center,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Center(
+            child: Text(
+              'Add an emergency contact so we know who to reach alongside estate security.',
+              textAlign: TextAlign.center,
+              style: ChTextStyles.body(
+                fontSize: 14,
+                color: ChColors.bodyText,
+                height: 1.4,
+              ),
+            ),
+          ),
+          const SizedBox(height: 20),
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              color: ChColors.surfaceSunken,
+              borderRadius: BorderRadius.circular(ChRadii.card),
+            ),
+            child: Row(
+              children: [
+                Container(
+                  width: context.rs(44),
+                  height: context.rs(44),
+                  alignment: Alignment.center,
+                  decoration: const BoxDecoration(
+                    color: ChColors.accent2,
+                    shape: BoxShape.circle,
+                  ),
+                  child: Text(
+                    user?.initials ?? '',
+                    style: ChTextStyles.body(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+                SizedBox(width: context.rs(12)),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        user?.fullName ?? '',
+                        style: ChTextStyles.body(
+                          fontSize: 13.5,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      if (user?.house?.isNotEmpty ?? false) ...[
+                        const SizedBox(height: 2),
+                        Text(
+                          'Joined ${user!.invitedByName}\u2019s household · ${user.house}',
+                          style: ChTextStyles.body(
+                            fontSize: 12,
+                            color: ChColors.bodyText,
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          const SizedBox(height: 16),
+          _EmergencyContactField(
+            value: s.setupEmergencyContactPhone,
+            onChanged: notifier.onSetupEmergencyContactPhone,
+          ),
+          const SizedBox(height: 6),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 4),
+            child: Text(
+              'We\'ll only use this during an SOS emergency.',
+              style: ChTextStyles.body(
+                fontSize: 12,
+                color: ChColors.bodyText,
+              ),
+            ),
+          ),
+          const SizedBox(height: 18),
+          if (s.resetMsg.isNotEmpty) ...[
+            Text(
+              s.resetMsg,
+              style: ChTextStyles.body(fontSize: 13, color: ChColors.danger),
+            ),
+            const SizedBox(height: 12),
+          ],
+          GestureDetector(
+            onTap: s.isLoading ? null : notifier.completeForceReset,
+            child: Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(
+                vertical: 15,
+                horizontal: 20,
+              ),
+              decoration: BoxDecoration(
+                color: ChColors.accent2,
+                borderRadius: BorderRadius.circular(ChRadii.button),
+              ),
+              child: s.isLoading
+                  ? Center(
+                      child: SizedBox(
+                        width: context.rs(20),
+                        height: context.rs(20),
+                        child: const CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Colors.white,
+                        ),
+                      ),
+                    )
+                  : Stack(
+                      alignment: Alignment.center,
+                      children: [
+                        Text(
+                          'Save & Continue',
+                          style: ChTextStyles.body(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.white,
+                          ),
+                        ),
+                        Align(
+                          alignment: Alignment.centerRight,
+                          child: Icon(
+                            Icons.arrow_forward_rounded,
+                            size: context.rs(18),
+                            color: Colors.white,
+                          ),
+                        ),
+                      ],
+                    ),
             ),
           ),
         ],

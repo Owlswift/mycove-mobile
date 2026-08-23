@@ -51,7 +51,7 @@ class MeetingsPage extends ConsumerWidget {
                               const SizedBox(height: 6),
                               Text(
                                 '${item.date} · ${item.time} · ${item.location}',
-                                style: ChTextStyles.body(fontSize: 13, color: ChColors.bodyText),
+                                style: ChTextStyles.body(fontSize: 13, color: ChColors.text),
                               ),
                               const SizedBox(height: 4),
                               Text(

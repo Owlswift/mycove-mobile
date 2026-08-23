@@ -10,11 +10,6 @@ import '../../../../core/widgets/ch_button.dart';
 import '../../../../core/widgets/ch_generic_header.dart';
 import '../../../../state/app_notifier.dart';
 
-// The estate doesn't have a security-desk/management-office number stored
-// anywhere in the backend yet — these are placeholders until that lands.
-const _estateSecurityPhone = '0800 123 4567';
-const _managementOfficePhone = '0800 765 4321';
-
 class SosPage extends ConsumerWidget {
   const SosPage({super.key});
 
@@ -51,7 +46,14 @@ class SosPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final user = ref.watch(appStateProvider).currentUser;
+    final s = ref.watch(appStateProvider);
+    final user = s.currentUser;
+    // Estate-wide numbers come from the admin-configured estate settings —
+    // either can be unset while the admin hasn't configured it yet, so each
+    // row only shows when a real number exists (no more placeholder dials).
+    final securityPhone = s.securityGuardPhone;
+    final officePhone = s.estateAdminPhone;
+    final hasPersonalContact = user?.emergencyContactPhone?.isNotEmpty ?? false;
 
     return Column(
       children: [
@@ -116,33 +118,46 @@ class SosPage extends ConsumerWidget {
                 const SizedBox(height: 18),
                 Text('Emergency Contacts', style: ChTextStyles.heading(fontSize: 15)),
                 const SizedBox(height: 12),
-                Container(
-                  width: double.infinity,
-                  decoration: BoxDecoration(color: ChColors.surface, borderRadius: BorderRadius.circular(ChRadii.card)),
-                  child: Column(
-                    children: [
-                      _ContactRow(
-                        label: 'Estate Security',
-                        phone: _estateSecurityPhone,
-                        showBorder: true,
-                        onTap: () => _copyNumber(context, _estateSecurityPhone),
-                      ),
-                      _ContactRow(
-                        label: 'Management Office',
-                        phone: _managementOfficePhone,
-                        showBorder: user?.emergencyContactPhone?.isNotEmpty ?? false,
-                        onTap: () => _copyNumber(context, _managementOfficePhone),
-                      ),
-                      if (user?.emergencyContactPhone?.isNotEmpty ?? false)
-                        _ContactRow(
-                          label: user?.emergencyContactName?.isNotEmpty ?? false ? user!.emergencyContactName! : 'Your Emergency Contact',
-                          phone: user!.emergencyContactPhone!,
-                          showBorder: false,
-                          onTap: () => _copyNumber(context, user.emergencyContactPhone!),
-                        ),
-                    ],
+                if (securityPhone == null && officePhone == null && !hasPersonalContact)
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(color: ChColors.surface, borderRadius: BorderRadius.circular(ChRadii.card)),
+                    child: Text(
+                      'No emergency contacts have been set up yet. Add a personal one from your profile, or ask estate management to publish their numbers.',
+                      style: ChTextStyles.body(fontSize: 12.5, color: ChColors.bodyText, height: 1.4),
+                    ),
+                  )
+                else
+                  Container(
+                    width: double.infinity,
+                    decoration: BoxDecoration(color: ChColors.surface, borderRadius: BorderRadius.circular(ChRadii.card)),
+                    child: Column(
+                      children: [
+                        if (securityPhone != null)
+                          _ContactRow(
+                            label: 'Estate Security',
+                            phone: securityPhone,
+                            showBorder: true,
+                            onTap: () => _copyNumber(context, securityPhone),
+                          ),
+                        if (officePhone != null)
+                          _ContactRow(
+                            label: 'Estate Admin',
+                            phone: officePhone,
+                            showBorder: hasPersonalContact || securityPhone != null,
+                            onTap: () => _copyNumber(context, officePhone),
+                          ),
+                        if (hasPersonalContact)
+                          _ContactRow(
+                            label: user?.emergencyContactName?.isNotEmpty ?? false ? user!.emergencyContactName! : 'Your Emergency Contact',
+                            phone: user!.emergencyContactPhone!,
+                            showBorder: false,
+                            onTap: () => _copyNumber(context, user.emergencyContactPhone!),
+                          ),
+                      ],
+                    ),
                   ),
-                ),
               ],
             ),
           ),

@@ -69,6 +69,8 @@ class AppState {
     this.currentUser,
     this.estateName,
     this.estateAddress,
+    this.securityGuardPhone,
+    this.estateAdminPhone,
     this.estateImage,
     this.estateLocked = false,
     this.estateCodeInput = '',
@@ -193,6 +195,15 @@ class AppState {
 
   final String? estateName;
   final String? estateAddress;
+
+  /// Estate-wide security-desk duty phone shown on the SOS screen — set by
+  /// the estate admin on the web dashboard (see EstateSettingsPage there),
+  /// fetched during resident bootstrap. Null until the admin configures it.
+  final String? securityGuardPhone;
+
+  /// Management-office number shown alongside [securityGuardPhone] on the
+  /// SOS screen — same lifecycle.
+  final String? estateAdminPhone;
 
   /// Base64 data URL of this estate's own photo (see [ChDataMedia]) —
   /// fetched once via [pendingEstateImage] when the estate code resolves,
@@ -374,6 +385,8 @@ class AppState {
     Object? currentUser = _sentinel,
     Object? estateName = _sentinel,
     Object? estateAddress = _sentinel,
+    Object? securityGuardPhone = _sentinel,
+    Object? estateAdminPhone = _sentinel,
     Object? estateImage = _sentinel,
     bool? estateLocked,
     String? estateCodeInput,
@@ -480,6 +493,12 @@ class AppState {
       estateAddress: identical(estateAddress, _sentinel)
           ? this.estateAddress
           : estateAddress as String?,
+      securityGuardPhone: identical(securityGuardPhone, _sentinel)
+          ? this.securityGuardPhone
+          : securityGuardPhone as String?,
+      estateAdminPhone: identical(estateAdminPhone, _sentinel)
+          ? this.estateAdminPhone
+          : estateAdminPhone as String?,
       estateImage: identical(estateImage, _sentinel)
           ? this.estateImage
           : estateImage as String?,

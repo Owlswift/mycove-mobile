@@ -90,6 +90,8 @@ class AppNotifier extends StateNotifier<AppState> {
   final Ref _ref;
   final _random = Random();
   final _localAuth = LocalAuthentication();
+  int _loginAttempts = 0;
+  int _otpAttempts = 0;
   // True while a biometric prompt we ourselves triggered is up (or in the
   // brief window right after it closes) — see refreshOnResume/
   // unlockWithBiometrics for why this exists.
@@ -149,7 +151,8 @@ class AppNotifier extends StateNotifier<AppState> {
     _analytics.identify(
       userId: user.id,
       role: user.role,
-      platform: _platform,
+      fullName: user.fullName,
+      phone: user.phone,
       estateName: user.estateName,
     );
   }
@@ -382,7 +385,8 @@ class AppNotifier extends StateNotifier<AppState> {
 
   Future<void> doLogin() async {
     state = state.copyWith(isLoading: true, loginError: '');
-    _analytics.track('login_started', {'role': _roleToApi(state.role)});
+    final loginStart = DateTime.now();
+    _analytics.track('login_started', {'login_method': 'password'});
     try {
       final (platform, deviceName) = await _deviceInfo();
       final result = await _api.login(
@@ -445,13 +449,18 @@ class AppNotifier extends StateNotifier<AppState> {
         biometricEnabled: await _biometricStorage.readEnabled(),
       );
       _identifyAnalytics();
-      _analytics.track('login_success', {'role': user.role});
+      _analytics.track('login_success', {
+        'login_method': 'password',
+        'duration_ms': DateTime.now().difference(loginStart).inMilliseconds,
+      });
       unawaited(_registerPushToken());
     } catch (e) {
       _analytics.track('login_failed', {
-        'role': _roleToApi(state.role),
-        'error': extractMessage(e),
+        'login_method': 'password',
+        'failure_reason': extractMessage(e),
+        'attempt_number': _loginAttempts,
       });
+      _loginAttempts++;
       state = state.copyWith(isLoading: false, loginError: extractMessage(e));
     }
   }
@@ -465,14 +474,20 @@ class AppNotifier extends StateNotifier<AppState> {
     state = state.copyWith(isLoading: true, resetMsg: '');
     try {
       final result = await _api.forgotPassword(_digitsOnly(state.forgotPhone));
-      _analytics.track('otp_requested', {'success': true});
+      _analytics.track('otp_requested', {
+        'otp_type': 'password_reset',
+        'channel': 'sms',
+      });
       state = state.copyWith(
         authStage: AuthStage.otp,
         isLoading: false,
         devOtp: result['devOtp'] as String?,
       );
     } catch (e) {
-      _analytics.track('otp_requested', {'success': false});
+      _analytics.track('otp_requested', {
+        'otp_type': 'password_reset',
+        'channel': 'sms',
+      });
       state = state.copyWith(isLoading: false, resetMsg: extractMessage(e));
     }
   }
@@ -483,6 +498,7 @@ class AppNotifier extends StateNotifier<AppState> {
   }
 
   Future<void> verifyOtp() async {
+    final otpStart = DateTime.now();
     if (state.otpCode.length != 6) {
       state = state.copyWith(
         resetMsg: 'Enter the 6-digit code sent to your phone.',
@@ -495,14 +511,25 @@ class AppNotifier extends StateNotifier<AppState> {
         phone: _digitsOnly(state.forgotPhone),
         code: state.otpCode,
       );
-      _analytics.track('otp_verified', {'success': true});
+      _analytics.track('otp_verified', {
+        'otp_type': 'password_reset',
+        'channel': 'sms',
+        'attempt_number': _otpAttempts,
+        'duration_ms': DateTime.now().difference(otpStart).inMilliseconds,
+      });
       state = state.copyWith(
         authStage: AuthStage.newPassword,
         resetToken: result['resetToken'] as String,
         isLoading: false,
       );
     } catch (e) {
-      _analytics.track('otp_verified', {'success': false});
+      _analytics.track('otp_verified', {
+        'otp_type': 'password_reset',
+        'channel': 'sms',
+        'attempt_number': _otpAttempts,
+        'duration_ms': DateTime.now().difference(otpStart).inMilliseconds,
+      });
+      _otpAttempts++;
       state = state.copyWith(isLoading: false, resetMsg: extractMessage(e));
     }
   }
@@ -661,6 +688,27 @@ class AppNotifier extends StateNotifier<AppState> {
   /// batched fetch bootstrap used at login, so every screen it feeds stays
   /// in sync with whatever it refetches.
   Future<void> refreshResident() => _bootstrapResident();
+
+  /// Persists an emergency-contact edit from the profile page and swaps in
+  /// the fresh [CurrentUser] the API echoes back. Returns null on success,
+  /// otherwise a user-facing error string — same contract as
+  /// [sendHouseholdInvite]. This is also how household-invited members add
+  /// an emergency contact after the fact, since their first-login flow
+  /// skips the profile-completion step entirely.
+  Future<String?> saveEmergencyContact({required String name, required String phone}) async {
+    try {
+      final updated = CurrentUser.fromJson(
+        await _api.updateMe(
+          emergencyContactName: name.trim(),
+          emergencyContactPhone: phone.trim(),
+        ),
+      );
+      state = state.copyWith(currentUser: updated);
+      return null;
+    } catch (e) {
+      return extractMessage(e);
+    }
+  }
 
   /// Pull-to-refresh for the guard access-log screen — re-runs the same
   /// fetch bootstrap used at guard login, so the log stays in sync with
@@ -851,6 +899,19 @@ class AppNotifier extends StateNotifier<AppState> {
       _api.householdMembers(),
       _api.householdInvites(),
     ]);
+    // Fetched outside the batch above on purpose: an admin who hasn't set
+    // estate emergency numbers yet (or an older API without them) must not
+    // fail the entire dashboard refresh — the SOS screen just falls back
+    // to hiding those rows.
+    try {
+      final contacts = await _api.estateEmergencyContacts();
+      state = state.copyWith(
+        securityGuardPhone: contacts['securityGuardPhone'] as String?,
+        estateAdminPhone: contacts['estateAdminPhone'] as String?,
+      );
+    } catch (_) {
+      // Keep whatever was previously loaded (or null) — non-fatal.
+    }
 
     final announcements = (results[0] as List)
         .map((j) => Announcement.fromJson(j as Map<String, dynamic>))
@@ -1006,7 +1067,12 @@ class AppNotifier extends StateNotifier<AppState> {
   Future<void> confirmPayment() async {
     state = state.copyWith(paymentStep: PaymentStep.processing);
     final amount = state.duesBalance;
-    _analytics.track('dues_payment_started', {'amount': amount});
+    final paymentStart = DateTime.now();
+    _analytics.track('dues_payment_started', {
+      'amount': amount,
+      'payment_method': 'paystack',
+      'payment_type': 'monthly_dues',
+    });
     try {
       final initiated = await _api.initiatePayment(
         amount: amount,
@@ -1021,7 +1087,12 @@ class AppNotifier extends StateNotifier<AppState> {
       }
 
       if (status == 'SUCCESS') {
-        _analytics.track('dues_payment_success', {'amount': amount, 'reference': reference});
+        _analytics.track('dues_payment_success', {
+          'amount': amount,
+          'payment_method': 'paystack',
+          'payment_type': 'monthly_dues',
+          'duration_ms': DateTime.now().difference(paymentStart).inMilliseconds,
+        });
         final dues = await _api.dues();
         state = state.copyWith(
           paymentStep: PaymentStep.success,
@@ -1032,11 +1103,21 @@ class AppNotifier extends StateNotifier<AppState> {
               .toList(),
         );
       } else {
-        _analytics.track('dues_payment_failed', {'amount': amount, 'reference': reference});
+        _analytics.track('dues_payment_failed', {
+          'amount': amount,
+          'payment_method': 'paystack',
+          'payment_type': 'monthly_dues',
+          'failure_reason': 'payment_not_successful',
+        });
         state = state.copyWith(paymentStep: PaymentStep.idle);
       }
     } catch (_) {
-      _analytics.track('dues_payment_failed', {'amount': amount});
+      _analytics.track('dues_payment_failed', {
+        'amount': amount,
+        'payment_method': 'paystack',
+        'payment_type': 'monthly_dues',
+        'failure_reason': 'exception',
+      });
       state = state.copyWith(paymentStep: PaymentStep.idle);
     }
   }
@@ -1330,6 +1411,8 @@ class AppNotifier extends StateNotifier<AppState> {
     _analytics.track('airtime_purchase_started', {
       'amount': amount,
       'network': state.airtimeNetwork,
+      'payment_method': 'wallet',
+      'entry_point': 'manual',
     });
     try {
       final json = await _api.buyAirtime(
@@ -1351,6 +1434,7 @@ class AppNotifier extends StateNotifier<AppState> {
         {
           'amount': amount,
           'network': state.airtimeNetwork,
+          'payment_method': 'wallet',
           if (!success && purchase.failureReason != null)
             'failure_reason': purchase.failureReason,
         },
@@ -1366,6 +1450,7 @@ class AppNotifier extends StateNotifier<AppState> {
       _analytics.track('airtime_purchase_failed', {
         'amount': amount,
         'network': state.airtimeNetwork,
+        'payment_method': 'wallet',
         'failure_reason': extractMessage(e),
       });
       state = state.copyWith(utilityLoading: false, utilityError: extractMessage(e));
@@ -1545,7 +1630,10 @@ class AppNotifier extends StateNotifier<AppState> {
     state = state.copyWith(utilityLoading: true, utilityError: '');
     _analytics.track('electricity_purchase_started', {
       'amount': amount,
-      'disco_code': state.elecDiscoCode,
+      'disco': state.elecDiscoCode,
+      'meter_type': state.elecMeterType,
+      'payment_method': 'wallet',
+      'entry_point': 'manual',
     });
     try {
       final meterJson = await _api.saveMeter(
@@ -1570,7 +1658,8 @@ class AppNotifier extends StateNotifier<AppState> {
         success ? 'electricity_purchase_success' : 'electricity_purchase_failed',
         {
           'amount': amount,
-          'disco_code': state.elecDiscoCode,
+          'disco': state.elecDiscoCode,
+          'payment_method': 'wallet',
           if (!success && purchase.failureReason != null)
             'failure_reason': purchase.failureReason,
         },
@@ -1591,7 +1680,8 @@ class AppNotifier extends StateNotifier<AppState> {
     } catch (e) {
       _analytics.track('electricity_purchase_failed', {
         'amount': amount,
-        'disco_code': state.elecDiscoCode,
+        'disco': state.elecDiscoCode,
+        'payment_method': 'wallet',
         'failure_reason': extractMessage(e),
       });
       state = state.copyWith(utilityLoading: false, utilityError: extractMessage(e));
@@ -1649,7 +1739,7 @@ class AppNotifier extends StateNotifier<AppState> {
         state.elecDiscoCode.isNotEmpty &&
         state.elecVerifiedName == null;
     _analytics.track('voice_listening_started', {
-      'awaiting_meter_number': awaitingMeterNumber,
+      'voice_mode': awaitingMeterNumber ? 'meter_number' : 'command',
     });
     await _speech.listen(
       onResult: (result) {
@@ -1883,7 +1973,8 @@ class AppNotifier extends StateNotifier<AppState> {
     _turnParseResult = null;
     _turnLatency..reset()..start();
     _analytics.track('voice_transcript_received', {
-      'transcript': redactTranscript(transcript),
+      'transcript_length': transcript.length,
+      'language': Platform.localeName,
     });
     try {
       await _processVoiceTranscript(transcript);
@@ -1893,8 +1984,8 @@ class AppNotifier extends StateNotifier<AppState> {
       if (parsed != null) {
         _analytics.track('voice_intent_detected', {
           'intent': parsed.intent.name,
+          'parser_version': kParserVersion,
           'matched_rule': parsed.matchedBy.join(','),
-          'latency_ms': latencyMs,
           if (parsed.amount != null) 'amount': parsed.amount!,
           if (parsed.network != null) 'network': parsed.network!,
           if (parsed.month != null) 'month': parsed.month!,
@@ -1902,7 +1993,8 @@ class AppNotifier extends StateNotifier<AppState> {
         });
       } else {
         _analytics.track('voice_intent_unrecognized', {
-          'transcript': redactTranscript(transcript),
+          'parser_version': kParserVersion,
+          'transcript_length': transcript.length,
         });
       }
       unawaited(_voiceLog.append(VoiceLogEntry(
@@ -1926,8 +2018,8 @@ class AppNotifier extends StateNotifier<AppState> {
       if (state.voiceNavigationTarget != null) {
         _analytics.track('voice_command_executed', {
           'intent': parsed?.intent.name ?? 'none',
-          'navigation_target': state.voiceNavigationTarget,
-          'latency_ms': latencyMs,
+          'success': true,
+          'duration_ms': latencyMs,
         });
       }
     }

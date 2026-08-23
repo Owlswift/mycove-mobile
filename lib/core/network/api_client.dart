@@ -3,19 +3,19 @@ import 'api_exception.dart';
 import 'estate_storage.dart';
 import 'token_storage.dart';
 
-/// Defaults to the Cloudflare quick tunnel so a build handed to a remote
-/// tester works out of the box with no extra flags — that tunnel URL
-/// changes every time `cloudflared tunnel --url http://localhost:3000` is
-/// restarted on the dev machine, so update it here when that happens.
-/// For same-network local testing (faster, no tunnel hop), override with
-/// the Mac's LAN IP instead:
-/// flutter run --dart-define=API_BASE_URL=http://192.168.1.23:3000/api
+/// Defaults to the dev Mac's LAN IP so the app on a simulator or a phone on
+/// the same Wi-Fi hits the local API (`npm run start:dev` in communityhub-api,
+/// which listens on 0.0.0.0:3000). Update the IP here when the Mac's DHCP
+/// lease changes (`ipconfig getifaddr en0`).
+/// For remote testers, override with a Cloudflare quick tunnel instead:
+/// cloudflared tunnel --url http://localhost:3000
+/// flutter run --dart-define=API_BASE_URL=https://`<tunnel-host>`/api
 const _baseUrlOverride = String.fromEnvironment('API_BASE_URL');
-const _tunnelUrl = 'https://fewer-fda-referred-constraints.trycloudflare.com/api';
+const _lanUrl = 'http://192.168.100.175:3001/api';
 
 String get _baseUrl {
   if (_baseUrlOverride.isNotEmpty) return _baseUrlOverride;
-  return _tunnelUrl;
+  return _lanUrl;
 }
 
 class ApiClient {

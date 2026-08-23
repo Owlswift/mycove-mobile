@@ -62,6 +62,11 @@ class ParsedVoiceCommand {
   final DateTime? meetingDate;
 }
 
+/// Version tag for the on-device voice parser — sent with every voice
+/// analytics event so Mixpanel funnels can be segmented by parser version
+/// when improvements are shipped.
+const kParserVersion = '1.0.0';
+
 /// Null means the transcript didn't match anything this parser understands
 /// — the caller should show a "sorry, I didn't understand that" response
 /// rather than guess.

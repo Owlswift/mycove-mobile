@@ -51,6 +51,7 @@ dependencies:
   add_2_calendar: ^3.0.1
   local_auth: ^2.3.0
   device_info_plus: ^11.2.0
+  package_info_plus: ^9.0.1
   iconsax_flutter: ^1.0.0
   speech_to_text: ^7.0.0
   flutter_tts: ^4.2.5

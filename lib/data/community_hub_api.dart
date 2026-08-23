@@ -79,6 +79,31 @@ class CommunityHubApi {
 
   Future<Map<String, dynamic>> me() async => _map(await _dio.get('/users/me'));
 
+  /// Self-service profile updates — currently the emergency contact and
+  /// email. This is how household-invited members (who skipped the
+  /// profile-completion step at first login) add an emergency contact.
+  Future<Map<String, dynamic>> updateMe({
+    String? email,
+    String? emergencyContactName,
+    String? emergencyContactPhone,
+  }) async => _map(
+    await _dio.patch(
+      '/users/me',
+      data: {
+        'email': ?email,
+        'emergencyContactName': ?emergencyContactName,
+        'emergencyContactPhone': ?emergencyContactPhone,
+      },
+    ),
+  );
+
+  // ── Estate (post-login) ───────────────────────────────────────────────
+  /// The estate-wide security-desk / management-office numbers shown on the
+  /// SOS screen — set by the estate admin on the web dashboard, so they can
+  /// be null when nothing's been configured yet.
+  Future<Map<String, dynamic>> estateEmergencyContacts() async =>
+      _map(await _dio.get('/estates/emergency-contacts'));
+
   // ── Announcements ────────────────────────────────────────────────────
   Future<List<dynamic>> announcements() async =>
       _list(await _dio.get('/announcements'));

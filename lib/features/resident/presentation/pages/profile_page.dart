@@ -70,12 +70,10 @@ class ProfilePage extends ConsumerWidget {
                         _infoRow('Phone', user?.phone ?? '', showBorder: true),
                         if (user?.email?.isNotEmpty ?? false)
                           _infoRow('Email', user!.email!, showBorder: true),
-                        if (user?.emergencyContactName?.isNotEmpty ?? false)
-                          _infoRow(
-                            'Emergency contact',
-                            '${user!.emergencyContactName}${user.emergencyContactPhone != null ? ' · ${user.emergencyContactPhone}' : ''}',
-                            showBorder: true,
-                          ),
+                        // Tappable for everyone — this is how household-
+                        // invited members (whose first-login flow skips the
+                        // profile step) add or change their emergency contact.
+                        _emergencyContactRow(context, ref, notifier),
                         if (user?.vehiclePlates.isNotEmpty ?? false)
                           _infoRow(
                             'Vehicle(s)',
@@ -281,6 +279,86 @@ class ProfilePage extends ConsumerWidget {
     );
   }
 
+  /// Tappable profile row for the emergency contact — shows the current
+  /// value (or "Not set") and opens the edit dialog. Persists through
+  /// [AppNotifier.saveEmergencyContact] (PATCH /users/me).
+  Widget _emergencyContactRow(
+    BuildContext context,
+    WidgetRef ref,
+    AppNotifier notifier,
+  ) {
+    final s = ref.watch(appStateProvider);
+    final user = s.currentUser;
+    final name = user?.emergencyContactName;
+    final phone = user?.emergencyContactPhone;
+    final hasAny = (name?.isNotEmpty ?? false) || (phone?.isNotEmpty ?? false);
+    final value = hasAny
+        ? [name, phone].whereType<String>().where((p) => p.isNotEmpty).join(' · ')
+        : 'Not set';
+
+    Future<void> openEditor() async {
+      final result = await showDialog<(String, String)>(
+        context: context,
+        builder: (_) => _EditEmergencyContactDialog(
+          initialName: name ?? '',
+          initialPhone: phone ?? '',
+        ),
+      );
+      if (result == null || !context.mounted) return;
+      final error = await notifier.saveEmergencyContact(
+        name: result.$1,
+        phone: result.$2,
+      );
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            error ?? 'Emergency contact saved.',
+            style: ChTextStyles.body(fontSize: 13, color: Colors.white),
+          ),
+        ),
+      );
+    }
+
+    return InkWell(
+      onTap: openEditor,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        decoration: const BoxDecoration(
+          border: Border(bottom: BorderSide(color: ChColors.divider)),
+        ),
+        child: Row(
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Emergency contact',
+                    style: ChTextStyles.body(
+                      fontSize: 14,
+                      color: ChColors.bodyText,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    value,
+                    style: ChTextStyles.body(
+                      fontSize: 13.5,
+                      fontWeight: FontWeight.w600,
+                      color: hasAny ? ChColors.text : ChColors.neutralN(500),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Icon(Icons.edit_outlined, size: context.rs(16), color: ChColors.accent2),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _infoRow(String label, String value, {bool showBorder = false}) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
@@ -349,6 +427,134 @@ class ProfilePage extends ConsumerWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+/// Dialog for adding/editing the personal emergency contact. Returns a
+/// (name, phone) record on save, null when dismissed. Both fields are
+/// accepted as-is — an empty phone clears the contact server-side.
+class _EditEmergencyContactDialog extends StatefulWidget {
+  const _EditEmergencyContactDialog({
+    required this.initialName,
+    required this.initialPhone,
+  });
+
+  final String initialName;
+  final String initialPhone;
+
+  @override
+  State<_EditEmergencyContactDialog> createState() =>
+      _EditEmergencyContactDialogState();
+}
+
+class _EditEmergencyContactDialogState
+    extends State<_EditEmergencyContactDialog> {
+  late final TextEditingController _nameController = TextEditingController(
+    text: widget.initialName,
+  );
+  late final TextEditingController _phoneController = TextEditingController(
+    text: widget.initialPhone,
+  );
+  String? _error;
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _phoneController.dispose();
+    super.dispose();
+  }
+
+  void _save() {
+    final name = _nameController.text.trim();
+    final phone = _phoneController.text.trim();
+    // At least something must be provided — clearing both is done by
+    // leaving both empty only if the contact was never set; otherwise one
+    // identifying field is required so SOS has someone to call.
+    if (phone.isEmpty) {
+      setState(() => _error = 'Enter your emergency contact\'s phone number.');
+      return;
+    }
+    Navigator.of(context).pop((name, phone));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      backgroundColor: ChColors.surface,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(ChRadii.card),
+      ),
+      title: Text(
+        'Emergency contact',
+        style: ChTextStyles.heading(fontSize: 18),
+      ),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          TextField(
+            controller: _nameController,
+            textInputAction: TextInputAction.next,
+            style: ChTextStyles.body(fontSize: 14),
+            decoration: InputDecoration(
+              labelText: 'Name (optional)',
+              labelStyle: ChTextStyles.body(
+                fontSize: 13,
+                color: ChColors.neutralN(500),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(ChRadii.sm),
+                borderSide: const BorderSide(color: ChColors.divider),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(ChRadii.sm),
+                borderSide: const BorderSide(color: ChColors.accent2),
+              ),
+            ),
+          ),
+          const SizedBox(height: 12),
+          TextField(
+            controller: _phoneController,
+            keyboardType: TextInputType.phone,
+            style: ChTextStyles.body(fontSize: 14),
+            decoration: InputDecoration(
+              labelText: 'Phone number',
+              labelStyle: ChTextStyles.body(
+                fontSize: 13,
+                color: ChColors.neutralN(500),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(ChRadii.sm),
+                borderSide: const BorderSide(color: ChColors.divider),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(ChRadii.sm),
+                borderSide: const BorderSide(color: ChColors.accent2),
+              ),
+            ),
+          ),
+          if (_error != null) ...[
+            const SizedBox(height: 10),
+            Text(
+              _error!,
+              style: ChTextStyles.body(fontSize: 12.5, color: ChColors.danger),
+            ),
+          ],
+        ],
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          style: TextButton.styleFrom(foregroundColor: ChColors.text),
+          child: const Text('Cancel'),
+        ),
+        TextButton(
+          onPressed: _save,
+          style: TextButton.styleFrom(foregroundColor: ChColors.accent2),
+          child: const Text('Save'),
+        ),
+      ],
     );
   }
 }
