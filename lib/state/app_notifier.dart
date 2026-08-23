@@ -9,6 +9,7 @@ import 'package:local_auth/local_auth.dart';
 import 'package:speech_to_text/speech_recognition_error.dart';
 import 'package:speech_to_text/speech_to_text.dart';
 
+import '../core/analytics/analytics_service.dart';
 import '../core/network/api_client.dart';
 import '../core/network/api_exception.dart';
 import '../core/network/biometric_storage.dart';
@@ -133,6 +134,25 @@ class AppNotifier extends StateNotifier<AppState> {
   // by _processVoiceTranscript so the logging wrapper can read it once the
   // whole turn settles.
   ParsedVoiceCommand? _turnParseResult;
+  // Voice-turn latency measurement — set when the transcript lands, read
+  // when the turn settles (both for the JSON log and Mixpanel).
+  final Stopwatch _turnLatency = Stopwatch();
+
+  AnalyticsService get _analytics => AnalyticsService.instance;
+  String get _platform =>
+      Platform.isIOS ? 'ios' : Platform.isAndroid ? 'android' : 'other';
+
+  /// Attaches Mixpanel identity after login or silent session restore.
+  void _identifyAnalytics() {
+    final user = state.currentUser;
+    if (user == null) return;
+    _analytics.identify(
+      userId: user.id,
+      role: user.role,
+      platform: _platform,
+      estateName: user.estateName,
+    );
+  }
 
   /// Gate on a validated estate code before anything else — this app is
   /// shared across estates, so a fresh install doesn't know which estate's
@@ -217,7 +237,12 @@ class AppNotifier extends StateNotifier<AppState> {
         pendingEstateResidentCount: result['residentCount'] as int?,
         authStage: AuthStage.estateFound,
       );
+      _analytics.track('estate_code_submitted', {'success': true});
     } catch (e) {
+      _analytics.track('estate_code_submitted', {
+        'success': false,
+        'error': extractMessage(e),
+      });
       state = state.copyWith(
         estateCodeLoading: false,
         estateCodeError: extractMessage(e),
@@ -251,6 +276,7 @@ class AppNotifier extends StateNotifier<AppState> {
       pendingEstateManagedBy: null,
       pendingEstateResidentCount: null,
     );
+    _analytics.track('estate_confirmed', {'estate_name': name});
     await _tryAutoLogin();
   }
 
@@ -312,6 +338,7 @@ class AppNotifier extends StateNotifier<AppState> {
         await _bootstrapResident();
       }
       await _enterApp();
+      _identifyAnalytics();
       unawaited(_registerPushToken());
     } catch (_) {
       await _tokenStorage.clear();
@@ -355,6 +382,7 @@ class AppNotifier extends StateNotifier<AppState> {
 
   Future<void> doLogin() async {
     state = state.copyWith(isLoading: true, loginError: '');
+    _analytics.track('login_started', {'role': _roleToApi(state.role)});
     try {
       final (platform, deviceName) = await _deviceInfo();
       final result = await _api.login(
@@ -416,8 +444,14 @@ class AppNotifier extends StateNotifier<AppState> {
         authStage: AuthStage.app,
         biometricEnabled: await _biometricStorage.readEnabled(),
       );
+      _identifyAnalytics();
+      _analytics.track('login_success', {'role': user.role});
       unawaited(_registerPushToken());
     } catch (e) {
+      _analytics.track('login_failed', {
+        'role': _roleToApi(state.role),
+        'error': extractMessage(e),
+      });
       state = state.copyWith(isLoading: false, loginError: extractMessage(e));
     }
   }
@@ -431,12 +465,14 @@ class AppNotifier extends StateNotifier<AppState> {
     state = state.copyWith(isLoading: true, resetMsg: '');
     try {
       final result = await _api.forgotPassword(_digitsOnly(state.forgotPhone));
+      _analytics.track('otp_requested', {'success': true});
       state = state.copyWith(
         authStage: AuthStage.otp,
         isLoading: false,
         devOtp: result['devOtp'] as String?,
       );
     } catch (e) {
+      _analytics.track('otp_requested', {'success': false});
       state = state.copyWith(isLoading: false, resetMsg: extractMessage(e));
     }
   }
@@ -459,12 +495,14 @@ class AppNotifier extends StateNotifier<AppState> {
         phone: _digitsOnly(state.forgotPhone),
         code: state.otpCode,
       );
+      _analytics.track('otp_verified', {'success': true});
       state = state.copyWith(
         authStage: AuthStage.newPassword,
         resetToken: result['resetToken'] as String,
         isLoading: false,
       );
     } catch (e) {
+      _analytics.track('otp_verified', {'success': false});
       state = state.copyWith(isLoading: false, resetMsg: extractMessage(e));
     }
   }
@@ -501,6 +539,7 @@ class AppNotifier extends StateNotifier<AppState> {
       // Successfully resetting the password proves this account belongs
       // to this device's estate — same commit point as a normal login.
       await _estateStorage.markLocked();
+      _analytics.track('password_reset_completed');
       state = state.copyWith(
         authStage: AuthStage.resetSuccess,
         newPass1: '',
@@ -571,6 +610,7 @@ class AppNotifier extends StateNotifier<AppState> {
       // screen sits in front of an app that's ready to go the moment
       // finishOnboarding flips authStage to app, same as the biometric
       // lock screen does for a silently-restored session.
+      _analytics.track('force_reset_completed', {'role': role.name});
       state = state.copyWith(
         authStage: AuthStage.onboardingComplete,
         role: role,
@@ -605,6 +645,8 @@ class AppNotifier extends StateNotifier<AppState> {
     // a duty phone across shifts) that leaving a stale biometric-enabled
     // flag around would lock the *next* login behind someone else's face.
     await _biometricStorage.setEnabled(false);
+    _analytics.track('logout');
+    _analytics.reset();
     state = AppState(
       authStage: AuthStage.login,
       biometricAvailable: state.biometricAvailable,
@@ -678,9 +720,11 @@ class AppNotifier extends StateNotifier<AppState> {
         ),
       );
       if (!ok) return false;
+      _analytics.track('app_unlocked', {'method': 'biometric', 'success': true});
       await _resumeAppAfterUnlock();
       return true;
     } catch (_) {
+      _analytics.track('app_unlocked', {'method': 'biometric', 'success': false});
       return false;
     } finally {
       _biometricPromptActive = false;
@@ -693,6 +737,7 @@ class AppNotifier extends StateNotifier<AppState> {
   /// purchases, then does exactly what a successful biometric check does.
   Future<bool> unlockWithPin(String pin) async {
     final valid = await verifyTransactionPin(pin);
+    _analytics.track('app_unlocked', {'method': 'pin', 'success': valid});
     if (!valid) return false;
     await _resumeAppAfterUnlock();
     return true;
@@ -724,6 +769,7 @@ class AppNotifier extends StateNotifier<AppState> {
       if (!ok) return false;
       await _biometricStorage.setEnabled(true);
       state = state.copyWith(biometricEnabled: true);
+      _analytics.track('biometric_enabled', {'success': true});
       return true;
     } catch (_) {
       return false;
@@ -735,6 +781,7 @@ class AppNotifier extends StateNotifier<AppState> {
   Future<void> disableBiometrics() async {
     await _biometricStorage.setEnabled(false);
     state = state.copyWith(biometricEnabled: false);
+    _analytics.track('biometric_disabled');
   }
 
   // ── Device sessions ──────────────────────────────────────────────────
@@ -933,6 +980,12 @@ class AppNotifier extends StateNotifier<AppState> {
   Future<void> openAnnouncement(String id) async {
     try {
       await _api.markAnnouncementRead(id);
+      final announcement =
+          state.announcements.where((a) => a.id == id).firstOrNull;
+      _analytics.track('announcement_read', {
+        'announcement_id': id,
+        if (announcement != null) 'category': announcement.category,
+      });
       state = state.copyWith(
         announcements: [
           for (final a in state.announcements)
@@ -952,8 +1005,9 @@ class AppNotifier extends StateNotifier<AppState> {
 
   Future<void> confirmPayment() async {
     state = state.copyWith(paymentStep: PaymentStep.processing);
+    final amount = state.duesBalance;
+    _analytics.track('dues_payment_started', {'amount': amount});
     try {
-      final amount = state.duesBalance;
       final initiated = await _api.initiatePayment(
         amount: amount,
         purpose: 'DUES',
@@ -967,6 +1021,7 @@ class AppNotifier extends StateNotifier<AppState> {
       }
 
       if (status == 'SUCCESS') {
+        _analytics.track('dues_payment_success', {'amount': amount, 'reference': reference});
         final dues = await _api.dues();
         state = state.copyWith(
           paymentStep: PaymentStep.success,
@@ -977,9 +1032,11 @@ class AppNotifier extends StateNotifier<AppState> {
               .toList(),
         );
       } else {
+        _analytics.track('dues_payment_failed', {'amount': amount, 'reference': reference});
         state = state.copyWith(paymentStep: PaymentStep.idle);
       }
     } catch (_) {
+      _analytics.track('dues_payment_failed', {'amount': amount});
       state = state.copyWith(paymentStep: PaymentStep.idle);
     }
   }
@@ -991,6 +1048,11 @@ class AppNotifier extends StateNotifier<AppState> {
           .map((j) => Levy.fromJson(j as Map<String, dynamic>))
           .toList();
       state = state.copyWith(levies: levies);
+      final levy = levies.where((l) => l.id == id).firstOrNull;
+      _analytics.track('levy_payment_success', {
+        'levy_label': levy?.label,
+        'amount': levy?.amount,
+      });
       return null;
     } catch (e) {
       return extractMessage(e);
@@ -1026,6 +1088,7 @@ class AppNotifier extends StateNotifier<AppState> {
         vfPlate: '',
         vfError: '',
       );
+      _analytics.track('visitor_created', {'pass_id': pass.id});
       return pass.id;
     } catch (e) {
       state = state.copyWith(vfError: extractMessage(e));
@@ -1044,6 +1107,7 @@ class AppNotifier extends StateNotifier<AppState> {
             if (p.id == id) pass else p,
         ],
       );
+      _analytics.track('visitor_cancelled');
       return null;
     } catch (e) {
       return extractMessage(e);
@@ -1079,13 +1143,18 @@ class AppNotifier extends StateNotifier<AppState> {
     try {
       final json = await _api.guardVerify(code);
       final passJson = json['pass'] as Map<String, dynamic>?;
+      final valid = json['valid'] as bool;
+      final reason = json['reason'] as String?;
       state = state.copyWith(
         guardResult: GuardResult(
           pass: passJson == null ? null : VisitorPass.fromJson(passJson),
-          valid: json['valid'] as bool,
-          reason: json['reason'] as String?,
+          valid: valid,
+          reason: reason,
         ),
       );
+      _analytics.track(valid ? 'gate_access_granted' : 'gate_access_denied', {
+        if (reason != null) 'reason': reason,
+      });
       return null;
     } catch (e) {
       return extractMessage(e);
@@ -1102,6 +1171,7 @@ class AppNotifier extends StateNotifier<AppState> {
     if (pass == null) return;
     try {
       await _api.recordEntry(pass.id);
+      _analytics.track('entry_recorded');
     } catch (_) {
       // Fall through — still refresh the log below.
     }
@@ -1114,6 +1184,7 @@ class AppNotifier extends StateNotifier<AppState> {
     if (pass == null) return;
     try {
       await _api.recordExit(pass.id);
+      _analytics.track('exit_recorded');
     } catch (_) {
       // Fall through — still refresh the log below.
     }
@@ -1163,6 +1234,7 @@ class AppNotifier extends StateNotifier<AppState> {
   Future<String?> votePoll(String pollId, String optionId) async {
     try {
       await _api.vote(pollId: pollId, optionId: optionId);
+      _analytics.track('poll_voted', {'poll_id': pollId});
       final polls = (await _api.polls())
           .map((j) => Poll.fromJson(j as Map<String, dynamic>))
           .toList();
@@ -1180,6 +1252,7 @@ class AppNotifier extends StateNotifier<AppState> {
   }) async {
     try {
       await _api.pledge(projectId: projectId, amount: amount);
+      _analytics.track('pledge_made', {'project_id': projectId, 'amount': amount});
       final myPledges = (await _api.myPledges())
           .map((j) => MyPledge.fromJson(j as Map<String, dynamic>))
           .toList();
@@ -1213,6 +1286,10 @@ class AppNotifier extends StateNotifier<AppState> {
         description: state.complaintDesc,
       );
       final ref = result['ref'] as String;
+      _analytics.track('complaint_submitted', {
+        'category': state.complaintCategory,
+        'ref': ref,
+      });
       state = state.copyWith(complaintRef: ref, complaintError: '');
       await loadComplaints();
       return ref;
@@ -1250,6 +1327,10 @@ class AppNotifier extends StateNotifier<AppState> {
       return false;
     }
     state = state.copyWith(utilityLoading: true, utilityError: '');
+    _analytics.track('airtime_purchase_started', {
+      'amount': amount,
+      'network': state.airtimeNetwork,
+    });
     try {
       final json = await _api.buyAirtime(
         network: state.airtimeNetwork,
@@ -1262,6 +1343,18 @@ class AppNotifier extends StateNotifier<AppState> {
       // shown next isn't stale.
       final walletBalance = await _api.walletBalance();
       _voiceContext = _VoiceFlow.none;
+      final success =
+          purchase.status == UtilityPurchaseStatus.successful ||
+          purchase.status == UtilityPurchaseStatus.pending;
+      _analytics.track(
+        success ? 'airtime_purchase_success' : 'airtime_purchase_failed',
+        {
+          'amount': amount,
+          'network': state.airtimeNetwork,
+          if (!success && purchase.failureReason != null)
+            'failure_reason': purchase.failureReason,
+        },
+      );
       state = state.copyWith(
         utilityLoading: false,
         lastUtilityPurchase: purchase,
@@ -1270,6 +1363,11 @@ class AppNotifier extends StateNotifier<AppState> {
       );
       return true;
     } catch (e) {
+      _analytics.track('airtime_purchase_failed', {
+        'amount': amount,
+        'network': state.airtimeNetwork,
+        'failure_reason': extractMessage(e),
+      });
       state = state.copyWith(utilityLoading: false, utilityError: extractMessage(e));
       return false;
     }
@@ -1405,6 +1503,11 @@ class AppNotifier extends StateNotifier<AppState> {
         meterNumber: state.elecMeterNumber.trim(),
         meterType: state.elecMeterType,
       );
+      _analytics.track('meter_verified', {
+        'disco_code': state.elecDiscoCode,
+        'meter_type': state.elecMeterType,
+        'success': true,
+      });
       state = state.copyWith(
         utilityLoading: false,
         elecVerifiedName: json['customerName'] as String?,
@@ -1412,6 +1515,11 @@ class AppNotifier extends StateNotifier<AppState> {
       );
       return true;
     } catch (e) {
+      _analytics.track('meter_verified', {
+        'disco_code': state.elecDiscoCode,
+        'meter_type': state.elecMeterType,
+        'success': false,
+      });
       state = state.copyWith(utilityLoading: false, utilityError: extractMessage(e));
       return false;
     }
@@ -1435,6 +1543,10 @@ class AppNotifier extends StateNotifier<AppState> {
       return false;
     }
     state = state.copyWith(utilityLoading: true, utilityError: '');
+    _analytics.track('electricity_purchase_started', {
+      'amount': amount,
+      'disco_code': state.elecDiscoCode,
+    });
     try {
       final meterJson = await _api.saveMeter(
         discoCode: state.elecDiscoCode,
@@ -1451,6 +1563,18 @@ class AppNotifier extends StateNotifier<AppState> {
       final purchase = UtilityPurchase.fromJson(purchaseJson);
       final walletBalance = await _api.walletBalance();
       _voiceContext = _VoiceFlow.none;
+      final success =
+          purchase.status == UtilityPurchaseStatus.successful ||
+          purchase.status == UtilityPurchaseStatus.pending;
+      _analytics.track(
+        success ? 'electricity_purchase_success' : 'electricity_purchase_failed',
+        {
+          'amount': amount,
+          'disco_code': state.elecDiscoCode,
+          if (!success && purchase.failureReason != null)
+            'failure_reason': purchase.failureReason,
+        },
+      );
       state = state.copyWith(
         utilityLoading: false,
         lastUtilityPurchase: purchase,
@@ -1465,6 +1589,11 @@ class AppNotifier extends StateNotifier<AppState> {
       );
       return true;
     } catch (e) {
+      _analytics.track('electricity_purchase_failed', {
+        'amount': amount,
+        'disco_code': state.elecDiscoCode,
+        'failure_reason': extractMessage(e),
+      });
       state = state.copyWith(utilityLoading: false, utilityError: extractMessage(e));
       return false;
     }
@@ -1519,6 +1648,9 @@ class AppNotifier extends StateNotifier<AppState> {
     final awaitingMeterNumber = _voiceContext == _VoiceFlow.electricity &&
         state.elecDiscoCode.isNotEmpty &&
         state.elecVerifiedName == null;
+    _analytics.track('voice_listening_started', {
+      'awaiting_meter_number': awaitingMeterNumber,
+    });
     await _speech.listen(
       onResult: (result) {
         state = state.copyWith(voiceTranscript: result.recognizedWords);
@@ -1742,17 +1874,37 @@ class AppNotifier extends StateNotifier<AppState> {
     return entries.length;
   }
 
-  /// Wraps every spoken turn with logging: records the transcript up front,
-  /// then once the turn has settled captures the parser's decision (intent +
-  /// matched keywords), the assistant's reply, and any navigation target —
-  /// one complete VoiceLogEntry per interaction. Best-effort: logging must
-  /// never break the voice flow itself.
+  /// Wraps every spoken turn with logging AND analytics: records the
+  /// transcript up front, then once the turn has settled captures the
+  /// parser's decision (intent + matched keywords), the assistant's reply,
+  /// and any navigation target — one complete VoiceLogEntry plus a Mixpanel
+  /// event per interaction. Best-effort: neither may break the voice flow.
   Future<void> _handleVoiceTranscript(String transcript) async {
     _turnParseResult = null;
+    _turnLatency..reset()..start();
+    _analytics.track('voice_transcript_received', {
+      'transcript': redactTranscript(transcript),
+    });
     try {
       await _processVoiceTranscript(transcript);
     } finally {
       final parsed = _turnParseResult;
+      final latencyMs = _turnLatency.elapsedMilliseconds;
+      if (parsed != null) {
+        _analytics.track('voice_intent_detected', {
+          'intent': parsed.intent.name,
+          'matched_rule': parsed.matchedBy.join(','),
+          'latency_ms': latencyMs,
+          if (parsed.amount != null) 'amount': parsed.amount!,
+          if (parsed.network != null) 'network': parsed.network!,
+          if (parsed.month != null) 'month': parsed.month!,
+          if (parsed.weekCount != null) 'weekCount': parsed.weekCount!,
+        });
+      } else {
+        _analytics.track('voice_intent_unrecognized', {
+          'transcript': redactTranscript(transcript),
+        });
+      }
       unawaited(_voiceLog.append(VoiceLogEntry(
         timestamp: DateTime.now(),
         transcript: transcript,
@@ -1771,6 +1923,13 @@ class AppNotifier extends StateNotifier<AppState> {
         response: state.voiceResponse,
         navigationTarget: state.voiceNavigationTarget,
       )));
+      if (state.voiceNavigationTarget != null) {
+        _analytics.track('voice_command_executed', {
+          'intent': parsed?.intent.name ?? 'none',
+          'navigation_target': state.voiceNavigationTarget,
+          'latency_ms': latencyMs,
+        });
+      }
     }
   }
 

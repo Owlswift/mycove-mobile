@@ -54,6 +54,7 @@ dependencies:
   iconsax_flutter: ^1.0.0
   speech_to_text: ^7.0.0
   flutter_tts: ^4.2.5
+  mixpanel_flutter: ^2.3.1
 
 dev_dependencies:
   flutter_test:
