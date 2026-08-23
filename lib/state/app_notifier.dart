@@ -18,6 +18,7 @@ import '../core/network/token_storage.dart';
 import '../core/network/voice_settings_storage.dart';
 import '../core/push/push_service.dart';
 import '../core/voice/voice_intent_parser.dart';
+import '../core/voice/voice_log_storage.dart';
 import '../data/community_hub_api.dart';
 import '../data/models/access_log_entry.dart';
 import '../data/models/owing_resident.dart';
@@ -123,6 +124,15 @@ class AppNotifier extends StateNotifier<AppState> {
   // the estate dues balance — the next utterance is a yes/no answer to
   // that, not a fresh top-level command.
   bool _pendingDuesBreakdown = false;
+  // Voice-turn logging (see VoiceLogEntry) — one entry per spoken turn,
+  // capturing what was said, how the parser classified it and why, and
+  // what the assistant did about it. Feeds the offline analysis loop that
+  // proposes reviewed parser improvements.
+  final VoiceLogStorage _voiceLog = VoiceLogStorage();
+  // The parser's result for the turn currently being processed — stashed
+  // by _processVoiceTranscript so the logging wrapper can read it once the
+  // whole turn settles.
+  ParsedVoiceCommand? _turnParseResult;
 
   /// Gate on a validated estate code before anything else — this app is
   /// shared across estates, so a fresh install doesn't know which estate's
@@ -1495,11 +1505,17 @@ class AppNotifier extends StateNotifier<AppState> {
     }
     state = state.copyWith(voiceStage: VoiceStage.listening, voiceTranscript: '');
     // A meter number is 10-13 digits, often read out slowly digit-by-digit
-    // with brief natural pauses between groups — the default 3s pauseFor
-    // was cutting that off mid-number and finalizing "meter number is" on
-    // its own, before any digits, which then failed to parse as anything.
-    // Same condition _handleVoiceTranscript uses to know it's expecting a
-    // meter number, so this only relaxes timing exactly where that's needed.
+    // with brief natural pauses between groups — the default pauseFor was
+    // cutting that off mid-number and finalizing "meter number is" on its
+    // own, before any digits, which then failed to parse as anything. Same
+    // condition _handleVoiceTranscript uses to know it's expecting a meter
+    // number, so this only relaxes timing further exactly where needed.
+    //
+    // The general default itself moved from 3s/15s to 5s/25s — real
+    // questions ("what were the key decisions made at the meeting held on
+    // the 30th of July") have a natural mid-sentence pause (recalling a
+    // date, choosing a word) that 3s was finalizing on early, cutting the
+    // resident off before they'd finished speaking.
     final awaitingMeterNumber = _voiceContext == _VoiceFlow.electricity &&
         state.elecDiscoCode.isNotEmpty &&
         state.elecVerifiedName == null;
@@ -1510,8 +1526,8 @@ class AppNotifier extends StateNotifier<AppState> {
       },
       listenOptions: SpeechListenOptions(
         partialResults: true,
-        pauseFor: Duration(seconds: awaitingMeterNumber ? 6 : 3),
-        listenFor: Duration(seconds: awaitingMeterNumber ? 20 : 15),
+        pauseFor: Duration(seconds: awaitingMeterNumber ? 7 : 5),
+        listenFor: Duration(seconds: awaitingMeterNumber ? 30 : 25),
       ),
     );
   }
@@ -1711,7 +1727,54 @@ class AppNotifier extends StateNotifier<AppState> {
     state = state.copyWith(voiceStage: VoiceStage.error, voiceResponse: message);
   }
 
+  // ── Voice interaction logs ───────────────────────────────────────────
+  /// Produces a shareable JSON file of every recorded voice turn (see
+  /// [VoiceLogEntry]) for offline analysis. Null means there's nothing
+  /// logged yet.
+  Future<File?> exportVoiceLogs() => _voiceLog.exportForSharing();
+
+  /// Uploads all on-device voice logs to the estate server for central
+  /// collection. Returns how many entries were sent.
+  Future<int> uploadVoiceLogs() async {
+    final entries = await _voiceLog.readAll();
+    if (entries.isEmpty) return 0;
+    await _api.uploadVoiceLogs(entries.map((e) => e.toJson()).toList());
+    return entries.length;
+  }
+
+  /// Wraps every spoken turn with logging: records the transcript up front,
+  /// then once the turn has settled captures the parser's decision (intent +
+  /// matched keywords), the assistant's reply, and any navigation target —
+  /// one complete VoiceLogEntry per interaction. Best-effort: logging must
+  /// never break the voice flow itself.
   Future<void> _handleVoiceTranscript(String transcript) async {
+    _turnParseResult = null;
+    try {
+      await _processVoiceTranscript(transcript);
+    } finally {
+      final parsed = _turnParseResult;
+      unawaited(_voiceLog.append(VoiceLogEntry(
+        timestamp: DateTime.now(),
+        transcript: transcript,
+        intent: parsed?.intent.name,
+        matchedBy: parsed?.matchedBy ?? const [],
+        parameters: parsed == null
+            ? const {}
+            : {
+                if (parsed.amount != null) 'amount': parsed.amount!,
+                if (parsed.network != null) 'network': parsed.network!,
+                if (parsed.month != null) 'month': parsed.month!,
+                if (parsed.weekCount != null) 'weekCount': parsed.weekCount!,
+                if (parsed.meetingDate != null)
+                  'meetingDate': parsed.meetingDate!.toIso8601String(),
+              },
+        response: state.voiceResponse,
+        navigationTarget: state.voiceNavigationTarget,
+      )));
+    }
+  }
+
+  Future<void> _processVoiceTranscript(String transcript) async {
     final text = transcript.trim();
     if (text.isEmpty) {
       state = state.copyWith(voiceStage: VoiceStage.idle);
@@ -1908,6 +1971,7 @@ class AppNotifier extends StateNotifier<AppState> {
 
     // Generic top-level intent recognition.
     final parsed = parseVoiceCommand(text);
+    _turnParseResult = parsed;
     if (parsed == null) {
       await _registerVoiceFailure(
         'Sorry, I didn\'t understand that. Try "buy electricity" or "what\'s my balance".',
@@ -1934,7 +1998,11 @@ class AppNotifier extends StateNotifier<AppState> {
       case VoiceIntent.nextMeeting:
         await _answerNextMeeting();
       case VoiceIntent.lastMeetingReport:
-        await _answerLastMeetingReport();
+        await _answerLastMeetingReport(text, parsed.meetingDate);
+      case VoiceIntent.meetingDecisions:
+        await _answerMeetingDecisions(text, parsed.meetingDate);
+      case VoiceIntent.meetingActionItems:
+        await _answerMeetingActionItems(text, parsed.meetingDate);
       case VoiceIntent.visitorCount:
         await _answerVisitorCount(parsed.weekCount);
       case VoiceIntent.newUpdates:
@@ -2015,30 +2083,187 @@ class AppNotifier extends StateNotifier<AppState> {
     return past.isEmpty ? null : past.last;
   }
 
+  /// A meeting named by a specific calendar date (see
+  /// [extractMeetingDate]) — compared in local time, since that's how a
+  /// resident thinks of "the meeting held on the 30th", not UTC. `null`
+  /// means no meeting is scheduled on that date at all.
+  Meeting? _meetingOnDate(DateTime date) {
+    for (final m in state.meetings) {
+      final local = m.scheduledAt.toLocal();
+      if (local.year == date.year && local.month == date.month && local.day == date.day) {
+        return m;
+      }
+    }
+    return null;
+  }
+
+  // Generic words that show up in nearly every meeting title/query and so
+  // shouldn't count as evidence of a match — same idea as
+  // extractDisco/matchMeterChoice's own stop-word filtering elsewhere in
+  // the voice pipeline.
+  static const _meetingTitleStopWords = {
+    'meeting', 'the', 'a', 'held', 'on', 'at', 'in', 'of', 'for',
+    'last', 'next', 'general', 'committee',
+  };
+
+  /// A meeting named by (part of) its title rather than a date — "the
+  /// security committee meeting", "the landscaping meeting" — so a
+  /// resident doesn't have to remember or say an exact date. Scored by how
+  /// many of the title's distinctive words appear in the utterance; ties
+  /// and zero matches both return null (too ambiguous to guess).
+  Meeting? _meetingByTitle(String text) {
+    final t = text.toLowerCase();
+    Meeting? best;
+    var bestScore = 0;
+    for (final m in state.meetings) {
+      final words = m.title
+          .toLowerCase()
+          .split(RegExp(r'\s+'))
+          .where((w) => w.isNotEmpty && !_meetingTitleStopWords.contains(w));
+      final score = words.where(t.contains).length;
+      if (score > bestScore) {
+        bestScore = score;
+        best = m;
+      }
+    }
+    return best;
+  }
+
+  /// The meeting a voice question is actually about — checked in order: a
+  /// named date (see [extractMeetingDate]), then a named title (see
+  /// [_meetingByTitle]), falling back to the most recent past meeting when
+  /// neither is mentioned — shared by all three "what happened at [the/
+  /// that] meeting"-style voice answers below.
+  Meeting? _resolveTargetMeeting(String text, DateTime? targetDate) {
+    if (targetDate != null) {
+      final byDate = _meetingOnDate(targetDate);
+      if (byDate != null) return byDate;
+    }
+    return _meetingByTitle(text) ?? _lastPastMeeting();
+  }
+
   /// Reads the secretary's actual report verbatim — never an AI
-  /// interpretation of it — for the most recent meeting that's already
+  /// interpretation of it — for either the meeting on [targetDate] (if the
+  /// resident named one) or the most recent meeting that's already
   /// happened. [state.meetings] only carries list-summary fields, so the
   /// report text itself is fetched fresh from the detail endpoint.
-  Future<void> _answerLastMeetingReport() async {
-    final last = _lastPastMeeting();
-    if (last == null) {
+  Future<void> _answerLastMeetingReport(String text, DateTime? targetDate) async {
+    final meeting = _resolveTargetMeeting(text, targetDate);
+    if (meeting == null) {
       _showTerminalResponse("You don't have any past meetings recorded yet.");
       return;
     }
-    state = state.copyWith(voiceStage: VoiceStage.idle, voiceNavigationTarget: '/resident/meetings/${last.id}');
+    state = state.copyWith(voiceStage: VoiceStage.idle, voiceNavigationTarget: '/resident/meetings/${meeting.id}');
     try {
-      final detail = await _api.meeting(last.id);
+      final detail = await _api.meeting(meeting.id);
       final report = (detail['report'] as String?)?.trim();
       if (report == null || report.isEmpty) {
-        await _speak('The last meeting was "${last.title}" on ${last.date}, but no report has been added yet.');
+        await _speak('The meeting "${meeting.title}" on ${meeting.date} has no report added yet.');
         return;
       }
       await _speak(
-        'The last meeting was held on ${last.date}. Here is the meeting report documented by the secretary.',
+        'The meeting on ${meeting.date} — here is the report documented by the secretary.',
       );
-      await playMeetingReport(last.id, report);
+      await playMeetingReport(meeting.id, report);
     } catch (e) {
       await _speak("Sorry, I couldn't load the meeting report right now.");
+    }
+  }
+
+  /// These two never call an LLM — they just fetch whatever
+  /// `MeetingsService.get()` already computed once, offline, when the
+  /// report was submitted (see Meeting.aiDecisions/aiActionItems), and are
+  /// withheld entirely by the backend until an admin approves them. If the
+  /// question also names one of that meeting's topics (e.g. "what was
+  /// decided about security"), only matching entries are read back instead
+  /// of the whole list.
+  Future<void> _answerMeetingDecisions(String text, DateTime? targetDate) async {
+    final meeting = _resolveTargetMeeting(text, targetDate);
+    if (meeting == null) {
+      _showTerminalResponse("You don't have any past meetings recorded yet.");
+      return;
+    }
+    try {
+      final detail = await _api.meeting(meeting.id);
+      final decisions = (detail['aiDecisions'] as List).cast<String>();
+      if (decisions.isEmpty) {
+        _showTerminalResponse(
+          'No decisions have been recorded for that meeting yet.',
+          navigateTo: '/resident/meetings/${meeting.id}',
+        );
+        return;
+      }
+      final topics = (detail['aiTopics'] as List).cast<String>();
+      // Excludes a topic word that's also part of the meeting's own title
+      // (e.g. "security" in "the security committee meeting") — naming
+      // which meeting to ask about isn't the same as asking to filter its
+      // decisions/action items down to that one topic, and treating it as
+      // one wrongly narrowed a plain "what were the decisions" down to
+      // nothing just because the resident named the meeting by title.
+      final topic = topics.firstWhere(
+        (t) => text.toLowerCase().contains(t) && !meeting.title.toLowerCase().contains(t),
+        orElse: () => '',
+      );
+      final matching = topic.isEmpty
+          ? decisions
+          : decisions.where((d) => d.toLowerCase().contains(topic)).toList();
+      if (matching.isEmpty) {
+        _showTerminalResponse(
+          "I didn't find a decision about that at that meeting.",
+          navigateTo: '/resident/meetings/${meeting.id}',
+        );
+        return;
+      }
+      final intro = topic.isEmpty
+          ? "Here's what was decided at the ${meeting.title}:"
+          : 'Regarding $topic, the meeting resolved:';
+      _showTerminalResponse('$intro ${matching.join(' ')}', navigateTo: '/resident/meetings/${meeting.id}');
+    } catch (e) {
+      _showTerminalResponse("Sorry, I couldn't load the meeting decisions right now.");
+    }
+  }
+
+  Future<void> _answerMeetingActionItems(String text, DateTime? targetDate) async {
+    final meeting = _resolveTargetMeeting(text, targetDate);
+    if (meeting == null) {
+      _showTerminalResponse("You don't have any past meetings recorded yet.");
+      return;
+    }
+    try {
+      final detail = await _api.meeting(meeting.id);
+      final actionItems = (detail['aiActionItems'] as List).cast<String>();
+      if (actionItems.isEmpty) {
+        _showTerminalResponse(
+          'No action items have been recorded for that meeting yet.',
+          navigateTo: '/resident/meetings/${meeting.id}',
+        );
+        return;
+      }
+      final topics = (detail['aiTopics'] as List).cast<String>();
+      // Excludes a topic word that's also part of the meeting's own title
+      // (e.g. "security" in "the security committee meeting") — naming
+      // which meeting to ask about isn't the same as asking to filter its
+      // decisions/action items down to that one topic, and treating it as
+      // one wrongly narrowed a plain "what were the decisions" down to
+      // nothing just because the resident named the meeting by title.
+      final topic = topics.firstWhere(
+        (t) => text.toLowerCase().contains(t) && !meeting.title.toLowerCase().contains(t),
+        orElse: () => '',
+      );
+      final matching = topic.isEmpty
+          ? actionItems
+          : actionItems.where((a) => a.toLowerCase().contains(topic)).toList();
+      if (matching.isEmpty) {
+        _showTerminalResponse(
+          "I didn't find an action item about that at that meeting.",
+          navigateTo: '/resident/meetings/${meeting.id}',
+        );
+        return;
+      }
+      final intro = topic.isEmpty ? 'Here are the action items from the ${meeting.title}:' : 'On $topic:';
+      _showTerminalResponse('$intro ${matching.join(' ')}', navigateTo: '/resident/meetings/${meeting.id}');
+    } catch (e) {
+      _showTerminalResponse("Sorry, I couldn't load the meeting action items right now.");
     }
   }
 

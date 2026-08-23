@@ -323,4 +323,12 @@ class CommunityHubApi {
   );
   Future<void> cancelHouseholdInvite(String id) =>
       _dio.delete('/household/invite/$id');
+
+  // ── Voice interaction logs ───────────────────────────────────────────
+  /// Uploads a batch of on-device voice-turn logs (transcript + parser
+  /// decision trail) for offline analysis of how residents actually use
+  /// the assistant. Best-effort from the caller's side — failures are
+  /// non-fatal and retried on a later attempt.
+  Future<void> uploadVoiceLogs(List<Map<String, dynamic>> logs) =>
+      _dio.post('/voice/logs', data: {'logs': logs});
 }

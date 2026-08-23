@@ -3,8 +3,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:add_2_calendar/add_2_calendar.dart';
 
 import '../../../../core/theme/ch_colors.dart';
+import '../../../../core/theme/ch_responsive.dart';
 import '../../../../core/theme/ch_spacing.dart';
 import '../../../../core/theme/ch_text_styles.dart';
+import '../../../../core/widgets/ch_button.dart';
 import '../../../../core/widgets/ch_generic_header.dart';
 import '../../../../state/app_notifier.dart';
 import '../../../../state/app_state.dart';
@@ -24,7 +26,22 @@ class MeetingDetailPage extends ConsumerWidget {
 
     return Column(
       children: [
-        const ChGenericHeader(title: 'Meeting'),
+        ChGenericHeader(
+          title: 'Meeting',
+          // Lets a resident ask follow-up questions ("what was decided
+          // about security?") right from the meeting they're already
+          // looking at, instead of having to go back to the Dashboard's
+          // mic first — see AppNotifier.startVoiceListening.
+          trailing: GestureDetector(
+            onTap: notifier.startVoiceListening,
+            child: Container(
+              width: context.rs(36),
+              height: context.rs(36),
+              decoration: const BoxDecoration(color: ChColors.surfaceSunken, shape: BoxShape.circle),
+              child: Icon(Icons.mic_none_rounded, size: context.rs(18), color: ChColors.text),
+            ),
+          ),
+        ),
         Expanded(
           child: detail.when(
             loading: () => const Center(child: CircularProgressIndicator(color: ChColors.accent)),
@@ -39,6 +56,11 @@ class MeetingDetailPage extends ConsumerWidget {
               final added = json['calendarAdded'] as bool;
               final report = (json['report'] as String?)?.trim();
               final topics = (json['aiTopics'] as List).cast<String>();
+              // Past meetings are over — there's nothing to add to a
+              // calendar anymore, so the whole calendar section (both the
+              // "Add to Calendar" button and the "Added" confirmation) is
+              // hidden for them.
+              final isPast = DateTime.parse(json['scheduledAt'] as String).isBefore(DateTime.now());
 
               return RefreshIndicator(
                 onRefresh: () async => notifier.refreshResident(),
@@ -116,47 +138,43 @@ class MeetingDetailPage extends ConsumerWidget {
                           ],
                         ),
                       ],
-                      const SizedBox(height: 8),
-                      if (added)
-                        Text(
-                          '✓ Added to device calendar',
-                          style: ChTextStyles.body(fontSize: 14, fontWeight: FontWeight.w600, color: ChColors.accent2N(700)),
-                        )
-                      else
-                        ElevatedButton(
-                          onPressed: () async {
-                            final title = json['title'] as String;
-                            final location = json['location'] as String;
-                            final startDate = DateTime.parse(json['scheduledAt'] as String).toLocal();
+                      if (!isPast) ...[
+                        const SizedBox(height: 8),
+                        if (added)
+                          Text(
+                            '✓ Added to device calendar',
+                            style: ChTextStyles.body(fontSize: 14, fontWeight: FontWeight.w600, color: ChColors.accent2N(700)),
+                          )
+                        else
+                          ChButton(
+                            label: 'Add to Calendar',
+                            onPressed: () async {
+                              final title = json['title'] as String;
+                              final location = json['location'] as String;
+                              final startDate = DateTime.parse(json['scheduledAt'] as String).toLocal();
 
-                            final event = Event(
-                              title: title,
-                              description: 'CommunityHub Meeting',
-                              location: location,
-                              startDate: startDate,
-                              endDate: startDate.add(const Duration(hours: 1)),
-                            );
+                              final event = Event(
+                                title: title,
+                                description: 'CommunityHub Meeting',
+                                location: location,
+                                startDate: startDate,
+                                endDate: startDate.add(const Duration(hours: 1)),
+                              );
 
-                            try {
-                              await Add2Calendar.addEvent2Cal(event);
-                              await notifier.addToCalendar(id);
-                              ref.invalidate(meetingDetailProvider(id));
-                            } catch (_) {
-                              if (context.mounted) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(content: Text('Could not add this meeting to your calendar.')),
-                                );
+                              try {
+                                await Add2Calendar.addEvent2Cal(event);
+                                await notifier.addToCalendar(id);
+                                ref.invalidate(meetingDetailProvider(id));
+                              } catch (_) {
+                                if (context.mounted) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(content: Text('Could not add this meeting to your calendar.')),
+                                  );
+                                }
                               }
-                            }
-                          },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: ChColors.accent2,
-                            foregroundColor: Colors.white,
-                            padding: const EdgeInsets.symmetric(vertical: 12),
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(ChRadii.button)),
+                            },
                           ),
-                          child: Text('Add to Calendar', style: ChTextStyles.heading(fontSize: 14)),
-                        ),
+                      ],
                     ],
                   ),
                 ),

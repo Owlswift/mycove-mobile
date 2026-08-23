@@ -7,6 +7,7 @@ import '../../../../core/theme/ch_responsive.dart';
 import '../../../../state/app_notifier.dart';
 import '../../../../state/app_state.dart';
 import 'authorization_sheet.dart';
+import 'voice_overlay.dart';
 
 const _tabLabels = ['Home', 'Notices', 'Projects', 'Dues', 'Pass'];
 const _tabIcons = [
@@ -56,7 +57,20 @@ class ResidentShell extends ConsumerWidget {
     });
 
     return Scaffold(
-      body: SafeArea(bottom: false, child: navigationShell),
+      body: SafeArea(
+        bottom: false,
+        child: Stack(
+          children: [
+            navigationShell,
+            Positioned(
+              left: 0,
+              right: 0,
+              bottom: 0,
+              child: const VoiceOverlay(),
+            ),
+          ],
+        ),
+      ),
       // Must be the real BottomNavigationBar widget: a custom Row of
       // Expanded+InkWell here collapses this Scaffold's body to zero height
       // (Scaffold's body renders blank, nav bar pinned under the status bar)

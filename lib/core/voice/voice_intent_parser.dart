@@ -18,6 +18,8 @@ enum VoiceIntent {
   electricitySpendByMonth,
   nextMeeting,
   lastMeetingReport,
+  meetingDecisions,
+  meetingActionItems,
   visitorCount,
   newUpdates,
 }
@@ -34,13 +36,30 @@ String voiceIntentToApi(VoiceIntent intent) => switch (intent) {
 };
 
 class ParsedVoiceCommand {
-  const ParsedVoiceCommand({required this.intent, this.amount, this.network, this.month, this.weekCount});
+  const ParsedVoiceCommand({
+    required this.intent,
+    this.matchedBy = const [],
+    this.amount,
+    this.network,
+    this.month,
+    this.weekCount,
+    this.meetingDate,
+  });
 
   final VoiceIntent intent;
+  /// Which keyword(s) in the transcript caused this intent to be selected —
+  /// the parser's own explanation of its choice. Logged with every voice
+  /// turn so offline analysis can see *why* a phrase was classified the way
+  /// it was, not just the classification itself.
+  final List<String> matchedBy;
   final int? amount;
   final String? network;
   final int? month; // 1-12, for electricitySpendByMonth
   final int? weekCount; // for visitorCount
+  // A specific date named for lastMeetingReport/meetingDecisions/
+  // meetingActionItems (e.g. "the meeting held 30th of July") — null means
+  // "whichever meeting is most recent", not "no date exists".
+  final DateTime? meetingDate;
 }
 
 /// Null means the transcript didn't match anything this parser understands
@@ -55,7 +74,7 @@ ParsedVoiceCommand? parseVoiceCommand(String rawText) {
   // Airtime/network words checked before electricity's, since "recharge"
   // and network names are unambiguous, whereas a generic "buy" alone
   // shouldn't be assumed to mean either.
-  if (_matchesAny(text, [
+  final airtimeWords = [
     'airtime',
     'air time',
     'a time', // on-device STT frequently splits "airtime" into "a time"
@@ -63,9 +82,11 @@ ParsedVoiceCommand? parseVoiceCommand(String rawText) {
     'top up',
     'topup',
     'credit my phone',
-  ])) {
+  ];
+  if (_matchesAny(text, airtimeWords)) {
     return ParsedVoiceCommand(
       intent: VoiceIntent.buyAirtime,
+      matchedBy: _matched(airtimeWords, text),
       amount: amount,
       network: extractNetwork(text),
     );
@@ -73,34 +94,47 @@ ParsedVoiceCommand? parseVoiceCommand(String rawText) {
   // Checked before the plain electricity/buy keywords below, since "how
   // much electricity have I bought" contains the bare word "electricity"
   // and would otherwise be mistaken for a fresh BUY_ELECTRICITY command.
-  if (text.contains('electricity') &&
-      _matchesAny(text, ['bought', 'spent', 'used', 'purchase', 'purchased'])) {
-    return ParsedVoiceCommand(intent: VoiceIntent.electricitySpendByMonth, month: extractMonth(text));
+  final boughtWords = ['bought', 'spent', 'used', 'purchase', 'purchased'];
+  if (text.contains('electricity') && _matchesAny(text, boughtWords)) {
+    return ParsedVoiceCommand(
+      intent: VoiceIntent.electricitySpendByMonth,
+      matchedBy: ['electricity', ..._matched(boughtWords, text)],
+      month: extractMonth(text),
+    );
   }
-  if (_matchesAny(text, [
+  final electricityWords = [
     'electricity',
     'light',
     'meter',
     'power',
     'nepa',
     'phcn',
-  ])) {
-    return ParsedVoiceCommand(intent: VoiceIntent.buyElectricity, amount: amount);
+  ];
+  if (_matchesAny(text, electricityWords)) {
+    return ParsedVoiceCommand(
+      intent: VoiceIntent.buyElectricity,
+      matchedBy: _matched(electricityWords, text),
+      amount: amount,
+    );
   }
-  if (_matchesAny(text, [
+  final transactionWords = [
     'transaction history',
     'transaction',
     'recent purchase',
     'recent activity',
     'my transactions',
-  ])) {
-    return const ParsedVoiceCommand(intent: VoiceIntent.transactionHistory);
+  ];
+  if (_matchesAny(text, transactionWords)) {
+    return ParsedVoiceCommand(
+      intent: VoiceIntent.transactionHistory,
+      matchedBy: _matched(transactionWords, text),
+    );
   }
   // Checked before "months"-less generic phrasing, and before the plain
   // balance check below, since "how many months dues have I paid" also
   // contains "dues" (which checkDues would otherwise claim first).
   if (text.contains('month') && text.contains('paid')) {
-    return const ParsedVoiceCommand(intent: VoiceIntent.duesMonthsPaid);
+    return const ParsedVoiceCommand(intent: VoiceIntent.duesMonthsPaid, matchedBy: ['month', 'paid']);
   }
   // Checked before the plain balance check below, since "what's my dues
   // balance" contains "balance" and would otherwise resolve to the wallet's
@@ -109,22 +143,114 @@ ParsedVoiceCommand? parseVoiceCommand(String rawText) {
   // same Dues page) but residents don't reliably distinguish the two out
   // loud — "levies" alone routes here too, and the spoken answer covers
   // both (see _answerCheckDues).
-  if (_matchesAny(text, ['owing', 'owe', 'dues', 'levies', 'levy'])) {
-    return const ParsedVoiceCommand(intent: VoiceIntent.checkDues);
+  final duesWords = [
+    'owing',
+    'owe',
+    'owed',
+    'debt',
+    'debts',
+    'dues',
+    'levies',
+    'levy',
+  ];
+  // On-device STT mishearings of the words above: "owing"→"going"/"go",
+  // "debt"→"date". These substrings also occur inside completely unrelated
+  // phrases ("any new updates" contains "date"; "am I going to the
+  // meeting" contains "going"), so they're only trusted alongside clear
+  // dues/money-question context — never on their own.
+  final sttMishearings = ['going', 'go', 'date'];
+  final hasDuesContext = _matchesAny(text, [
+    'estate',
+    'dues',
+    'levy',
+    'levies',
+    'owe',
+    'owing',
+    'owed',
+    'debt',
+    'debts',
+    'how much',
+    'what is my',
+  ]);
+  if (_matchesAny(text, duesWords) ||
+      (_matchesAny(text, sttMishearings) && hasDuesContext)) {
+    return ParsedVoiceCommand(
+      intent: VoiceIntent.checkDues,
+      matchedBy: _matched([...duesWords, ...sttMishearings], text),
+    );
   }
-  if (_matchesAny(text, [
+  final balanceWords = [
     'balance',
     'how much do i have',
     'how much i get',
     'what do i have',
     'my wallet',
-  ])) {
-    return const ParsedVoiceCommand(intent: VoiceIntent.checkBalance);
+  ];
+  if (_matchesAny(text, balanceWords)) {
+    return ParsedVoiceCommand(
+      intent: VoiceIntent.checkBalance,
+      matchedBy: _matched(balanceWords, text),
+    );
+  }
+  // Checked before lastMeetingReport's broader 'report'/'meeting' match,
+  // since asking specifically what was decided/resolved means the
+  // AI-extracted decisions list, not a full read of the report. The
+  // 'decision'+'meeting' pair (order-independent) catches phrasings like
+  // "what were the key decisions made in the meeting" that the fixed
+  // phrases alone miss — same reasoning as lastMeetingReport's 'report'+
+  // 'meeting' pair below.
+  final decisionWords = [
+    'key decision',
+    'key decisions',
+    'what was decided',
+    'what were the decisions',
+    'what did they decide',
+    'what was resolved',
+    'was there any discussion',
+    'any discussion about',
+  ];
+  final decisionPair =
+      (text.contains('decision') || text.contains('decide') || text.contains('resolve')) &&
+      text.contains('meeting');
+  if (_matchesAny(text, decisionWords) || decisionPair) {
+    return ParsedVoiceCommand(
+      intent: VoiceIntent.meetingDecisions,
+      matchedBy: [
+        ..._matched(decisionWords, text),
+        if (decisionPair)
+          ...['decision', 'decide', 'resolve', 'meeting'].where(text.contains),
+      ],
+      meetingDate: extractMeetingDate(text),
+    );
+  }
+  // Same reasoning, for the action-items list instead of decisions.
+  final actionItemWords = [
+    'action item',
+    'action items',
+    'what do we need to do',
+    'what are we supposed to do',
+    'what needs to be done',
+    "what's next",
+    'what happens next',
+  ];
+  final actionPair = text.contains('action') && text.contains('meeting');
+  if (_matchesAny(text, actionItemWords) || actionPair) {
+    return ParsedVoiceCommand(
+      intent: VoiceIntent.meetingActionItems,
+      matchedBy: [
+        ..._matched(actionItemWords, text),
+        if (actionPair) ...['action', 'meeting'].where(text.contains),
+      ],
+      meetingDate: extractMeetingDate(text),
+    );
   }
   // Checked before the generic 'meeting' match below — anything asking
-  // about what already happened (report/discussed/decided/etc.) means the
-  // last past meeting's report, not the upcoming one's date/time.
-  if (_matchesAny(text, [
+  // about what already happened (report/discussed/decided/etc.) means a
+  // meeting's report, not the upcoming one's date/time. The 'report'+
+  // 'meeting' pair (in either order/wording — "give a report of the
+  // meeting", "report on the meeting held...") catches phrasings the fixed
+  // 'meeting report' substring alone misses.
+  final lastMeetingWords = [
     'last meeting',
     'previous meeting',
     'meeting report',
@@ -132,17 +258,40 @@ ParsedVoiceCommand? parseVoiceCommand(String rawText) {
     'what was discussed',
     'what happened at',
     'what happened in',
-  ])) {
-    return const ParsedVoiceCommand(intent: VoiceIntent.lastMeetingReport);
+  ];
+  final reportPair =
+      (text.contains('report') || text.contains('minutes')) && text.contains('meeting');
+  if (_matchesAny(text, lastMeetingWords) || reportPair) {
+    return ParsedVoiceCommand(
+      intent: VoiceIntent.lastMeetingReport,
+      matchedBy: [
+        ..._matched(lastMeetingWords, text),
+        if (reportPair) ...['report', 'minutes', 'meeting'].where(text.contains),
+      ],
+      meetingDate: extractMeetingDate(text),
+    );
   }
-  if (_matchesAny(text, ['next meeting', 'meeting'])) {
-    return const ParsedVoiceCommand(intent: VoiceIntent.nextMeeting);
+  final nextMeetingWords = ['next meeting', 'meeting'];
+  if (_matchesAny(text, nextMeetingWords)) {
+    return ParsedVoiceCommand(
+      intent: VoiceIntent.nextMeeting,
+      matchedBy: _matched(nextMeetingWords, text),
+    );
   }
-  if (_matchesAny(text, ['visitor', 'visitors', 'guest', 'guests'])) {
-    return ParsedVoiceCommand(intent: VoiceIntent.visitorCount, weekCount: extractWeekCount(text));
+  final visitorWords = ['visitor', 'visitors', 'guest', 'guests'];
+  if (_matchesAny(text, visitorWords)) {
+    return ParsedVoiceCommand(
+      intent: VoiceIntent.visitorCount,
+      matchedBy: _matched(visitorWords, text),
+      weekCount: extractWeekCount(text),
+    );
   }
-  if (_matchesAny(text, ['update', 'updates', 'announcement', 'announcements', 'news', 'notice', 'notices'])) {
-    return const ParsedVoiceCommand(intent: VoiceIntent.newUpdates);
+  final updatesWords = ['update', 'updates', 'announcement', 'announcements', 'news', 'notice', 'notices'];
+  if (_matchesAny(text, updatesWords)) {
+    return ParsedVoiceCommand(
+      intent: VoiceIntent.newUpdates,
+      matchedBy: _matched(updatesWords, text),
+    );
   }
   return null;
 }
@@ -177,6 +326,11 @@ bool looksLikeCancellation(String text) {
 
 bool _matchesAny(String text, List<String> keywords) =>
     keywords.any(text.contains);
+
+/// The subset of [keywords] actually present in [text] — lets each branch
+/// report exactly which word(s) fired rather than just the rule's name.
+List<String> _matched(List<String> keywords, String text) =>
+    keywords.where(text.contains).toList();
 
 const _spokenDigits = {
   'zero': '0',
@@ -337,6 +491,35 @@ int? extractMonth(String text) {
     if (t.contains(entry.key)) return entry.value;
   }
   return null;
+}
+
+/// A specific calendar date named for a meeting query — "the meeting held
+/// 30th of July 2026", "report on the 5 August meeting" — as opposed to
+/// "the last meeting" (no date named, meetingDate is null, caller falls
+/// back to whichever meeting is most recent). Requires both a day number
+/// and a month name; a year is optional and defaults to the current one,
+/// since residents rarely say the year for a meeting from this year.
+DateTime? extractMeetingDate(String text) {
+  final t = text.toLowerCase();
+  int? month;
+  for (final entry in _monthNames.entries) {
+    if (t.contains(entry.key)) {
+      month = entry.value;
+      break;
+    }
+  }
+  if (month == null) return null;
+
+  final day = RegExp(r'\b([0-3]?\d)(?:st|nd|rd|th)?\b')
+      .allMatches(t)
+      .map((m) => int.tryParse(m.group(1)!))
+      .firstWhere((d) => d != null && d >= 1 && d <= 31, orElse: () => null);
+  if (day == null) return null;
+
+  final yearMatch = RegExp(r'\b(20\d{2})\b').firstMatch(t);
+  final year = yearMatch != null ? int.parse(yearMatch.group(1)!) : DateTime.now().year;
+
+  return DateTime(year, month, day);
 }
 
 /// How many weeks back a "how many visitors in the past N weeks" question
