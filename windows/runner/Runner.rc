@@ -89,13 +89,13 @@ BEGIN
     BEGIN
         BLOCK "040904e4"
         BEGIN
-            VALUE "CompanyName", "com.zsolutions" "\0"
-            VALUE "FileDescription", "communityhub" "\0"
+            VALUE "CompanyName", "com.zsolutionsit" "\0"
+            VALUE "FileDescription", "mycove" "\0"
             VALUE "FileVersion", VERSION_AS_STRING "\0"
-            VALUE "InternalName", "communityhub" "\0"
-            VALUE "LegalCopyright", "Copyright (C) 2026 com.zsolutions. All rights reserved." "\0"
-            VALUE "OriginalFilename", "communityhub.exe" "\0"
-            VALUE "ProductName", "communityhub" "\0"
+            VALUE "InternalName", "mycove" "\0"
+            VALUE "LegalCopyright", "Copyright (C) 2026 com.zsolutionsit. All rights reserved." "\0"
+            VALUE "OriginalFilename", "mycove.exe" "\0"
+            VALUE "ProductName", "mycove" "\0"
             VALUE "ProductVersion", VERSION_AS_STRING "\0"
         END
     END

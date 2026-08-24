@@ -98,7 +98,7 @@ class _InviteResidentPageState extends ConsumerState<InviteResidentPage> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  "They'll get their own independent CommunityHub account — their own login, PIN, and history — without being separately charged estate dues.",
+                  "They'll get their own independent MyCove account — their own login, PIN, and history — without being separately charged estate dues.",
                   style: ChTextStyles.body(fontSize: 13, color: ChColors.bodyText, height: 1.4),
                 ),
                 SizedBox(height: context.rs(20)),

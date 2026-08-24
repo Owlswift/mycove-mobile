@@ -20,7 +20,7 @@ import '../core/network/voice_settings_storage.dart';
 import '../core/push/push_service.dart';
 import '../core/voice/voice_intent_parser.dart';
 import '../core/voice/voice_log_storage.dart';
-import '../data/community_hub_api.dart';
+import '../data/my_cove_api.dart';
 import '../data/models/access_log_entry.dart';
 import '../data/models/owing_resident.dart';
 import '../data/models/announcement.dart';
@@ -82,7 +82,7 @@ class AppNotifier extends StateNotifier<AppState> {
     _bootstrap();
   }
 
-  final CommunityHubApi _api;
+  final MyCoveApi _api;
   final TokenStorage _tokenStorage;
   final EstateStorage _estateStorage;
   final BiometricStorage _biometricStorage;
@@ -696,6 +696,9 @@ class AppNotifier extends StateNotifier<AppState> {
   /// an emergency contact after the fact, since their first-login flow
   /// skips the profile-completion step entirely.
   Future<String?> saveEmergencyContact({required String name, required String phone}) async {
+    final hadContact =
+        (state.currentUser?.emergencyContactName?.isNotEmpty ?? false) ||
+            (state.currentUser?.emergencyContactPhone?.isNotEmpty ?? false);
     try {
       final updated = CurrentUser.fromJson(
         await _api.updateMe(
@@ -704,6 +707,15 @@ class AppNotifier extends StateNotifier<AppState> {
         ),
       );
       state = state.copyWith(currentUser: updated);
+      // Segments funnels by first-time set vs later edit vs removal —
+      // a spike in removals after a SOS change would be worth noticing.
+      _analytics.track('emergency_contact_updated', {
+        'action': phone.trim().isEmpty
+            ? 'remove'
+            : hadContact
+                ? 'update'
+                : 'set',
+      });
       return null;
     } catch (e) {
       return extractMessage(e);
@@ -761,7 +773,7 @@ class AppNotifier extends StateNotifier<AppState> {
     _biometricPromptActive = true;
     try {
       final ok = await _localAuth.authenticate(
-        localizedReason: 'Unlock CommunityHub',
+        localizedReason: 'Unlock MyCove',
         options: const AuthenticationOptions(
           biometricOnly: true,
           stickyAuth: true,
@@ -2749,7 +2761,7 @@ class AppNotifier extends StateNotifier<AppState> {
 
 final appStateProvider = StateNotifierProvider<AppNotifier, AppState>(
   (ref) => AppNotifier(
-    CommunityHubApi(),
+    MyCoveApi(),
     const TokenStorage(),
     const EstateStorage(),
     ref,

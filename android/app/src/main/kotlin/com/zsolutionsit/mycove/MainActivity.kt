@@ -1,4 +1,4 @@
-package com.zsolutions.communityhub
+package com.zsolutionsit.mycove
 
 import io.flutter.embedding.android.FlutterFragmentActivity
 

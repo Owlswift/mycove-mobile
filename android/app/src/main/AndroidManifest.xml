@@ -4,7 +4,7 @@
     <!-- Required by speech_to_text for voice commands. -->
     <uses-permission android:name="android.permission.RECORD_AUDIO"/>
     <application
-        android:label="communityhub"
+        android:label="mycove"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher"
         android:allowBackup="false"

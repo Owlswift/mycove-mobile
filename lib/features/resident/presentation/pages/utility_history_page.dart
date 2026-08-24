@@ -127,7 +127,7 @@ class UtilityHistoryPage extends ConsumerWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'CommunityHub Balance',
+                    'MyCove Balance',
                     style: ChTextStyles.body(
                       fontSize: 12.5,
                       color: Colors.white.withValues(alpha: 0.8),

@@ -164,7 +164,7 @@ class EstateCodePage extends ConsumerWidget {
       builder: (ctx) => AlertDialog(
         title: const Text("Don't have a code?"),
         content: const Text(
-          'Ask your estate administrator or management office — every estate on CommunityHub has its own access code.',
+          'Ask your estate administrator or management office — every estate on MyCove has its own access code.',
         ),
         actions: [
           TextButton(

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-/// Palette for CommunityHub's "Palm Court" look: a deep forest-green brand
+/// Palette for MyCove's "Palm Court" look: a deep forest-green brand
 /// color on a warm cream canvas with white cards, plus a muted gold accent
 /// for secondary highlights (e.g. the dues card's "Pay Now" pill).
 ///

@@ -32,5 +32,5 @@ Future<void> main() async {
     'platform': Platform.isIOS ? 'ios' : Platform.isAndroid ? 'android' : 'other',
   });
 
-  runApp(UncontrolledProviderScope(container: container, child: const CommunityHubApp()));
+  runApp(UncontrolledProviderScope(container: container, child: const MyCoveApp()));
 }

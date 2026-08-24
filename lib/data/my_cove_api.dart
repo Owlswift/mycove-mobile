@@ -1,10 +1,10 @@
 import 'package:dio/dio.dart';
 import '../core/network/api_client.dart';
 
-/// One typed method per CommunityHub API endpoint. Returns decoded JSON;
+/// One typed method per MyCove API endpoint. Returns decoded JSON;
 /// callers parse into models. See ~/dev/communityhub-api for the server.
-class CommunityHubApi {
-  CommunityHubApi([Dio? dio]) : _dio = dio ?? ApiClient.instance.dio;
+class MyCoveApi {
+  MyCoveApi([Dio? dio]) : _dio = dio ?? ApiClient.instance.dio;
 
   final Dio _dio;
 

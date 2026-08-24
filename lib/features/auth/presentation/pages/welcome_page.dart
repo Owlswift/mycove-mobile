@@ -95,7 +95,7 @@ class WelcomePage extends ConsumerWidget {
               Padding(
                 padding: EdgeInsets.symmetric(horizontal: context.rs(56)),
                 child: Text(
-                  'CommunityHub brings your whole estate together. Stay informed, make payments, manage visitors and more.',
+                  'MyCove brings your whole estate together. Stay informed, make payments, manage visitors and more.',
                   textAlign: TextAlign.center,
                   style: ChTextStyles.body(
                     fontSize: 14,

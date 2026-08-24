@@ -11,7 +11,7 @@ import '../router/app_router.dart';
 const _channel = AndroidNotificationChannel(
   'high_importance_channel',
   'Important notifications',
-  description: 'CommunityHub alerts for visitor activity and payments.',
+  description: 'MyCove alerts for visitor activity and payments.',
   importance: Importance.high,
 );
 

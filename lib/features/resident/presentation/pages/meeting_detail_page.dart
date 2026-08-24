@@ -155,7 +155,7 @@ class MeetingDetailPage extends ConsumerWidget {
 
                               final event = Event(
                                 title: title,
-                                description: 'CommunityHub Meeting',
+                                description: 'MyCove Meeting',
                                 location: location,
                                 startDate: startDate,
                                 endDate: startDate.add(const Duration(hours: 1)),

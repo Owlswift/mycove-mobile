@@ -7,7 +7,7 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>
-	<string>Communityhub</string>
+	<string>MyCove</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
@@ -15,7 +15,7 @@
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundleName</key>
-	<string>communityhub</string>
+	<string>mycove</string>
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
@@ -34,11 +34,11 @@
 		<true/>
 	</dict>
 	<key>NSFaceIDUsageDescription</key>
-	<string>Use Face ID to quickly and securely unlock CommunityHub.</string>
+	<string>Use Face ID to quickly and securely unlock MyCove.</string>
 	<key>NSMicrophoneUsageDescription</key>
-	<string>CommunityHub uses your microphone to hear voice commands like "buy electricity".</string>
+	<string>MyCove uses your microphone to hear voice commands like "buy electricity".</string>
 	<key>NSSpeechRecognitionUsageDescription</key>
-	<string>CommunityHub converts your voice commands to text to understand what you're asking for.</string>
+	<string>MyCove converts your voice commands to text to understand what you're asking for.</string>
 	<key>UIBackgroundModes</key>
 	<array>
 		<string>remote-notification</string>

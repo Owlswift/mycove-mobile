@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:communityhub/core/voice/voice_intent_parser.dart';
+import 'package:mycove/core/voice/voice_intent_parser.dart';
 
 void main() {
   group('checkDues — real STT mishearings from residents', () {

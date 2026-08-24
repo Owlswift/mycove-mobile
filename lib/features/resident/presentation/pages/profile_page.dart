@@ -305,6 +305,7 @@ class ProfilePage extends ConsumerWidget {
         ),
       );
       if (result == null || !context.mounted) return;
+      final removed = result.$1.trim().isEmpty && result.$2.trim().isEmpty;
       final error = await notifier.saveEmergencyContact(
         name: result.$1,
         phone: result.$2,
@@ -313,7 +314,10 @@ class ProfilePage extends ConsumerWidget {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            error ?? 'Emergency contact saved.',
+            error ??
+                (removed
+                    ? 'Emergency contact removed.'
+                    : 'Emergency contact saved.'),
             style: ChTextStyles.body(fontSize: 13, color: Colors.white),
           ),
         ),
@@ -432,8 +436,9 @@ class ProfilePage extends ConsumerWidget {
 }
 
 /// Dialog for adding/editing the personal emergency contact. Returns a
-/// (name, phone) record on save, null when dismissed. Both fields are
-/// accepted as-is — an empty phone clears the contact server-side.
+/// (name, phone) record on save, null when dismissed. Save requires a
+/// phone; the Remove action pops with ('', '') which clears the contact
+/// server-side (PATCH /users/me stores '' as null).
 class _EditEmergencyContactDialog extends StatefulWidget {
   const _EditEmergencyContactDialog({
     required this.initialName,
@@ -458,6 +463,11 @@ class _EditEmergencyContactDialogState
   );
   String? _error;
 
+  /// A contact exists server-side — show the Remove action so it can be
+  /// cleared; a never-set contact has nothing to remove.
+  bool get _hasExisting =>
+      widget.initialName.isNotEmpty || widget.initialPhone.isNotEmpty;
+
   @override
   void dispose() {
     _nameController.dispose();
@@ -468,9 +478,9 @@ class _EditEmergencyContactDialogState
   void _save() {
     final name = _nameController.text.trim();
     final phone = _phoneController.text.trim();
-    // At least something must be provided — clearing both is done by
-    // leaving both empty only if the contact was never set; otherwise one
-    // identifying field is required so SOS has someone to call.
+    // Save always requires a phone so SOS always has someone to call.
+    // Removing the contact entirely is the dedicated Remove action, which
+    // pops with both fields empty and clears it server-side.
     if (phone.isEmpty) {
       setState(() => _error = 'Enter your emergency contact\'s phone number.');
       return;
@@ -517,6 +527,8 @@ class _EditEmergencyContactDialogState
           TextField(
             controller: _phoneController,
             keyboardType: TextInputType.phone,
+            textInputAction: TextInputAction.done,
+            onSubmitted: (_) => _save(),
             style: ChTextStyles.body(fontSize: 14),
             decoration: InputDecoration(
               labelText: 'Phone number',
@@ -541,6 +553,12 @@ class _EditEmergencyContactDialogState
               style: ChTextStyles.body(fontSize: 12.5, color: ChColors.danger),
             ),
           ],
+          if (_hasExisting)
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(('', '')),
+              style: TextButton.styleFrom(foregroundColor: ChColors.danger),
+              child: const Text('Remove contact'),
+            ),
         ],
       ),
       actions: [

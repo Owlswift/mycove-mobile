@@ -3,17 +3,17 @@
 <plist version="1.0">
 <dict>
 	<key>API_KEY</key>
-	<string>AIzaSyCg6OXC945J5qgPlkrCLFKTxJS3NaoCs30</string>
+	<string>AIzaSyDVKjPNZBfUbhLwa0IUYeHI4NriIq-bIig</string>
 	<key>GCM_SENDER_ID</key>
-	<string>725204758087</string>
+	<string>555363373101</string>
 	<key>PLIST_VERSION</key>
 	<string>1</string>
 	<key>BUNDLE_ID</key>
-	<string>com.zsolutions.communityhub</string>
+	<string>com.zsolutionsit.mycove</string>
 	<key>PROJECT_ID</key>
-	<string>communityhub-55855</string>
+	<string>mycove-7f39c</string>
 	<key>STORAGE_BUCKET</key>
-	<string>communityhub-55855.firebasestorage.app</string>
+	<string>mycove-7f39c.firebasestorage.app</string>
 	<key>IS_ADS_ENABLED</key>
 	<false></false>
 	<key>IS_ANALYTICS_ENABLED</key>
@@ -25,6 +25,6 @@
 	<key>IS_SIGNIN_ENABLED</key>
 	<true></true>
 	<key>GOOGLE_APP_ID</key>
-	<string>1:725204758087:ios:cb60e10ff13751c5094b62</string>
+	<string>1:555363373101:ios:a4210e52d12e12613fe8a4</string>
 </dict>
 </plist>

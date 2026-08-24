@@ -11,7 +11,7 @@ import 'token_storage.dart';
 /// cloudflared tunnel --url http://localhost:3000
 /// flutter run --dart-define=API_BASE_URL=https://`<tunnel-host>`/api
 const _baseUrlOverride = String.fromEnvironment('API_BASE_URL');
-const _lanUrl = 'http://192.168.100.175:3001/api';
+const _lanUrl = 'http://192.168.100.175:3000/api';
 
 String get _baseUrl {
   if (_baseUrlOverride.isNotEmpty) return _baseUrlOverride;

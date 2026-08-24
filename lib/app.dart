@@ -25,14 +25,14 @@ Widget _scaleText(BuildContext context, Widget? child) {
   );
 }
 
-class CommunityHubApp extends ConsumerStatefulWidget {
-  const CommunityHubApp({super.key});
+class MyCoveApp extends ConsumerStatefulWidget {
+  const MyCoveApp({super.key});
 
   @override
-  ConsumerState<CommunityHubApp> createState() => _CommunityHubAppState();
+  ConsumerState<MyCoveApp> createState() => _MyCoveAppState();
 }
 
-class _CommunityHubAppState extends ConsumerState<CommunityHubApp>
+class _MyCoveAppState extends ConsumerState<MyCoveApp>
     with WidgetsBindingObserver {
   // `inactive` fires for plenty of things that aren't "the resident left
   // the app" — pulling down Control Center, a phone call banner, a share
@@ -72,7 +72,7 @@ class _CommunityHubAppState extends ConsumerState<CommunityHubApp>
 
     if (authStage == AuthStage.bootstrapping) {
       return MaterialApp(
-        title: 'CommunityHub',
+        title: 'MyCove',
         debugShowCheckedModeBanner: false,
         theme: ChTheme.light,
         builder: _scaleText,
@@ -90,7 +90,7 @@ class _CommunityHubAppState extends ConsumerState<CommunityHubApp>
     // back/forward or deep-link semantics any more than the splash does.
     if (authStage == AuthStage.locked) {
       return MaterialApp(
-        title: 'CommunityHub',
+        title: 'MyCove',
         debugShowCheckedModeBanner: false,
         theme: ChTheme.light,
         builder: _scaleText,
@@ -100,7 +100,7 @@ class _CommunityHubAppState extends ConsumerState<CommunityHubApp>
 
     final router = ref.watch(routerProvider);
     return MaterialApp.router(
-      title: 'CommunityHub',
+      title: 'MyCove',
       debugShowCheckedModeBanner: false,
       builder: _scaleText,
       theme: ChTheme.light,

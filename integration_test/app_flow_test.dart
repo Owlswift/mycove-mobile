@@ -4,13 +4,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 
-import 'package:communityhub/app.dart';
+import 'package:mycove/app.dart';
 
 /// Real network + real timers only work reliably under `integration_test`
 /// (real device/desktop target, real event loop) — the plain `flutter_test`
 /// harness runs every test inside a `fake_async` zone that never sees real
 /// socket I/O complete, so it hangs forever on any genuine HTTP call. This
-/// suite hits the live CommunityHub API on localhost, so it has to run here.
+/// suite hits the live MyCove API on localhost, so it has to run here.
 ///
 /// Run with the backend up (docker compose + `npm run start:dev` in
 /// communityhub-api) via: `flutter test integration_test/app_flow_test.dart -d <device>`
@@ -64,11 +64,11 @@ Future<void> pumpUntilFound(WidgetTester tester, Finder finder, {Duration timeou
 }
 
 Future<void> pumpApp(WidgetTester tester) async {
-  await tester.pumpWidget(const ProviderScope(child: CommunityHubApp()));
+  await tester.pumpWidget(const ProviderScope(child: MyCoveApp()));
   // Auto-login resolves against the real backend before the login screen
   // appears — wait it out rather than pumpAndSettle() past the bootstrap
   // spinner.
-  await pumpUntilFound(tester, find.text('CommunityHub'));
+  await pumpUntilFound(tester, find.text('MyCove'));
 }
 
 /// Tap [tapFinder], then wait in real time for [waitFinder] to appear.
@@ -110,7 +110,7 @@ void main() {
   testWidgets('resident: login -> dashboard -> dues -> payment -> receipt', (tester) async {
     await pumpApp(tester);
 
-    expect(find.text('CommunityHub'), findsOneWidget);
+    expect(find.text('MyCove'), findsOneWidget);
     expect(find.text('Resident'), findsOneWidget);
     expect(find.text('Security Guard'), findsOneWidget);
 

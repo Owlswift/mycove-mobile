@@ -1,21 +1,21 @@
 {
   "project_info": {
-    "project_number": "725204758087",
-    "project_id": "communityhub-55855",
-    "storage_bucket": "communityhub-55855.firebasestorage.app"
+    "project_number": "555363373101",
+    "project_id": "mycove-7f39c",
+    "storage_bucket": "mycove-7f39c.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:725204758087:android:261d873b765e51c9094b62",
+        "mobilesdk_app_id": "1:555363373101:android:585823f4cad163ee3fe8a4",
         "android_client_info": {
-          "package_name": "com.zsolutions.communityhub"
+          "package_name": "com.zsolutionsit.mycove"
         }
       },
       "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyDDmY7LX5BEXyRj24OBKUPcm_uGIPJMrYk"
+          "current_key": "AIzaSyBAVuETvc7F4TE_yLX5BRh8wefxAjndUUI"
         }
       ],
       "services": {

@@ -167,7 +167,7 @@ class _VoiceLogsSection extends ConsumerWidget {
                     }
                     await Share.shareXFiles(
                       [XFile(file.path)],
-                      subject: 'CommunityHub voice logs',
+                      subject: 'MyCove voice logs',
                     );
                   },
                 ),
