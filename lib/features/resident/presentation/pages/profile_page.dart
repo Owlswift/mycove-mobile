@@ -210,14 +210,14 @@ class ProfilePage extends ConsumerWidget {
                               children: [
                                 Text(
                                   'Biometric Login',
-                                  style: ChTextStyles.body(fontSize: 14),
+                                  style: ChTextStyles.body(fontSize: 14, color: ChColors.text),
                                 ),
                                 if (!(s.currentUser?.hasPin ?? false))
                                   Text(
                                     'Also requires a transaction PIN',
                                     style: ChTextStyles.body(
                                       fontSize: 11.5,
-                                      color: ChColors.bodyText,
+                                      color: ChColors.text,
                                     ),
                                   ),
                               ],
@@ -341,7 +341,7 @@ class ProfilePage extends ConsumerWidget {
                     'Emergency contact',
                     style: ChTextStyles.body(
                       fontSize: 14,
-                      color: ChColors.bodyText,
+                      color: ChColors.text,
                     ),
                   ),
                   const SizedBox(height: 2),
@@ -376,11 +376,11 @@ class ProfilePage extends ConsumerWidget {
         children: [
           Text(
             label,
-            style: ChTextStyles.body(fontSize: 14, color: ChColors.bodyText),
+            style: ChTextStyles.body(fontSize: 14, color: ChColors.text),
           ),
           Text(
             value,
-            style: ChTextStyles.body(fontSize: 14, fontWeight: FontWeight.w600),
+            style: ChTextStyles.body(fontSize: 14, color: ChColors.text, fontWeight: FontWeight.w500),
           ),
         ],
       ),
@@ -422,7 +422,7 @@ class ProfilePage extends ConsumerWidget {
             ),
             SizedBox(width: context.rs(12)),
             Expanded(
-              child: Text(label, style: ChTextStyles.body(fontSize: 14)),
+              child: Text(label, style: ChTextStyles.body(fontSize: 14, color: ChColors.text)),
             ),
             Text(
               '›',

@@ -146,7 +146,7 @@ class HouseholdPage extends ConsumerWidget {
             ),
             child: ChButton(
               label: 'Invite Resident',
-              variant: ChButtonVariant.secondary,
+              variant: ChButtonVariant.primary,
               onPressed: () => context.push('/resident/profile/household/invite'),
             ),
           ),

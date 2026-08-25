@@ -30,7 +30,7 @@ class PollCard extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Expanded(
-                child: Text(poll.question, style: ChTextStyles.body(fontSize: 15, fontWeight: FontWeight.w600)),
+                child: Text(poll.question, style: ChTextStyles.body(fontSize: 15, fontWeight: FontWeight.w500, color: ChColors.text)),
               ),
               const SizedBox(width: 8),
               Container(
@@ -44,7 +44,7 @@ class PollCard extends StatelessWidget {
                   style: ChTextStyles.body(
                     fontSize: 11,
                     fontWeight: FontWeight.w700,
-                    color: _isClosed ? ChColors.bodyText : ChColors.accent2N(800),
+                    color: _isClosed ? ChColors.text : ChColors.accent2N(800),
                   ),
                 ),
               ),
@@ -79,11 +79,11 @@ class PollCard extends StatelessWidget {
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Text(option.label, style: ChTextStyles.body(fontSize: 13.5, fontWeight: FontWeight.w600)),
+                            Text(option.label, style: ChTextStyles.body(fontSize: 12, fontWeight: FontWeight.w500, color: ChColors.text)),
                             if (poll.voted)
                               Text(
                                 '${option.pct}%',
-                                style: ChTextStyles.body(fontSize: 13.5, fontWeight: FontWeight.w600),
+                                style: ChTextStyles.body(fontSize: 12, fontWeight: FontWeight.w600, color: ChColors.text),
                               ),
                           ],
                         ),
@@ -105,7 +105,7 @@ class PollCard extends StatelessWidget {
             ),
           Text(
             poll.voteCountLabel,
-            style: ChTextStyles.body(fontSize: 12, color: ChColors.bodyText),
+            style: ChTextStyles.body(fontSize: 12, color: ChColors.text),
           ),
         ],
       ),

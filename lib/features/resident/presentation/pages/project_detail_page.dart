@@ -69,7 +69,7 @@ class ProjectDetailPage extends ConsumerWidget {
                         ),
                       Row(
                         children: [
-                          Expanded(child: Text(json['title'] as String, style: ChTextStyles.heading(fontSize: 13))),
+                          Expanded(child: Text(json['title'] as String, style: ChTextStyles.heading(fontSize: 13, color: ChColors.text))),
                           Container(
                             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                             decoration: BoxDecoration(
@@ -98,11 +98,11 @@ class ProjectDetailPage extends ConsumerWidget {
                         ),
                       ),
                       const SizedBox(height: 14),
-                      Text(json['description'] as String, style: ChTextStyles.body(fontSize: 14)),
+                      Text(json['description'] as String, style: ChTextStyles.body(fontSize: 14, color: ChColors.text)),
                       const SizedBox(height: 18),
                       Text(
                         'BUDGET',
-                        style: ChTextStyles.body(fontSize: 11, fontWeight: FontWeight.w700, color: ChColors.bodyText)
+                        style: ChTextStyles.body(fontSize: 11, fontWeight: FontWeight.w700, color: ChColors.text)
                             .copyWith(letterSpacing: 1),
                       ),
                       const SizedBox(height: 8),
@@ -112,8 +112,8 @@ class ProjectDetailPage extends ConsumerWidget {
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              Text(b['label'] as String, style: ChTextStyles.body(fontSize: 13)),
-                              Text(formatNaira(b['amount'] as int), style: ChTextStyles.body(fontSize: 13, fontWeight: FontWeight.w600)),
+                              Text(b['label'] as String, style: ChTextStyles.body(fontSize: 13, color: ChColors.text)),
+                              Text(formatNaira(b['amount'] as int), style: ChTextStyles.body(fontSize: 13, fontWeight: FontWeight.w600, color: ChColors.text)),
                             ],
                           ),
                         ),
@@ -121,10 +121,10 @@ class ProjectDetailPage extends ConsumerWidget {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text('Total Budget', style: ChTextStyles.body(fontSize: 14, fontWeight: FontWeight.w700)),
+                          Text('Total Budget', style: ChTextStyles.body(fontSize: 14, fontWeight: FontWeight.w700, color: ChColors.text)),
                           Text(
                             formatNaira(json['totalBudget'] as int),
-                            style: ChTextStyles.body(fontSize: 14, fontWeight: FontWeight.w700),
+                            style: ChTextStyles.body(fontSize: 14, fontWeight: FontWeight.w700, color: ChColors.text),
                           ),
                         ],
                       ),
@@ -132,7 +132,7 @@ class ProjectDetailPage extends ConsumerWidget {
                         const SizedBox(height: 20),
                         Text(
                           'ESTATE FUNDING',
-                          style: ChTextStyles.body(fontSize: 11, fontWeight: FontWeight.w700, color: ChColors.bodyText)
+                          style: ChTextStyles.body(fontSize: 11, fontWeight: FontWeight.w700, color: ChColors.text)
                               .copyWith(letterSpacing: 1),
                         ),
                         const SizedBox(height: 8),
@@ -144,23 +144,23 @@ class ProjectDetailPage extends ConsumerWidget {
                               Row(
                                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                 children: [
-                                  Text('Allocated from treasury', style: ChTextStyles.body(fontSize: 13)),
-                                  Text(formatNaira(allocated), style: ChTextStyles.body(fontSize: 13, fontWeight: FontWeight.w600)),
+                                  Text('Allocated from treasury', style: ChTextStyles.body(fontSize: 13, color: ChColors.text)),
+                                  Text(formatNaira(allocated), style: ChTextStyles.body(fontSize: 13, fontWeight: FontWeight.w600, color: ChColors.text)),
                                 ],
                               ),
                               const SizedBox(height: 8),
                               Row(
                                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                 children: [
-                                  Text('Spent (approved invoices)', style: ChTextStyles.body(fontSize: 13)),
-                                  Text(formatNaira(spent), style: ChTextStyles.body(fontSize: 13, fontWeight: FontWeight.w600)),
+                                  Text('Spent (approved invoices)', style: ChTextStyles.body(fontSize: 13, color: ChColors.text)),
+                                  Text(formatNaira(spent), style: ChTextStyles.body(fontSize: 13, fontWeight: FontWeight.w600, color: ChColors.text)),
                                 ],
                               ),
                               const Divider(height: 20),
                               Row(
                                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                 children: [
-                                  Text('Remaining', style: ChTextStyles.body(fontSize: 14, fontWeight: FontWeight.w700)),
+                                  Text('Remaining', style: ChTextStyles.body(fontSize: 14, fontWeight: FontWeight.w700, color: ChColors.text)),
                                   Text(
                                     formatNaira(remaining),
                                     style: ChTextStyles.body(fontSize: 14, fontWeight: FontWeight.w700, color: ChColors.accent2N(700)),
@@ -175,7 +175,7 @@ class ProjectDetailPage extends ConsumerWidget {
                         const SizedBox(height: 20),
                         Text(
                           'COMMUNITY FUNDRAISING',
-                          style: ChTextStyles.body(fontSize: 11, fontWeight: FontWeight.w700, color: ChColors.bodyText)
+                          style: ChTextStyles.body(fontSize: 11, fontWeight: FontWeight.w700, color: ChColors.text)
                               .copyWith(letterSpacing: 1),
                         ),
                         const SizedBox(height: 8),
@@ -188,8 +188,8 @@ class ProjectDetailPage extends ConsumerWidget {
                               Row(
                                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                 children: [
-                                  Text('${formatNaira(raised)} raised', style: ChTextStyles.body(fontSize: 14, fontWeight: FontWeight.w700)),
-                                  Text('of ${formatNaira(goal)}', style: ChTextStyles.body(fontSize: 12, color: ChColors.bodyText)),
+                                  Text('${formatNaira(raised)} raised', style: ChTextStyles.body(fontSize: 14, fontWeight: FontWeight.w700, color: ChColors.text)),
+                                  Text('of ${formatNaira(goal)}', style: ChTextStyles.body(fontSize: 12, color: ChColors.text)),
                                 ],
                               ),
                               const SizedBox(height: 8),
@@ -206,7 +206,7 @@ class ProjectDetailPage extends ConsumerWidget {
                                 const SizedBox(height: 10),
                                 Text(
                                   '${formatNaira(pledged)} pledged by residents',
-                                  style: ChTextStyles.body(fontSize: 12.5, color: ChColors.bodyText),
+                                  style: ChTextStyles.body(fontSize: 12.5, color: ChColors.text),
                                 ),
                               ],
                               if (myDonated > 0) ...[
@@ -216,7 +216,10 @@ class ProjectDetailPage extends ConsumerWidget {
                                   style: ChTextStyles.body(fontSize: 12.5, fontWeight: FontWeight.w600, color: ChColors.accent2N(700)),
                                 ),
                               ],
-                              if (myPledged > 0) ...[
+                              // On a completed project an unfulfilled pledge
+                              // is surfaced by the outstanding banner below
+                              // instead of this neutral line.
+                              if (myPledged > 0 && !isCompleted) ...[
                                 const SizedBox(height: 6),
                                 Text(
                                   'You pledged ${formatNaira(myPledged)}',
@@ -224,10 +227,36 @@ class ProjectDetailPage extends ConsumerWidget {
                                 ),
                               ],
                               const SizedBox(height: 14),
-                              ChButton(
-                                label: 'Pledge',
-                                onPressed: () => _showPledgeSheet(context, ref, id, json['title'] as String),
-                              ),
+                              if (isCompleted && myPledged > 0) ...[
+                                // Completed projects take no new pledges, but
+                                // a resident's unfulfilled pledge stays
+                                // visible as outstanding — the estate still
+                                // expects that money.
+                                Container(
+                                  width: double.infinity,
+                                  padding: const EdgeInsets.all(12),
+                                  decoration: BoxDecoration(
+                                    color: ChColors.warning.withValues(alpha: 0.14),
+                                    borderRadius: BorderRadius.circular(ChRadii.md),
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      Icon(Icons.error_outline_rounded, size: 18, color: ChColors.warning),
+                                      const SizedBox(width: 8),
+                                      Expanded(
+                                        child: Text(
+                                          'Your ${formatNaira(myPledged)} pledge is still outstanding on this completed project — please settle it with the estate office.',
+                                          style: ChTextStyles.body(fontSize: 12, fontWeight: FontWeight.w600, color: ChColors.warning),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ] else if (!isCompleted)
+                                ChButton(
+                                  label: 'Pledge',
+                                  onPressed: () => _showPledgeSheet(context, ref, id, json['title'] as String),
+                                ),
                             ],
                           ),
                         ),
@@ -235,7 +264,7 @@ class ProjectDetailPage extends ConsumerWidget {
                       const SizedBox(height: 20),
                       Text(
                         'UPDATES',
-                        style: ChTextStyles.body(fontSize: 11, fontWeight: FontWeight.w700, color: ChColors.bodyText)
+                        style: ChTextStyles.body(fontSize: 11, fontWeight: FontWeight.w700, color: ChColors.text)
                             .copyWith(letterSpacing: 1),
                       ),
                       const SizedBox(height: 8),
@@ -251,12 +280,12 @@ class ProjectDetailPage extends ConsumerWidget {
                                 Row(
                                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                   children: [
-                                    Text(r['author'] as String, style: ChTextStyles.body(fontSize: 12.5, fontWeight: FontWeight.w600)),
-                                    Text(r['date'] as String, style: ChTextStyles.body(fontSize: 12, color: ChColors.bodyText)),
+                                    Text(r['author'] as String, style: ChTextStyles.body(fontSize: 12.5, fontWeight: FontWeight.w600, color: ChColors.text)),
+                                    Text(r['date'] as String, style: ChTextStyles.body(fontSize: 12, color: ChColors.text)),
                                   ],
                                 ),
                                 const SizedBox(height: 6),
-                                Text(r['text'] as String, style: ChTextStyles.body(fontSize: 13)),
+                                Text(r['text'] as String, style: ChTextStyles.body(fontSize: 13, color: ChColors.text)),
                                 if (r['mediaBase64'] != null) ...[
                                   const SizedBox(height: 10),
                                   ChDataMedia(
@@ -318,11 +347,11 @@ class _PledgeSheetState extends ConsumerState<_PledgeSheet> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text('Thanks for your pledge!', style: ChTextStyles.heading(fontSize: 18), textAlign: TextAlign.center),
+            Text('Thanks for your pledge!', style: ChTextStyles.heading(fontSize: 18, color: ChColors.text), textAlign: TextAlign.center),
             const SizedBox(height: 8),
             Text(
               'We\'ll remind you about it when it\'s time.',
-              style: ChTextStyles.body(fontSize: 13, color: ChColors.bodyText),
+              style: ChTextStyles.body(fontSize: 13, color: ChColors.text),
               textAlign: TextAlign.center,
             ),
           ],
@@ -336,11 +365,11 @@ class _PledgeSheetState extends ConsumerState<_PledgeSheet> {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Pledge to ${widget.projectTitle}', style: ChTextStyles.heading(fontSize: 18)),
+          Text('Pledge to ${widget.projectTitle}', style: ChTextStyles.heading(fontSize: 18, color: ChColors.text)),
           const SizedBox(height: 6),
           Text(
             'A pledge is a commitment to donate. Pay the estate whenever you\'re ready — once received, it\'ll be marked as your donation.',
-            style: ChTextStyles.body(fontSize: 12.5, color: ChColors.bodyText),
+            style: ChTextStyles.body(fontSize: 12.5, color: ChColors.text),
           ),
           const SizedBox(height: 16),
           ChTextField(

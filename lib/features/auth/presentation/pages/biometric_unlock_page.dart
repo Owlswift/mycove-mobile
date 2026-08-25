@@ -135,8 +135,8 @@ class _PinKeypadBody extends StatelessWidget {
             text: TextSpan(
               style: ChTextStyles.heading(fontSize: 26),
               children: [
-                const TextSpan(text: 'Community'),
-                TextSpan(text: 'Hub', style: ChTextStyles.heading(fontSize: 26, color: ChColors.accent2)),
+                const TextSpan(text: 'My'),
+                TextSpan(text: 'Cove', style: ChTextStyles.heading(fontSize: 26, color: ChColors.accent2)),
               ],
             ),
           ),

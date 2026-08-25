@@ -81,6 +81,14 @@ class UtilityPurchaseSuccessPage extends ConsumerWidget {
           ],
           SizedBox(height: context.rs(28)),
           ChButton(
+            label: 'View receipt',
+            onPressed: purchase == null
+                ? null
+                : () =>
+                      context.push('/resident/utility-history/${purchase.id}/receipt'),
+          ),
+          SizedBox(height: context.rs(10)),
+          ChButton(
             label: 'Done',
             onPressed: () => context.go('/resident'),
           ),

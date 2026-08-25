@@ -23,7 +23,16 @@ Future<void> main() async {
   }
 
   final container = ProviderContainer();
-  await container.read(pushServiceProvider).initialize();
+  // Deferred to just after the first frame, not run inline here: this ends
+  // in a native permission prompt, and presenting that prompt before
+  // Flutter's own view has ever drawn a frame froze the whole screen at
+  // the OS level until the resident answered it (a `Future`-based
+  // unawaited() alone didn't help — the freeze is UIKit's, tied to
+  // *when* the prompt fires, not to whether Dart is awaiting it).
+  // Letting the real UI paint first avoids that blank/frozen launch.
+  WidgetsBinding.instance.addPostFrameCallback((_) {
+    unawaited(container.read(pushServiceProvider).initialize());
+  });
 
   // Analytics init is fire-and-forget — a Mixpanel outage must never delay
   // or block app startup.

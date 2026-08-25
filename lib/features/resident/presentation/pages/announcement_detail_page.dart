@@ -71,7 +71,11 @@ class AnnouncementDetailPage extends ConsumerWidget {
                     const SizedBox(height: 14),
                     Text(
                       json['body'] as String,
-                      style: ChTextStyles.body(fontSize: 15),
+                      style: ChTextStyles.body(
+                        fontSize: 14,
+                        color: ChColors.text,
+                        height: 1.5,
+                      ),
                     ),
                   ],
                 ),

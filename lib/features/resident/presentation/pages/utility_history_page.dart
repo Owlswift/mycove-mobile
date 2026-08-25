@@ -211,7 +211,10 @@ class _HistoryTile extends StatelessWidget {
         statusLabel = 'Pending';
     }
 
-    return Container(
+    return GestureDetector(
+      onTap: () =>
+          context.push('/resident/utility-history/${purchase.id}/receipt'),
+      child: Container(
       padding: EdgeInsets.all(context.rs(14)),
       decoration: BoxDecoration(
         color: ChColors.surface,
@@ -262,6 +265,7 @@ class _HistoryTile extends StatelessWidget {
             ),
           ),
         ],
+      ),
       ),
     );
   }

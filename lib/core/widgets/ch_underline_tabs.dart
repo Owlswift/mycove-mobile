@@ -44,7 +44,7 @@ class ChUnderlineTabs extends StatelessWidget {
                   style: ChTextStyles.body(
                     fontSize: 13.5,
                     fontWeight: option.selected ? FontWeight.w700 : FontWeight.w500,
-                    color: option.selected ? ChColors.accent2 : ChColors.bodyText,
+                    color: option.selected ? ChColors.accent2 : ChColors.text,
                   ),
                 ),
               ),

@@ -25,7 +25,7 @@ class DuesPage extends ConsumerWidget {
     Future<void> pay(String levyId) async {
       final error = await notifier.payLevy(levyId);
       if (error != null && context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(error)));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(error, style: TextStyle(color: ChColors.text))));
       }
     }
 
@@ -103,10 +103,10 @@ class DuesPage extends ConsumerWidget {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(
+                                                        Text(
                               h.desc,
                               overflow: TextOverflow.ellipsis,
-                              style: ChTextStyles.body(fontSize: 14, fontWeight: FontWeight.w600),
+                              style: ChTextStyles.body(fontSize: 14, fontWeight: FontWeight.w600, color: ChColors.text),
                             ),
                             Text(h.date, style: ChTextStyles.body(fontSize: 12, color: ChColors.bodyText)),
                           ],
@@ -149,10 +149,10 @@ class DuesPage extends ConsumerWidget {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(lv.label, style: ChTextStyles.body(fontSize: 14, fontWeight: FontWeight.w600)),
+                            Text(lv.label, style: ChTextStyles.body(fontSize: 13, fontWeight: FontWeight.w600, color: ChColors.text)),
                             Text(
                               'Due ${lv.dueDate} · ${formatNaira(lv.amount)}',
-                              style: ChTextStyles.body(fontSize: 12, color: ChColors.bodyText),
+                              style: ChTextStyles.body(fontSize: 12, color: ChColors.text),
                             ),
                           ],
                         ),

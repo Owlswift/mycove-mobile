@@ -8,6 +8,7 @@ import 'package:flutter_tts/flutter_tts.dart';
 import 'package:local_auth/local_auth.dart';
 import 'package:speech_to_text/speech_recognition_error.dart';
 import 'package:speech_to_text/speech_to_text.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../core/analytics/analytics_service.dart';
 import '../core/network/api_client.dart';
@@ -369,6 +370,24 @@ class AppNotifier extends StateNotifier<AppState> {
   void onPhoneChange(String v) => state = state.copyWith(loginPhone: v);
   void onPasswordChange(String v) => state = state.copyWith(loginPassword: v);
   void setRememberMe(bool v) => state = state.copyWith(rememberMe: v);
+
+  /// Hands off to the Google Maps app (or its web fallback) centered on the
+  /// estate's address, rather than embedding a maps SDK of our own — that
+  /// would need a billed Google Cloud API key just to show live traffic
+  /// coloring, which Maps already does for free once it opens.
+  Future<void> openTrafficUpdate() async {
+    final address = state.estateAddress ?? state.estateName;
+    if (address == null || address.isEmpty) return;
+    final uri = Uri.https('www.google.com', '/maps/search/', {
+      'api': '1',
+      'query': address,
+    });
+    try {
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    } catch (_) {
+      // No maps app/browser available to hand off to — nothing else to do.
+    }
+  }
 
   /// "Change" on the estate card during login — unlike [reenterEstateCode]
   /// (used before anything's been confirmed), the estate here is already

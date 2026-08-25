@@ -33,9 +33,9 @@ class WelcomePage extends ConsumerWidget {
                 text: TextSpan(
                   style: ChTextStyles.heading(fontSize: 28),
                   children: [
-                    const TextSpan(text: 'Community'),
+                    const TextSpan(text: 'My'),
                     TextSpan(
-                      text: 'Hub',
+                      text: 'Cove',
                       style: ChTextStyles.heading(
                         fontSize: 28,
                         color: ChColors.accent2,

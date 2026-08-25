@@ -58,7 +58,7 @@ class _PollsPageState extends ConsumerState<PollsPage> {
                       Text(
                         _showActive ? 'No active polls' : 'No completed polls yet',
                         textAlign: TextAlign.center,
-                        style: ChTextStyles.body(fontSize: 15, fontWeight: FontWeight.w600),
+                        style: ChTextStyles.body(fontSize: 15, fontWeight: FontWeight.w600, color: ChColors.text),
                       ),
                     ],
                   )

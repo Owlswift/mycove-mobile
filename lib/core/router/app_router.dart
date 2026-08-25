@@ -48,6 +48,7 @@ import '../../features/resident/presentation/pages/rules_page.dart';
 import '../../features/resident/presentation/pages/sos_page.dart';
 import '../../features/resident/presentation/pages/utility_history_page.dart';
 import '../../features/resident/presentation/pages/utility_purchase_success_page.dart';
+import '../../features/resident/presentation/pages/utility_receipt_page.dart';
 import '../../features/resident/presentation/pages/visitor_create_page.dart';
 import '../../features/resident/presentation/pages/set_pin_page.dart';
 import '../../features/resident/presentation/pages/visitor_detail_page.dart';
@@ -249,6 +250,13 @@ final routerProvider = Provider<GoRouter>((ref) {
                   GoRoute(
                     path: 'utility-history',
                     builder: (_, s) => UtilityHistoryPage(type: s.extra as String?),
+                    routes: [
+                      GoRoute(
+                        path: ':id/receipt',
+                        builder: (_, s) =>
+                            UtilityReceiptPage(purchaseId: s.pathParameters['id']!),
+                      ),
+                    ],
                   ),
                 ],
               ),

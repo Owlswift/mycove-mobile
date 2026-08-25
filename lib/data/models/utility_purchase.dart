@@ -11,6 +11,29 @@ UtilityPurchaseStatus _statusFromJson(String value) {
   }
 }
 
+class UtilityPurchaseMeter {
+  const UtilityPurchaseMeter({
+    required this.meterNumber,
+    required this.discoName,
+    required this.discoCode,
+    required this.meterType,
+  });
+
+  factory UtilityPurchaseMeter.fromJson(Map<String, dynamic> json) {
+    return UtilityPurchaseMeter(
+      meterNumber: json['meterNumber'] as String? ?? '',
+      discoName: json['discoName'] as String? ?? '',
+      discoCode: json['discoCode'] as String? ?? '',
+      meterType: json['meterType'] as String? ?? '',
+    );
+  }
+
+  final String meterNumber;
+  final String discoName;
+  final String discoCode;
+  final String meterType;
+}
+
 class UtilityPurchase {
   const UtilityPurchase({
     required this.id,
@@ -23,9 +46,13 @@ class UtilityPurchase {
     this.units,
     this.tariff,
     this.failureReason,
+    this.meter,
+    this.network,
+    this.phone,
   });
 
   factory UtilityPurchase.fromJson(Map<String, dynamic> json) {
+    final meterJson = json['meter'] as Map<String, dynamic>?;
     return UtilityPurchase(
       id: json['id'] as String,
       type: json['type'] as String,
@@ -37,6 +64,10 @@ class UtilityPurchase {
       units: json['units'] as String?,
       tariff: json['tariff'] as String?,
       failureReason: json['failureReason'] as String?,
+      meter:
+          meterJson == null ? null : UtilityPurchaseMeter.fromJson(meterJson),
+      network: json['network'] as String?,
+      phone: json['phone'] as String?,
     );
   }
 
@@ -50,4 +81,14 @@ class UtilityPurchase {
   final String? units;
   final String? tariff;
   final String? failureReason;
+
+  /// Meter details (electricity only) — included by the API so receipts can
+  /// show which meter/DISCO a token belongs to without another lookup.
+  final UtilityPurchaseMeter? meter;
+
+  /// AIRTIME only: mtn / airtel / glo / etisalat.
+  final String? network;
+
+  /// AIRTIME recipient, or electricity contact phone.
+  final String? phone;
 }

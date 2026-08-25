@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../core/network/spotlight_modal_storage.dart';
 import '../../../../core/theme/ch_colors.dart';
 import '../../../../core/theme/ch_responsive.dart';
 import '../../../../core/theme/ch_spacing.dart';
@@ -35,13 +36,33 @@ String _greeting() {
   return 'Good evening';
 }
 
-class DashboardPage extends ConsumerWidget {
+class DashboardPage extends ConsumerStatefulWidget {
   const DashboardPage({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<DashboardPage> createState() => _DashboardPageState();
+}
+
+class _DashboardPageState extends ConsumerState<DashboardPage> {
+  bool _spotlightModalChecked = false;
+
+  @override
+  Widget build(BuildContext context) {
     final s = ref.watch(appStateProvider);
     final notifier = ref.read(appStateProvider.notifier);
+    if (!_spotlightModalChecked) {
+      final spotlightImage = s.spotlight?.imageBase64;
+      // Bootstrap fills in `s.spotlight` asynchronously after the first
+      // build, so this stays unlatched across rebuilds until it actually
+      // has an image to show — otherwise the very first (still-empty)
+      // build would permanently skip the popup.
+      if (spotlightImage != null && spotlightImage.isNotEmpty) {
+        _spotlightModalChecked = true;
+        WidgetsBinding.instance.addPostFrameCallback(
+          (_) => _maybeShowSpotlightModal(spotlightImage),
+        );
+      }
+    }
     final ongoingProjects = s.projects.where((p) => !p.isCompleted).toList();
     final featuredProject = ongoingProjects.isEmpty
         ? null
@@ -116,13 +137,13 @@ class DashboardPage extends ConsumerWidget {
                     height: context.rs(42),
                     margin: EdgeInsets.only(right: context.rs(10)),
                     decoration: const BoxDecoration(
-                      color: ChColors.surfaceSunken,
+                      color: ChColors.accent2,
                       shape: BoxShape.circle,
                     ),
                     child: Icon(
                       Icons.mic_none_rounded,
                       size: context.rs(21),
-                      color: ChColors.text,
+                      color: Colors.white,
                     ),
                   ),
                 ),
@@ -328,7 +349,28 @@ class DashboardPage extends ConsumerWidget {
             ),
             SizedBox(height: context.rs(18)),
 
-            Text('Utilities', style: ChTextStyles.heading(fontSize: 13)),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text('Utilities', style: ChTextStyles.heading(fontSize: 13)),
+                GestureDetector(
+                  onTap: () => context.push('/resident/utility-history'),
+                  child: Row(
+                    children: [
+                      Text(
+                        'History',
+                        style: ChTextStyles.body(
+                          fontSize: 12.5,
+                          fontWeight: FontWeight.w600,
+                          color: ChColors.accent2,
+                        ),
+                      ),
+                      Icon(Icons.chevron_right_rounded, size: context.rs(16), color: ChColors.accent2),
+                    ],
+                  ),
+                ),
+              ],
+            ),
             SizedBox(height: context.rs(10)),
             IntrinsicHeight(
               child: Row(
@@ -759,6 +801,25 @@ class DashboardPage extends ConsumerWidget {
                 ),
               ],
             ),
+            // Pending — Traffic Update quick action is built and working
+            // (see AppNotifier.openTrafficUpdate) but held back from the UI
+            // until this feature is ready to ship. Re-enable by restoring
+            // this Row.
+            // SizedBox(height: context.rs(10)),
+            // Row(
+            //   children: [
+            //     Expanded(
+            //       child: _QuickAction(
+            //         icon: Icons.traffic_rounded,
+            //         label: 'Traffic\nUpdate',
+            //         tint: const Color(0xfffde7d7),
+            //         iconColor: const Color(0xffb5651d),
+            //         onTap: notifier.openTrafficUpdate,
+            //       ),
+            //     ),
+            //     const Expanded(flex: 4, child: SizedBox()),
+            //   ],
+            // ),
             SizedBox(height: context.rs(18)),
 
             // Your pledges
@@ -899,6 +960,57 @@ class DashboardPage extends ConsumerWidget {
       );
     }
     return items;
+  }
+
+  /// Pops the Spotlight's image full-screen, image only — no name/
+  /// description, that's what the card next to Dues is for. Capped at
+  /// [SpotlightModalStorage.maxPerDay] shows per calendar day so it doesn't
+  /// nag on every launch.
+  Future<void> _maybeShowSpotlightModal(String imageDataUrl) async {
+    const storage = SpotlightModalStorage();
+    if (!await storage.shouldShow()) return;
+    await storage.recordShown();
+    if (!mounted) return;
+    await showDialog<void>(
+      context: context,
+      barrierColor: Colors.black87,
+      builder: (dialogContext) => Dialog(
+        backgroundColor: Colors.transparent,
+        insetPadding: EdgeInsets.symmetric(horizontal: context.rs(24)),
+        child: Stack(
+          clipBehavior: Clip.none,
+          children: [
+            ClipRRect(
+              borderRadius: BorderRadius.circular(ChRadii.card),
+              child: ChDataMedia(
+                dataUrl: imageDataUrl,
+                height: MediaQuery.sizeOf(context).height * 0.55,
+                fit: BoxFit.contain,
+              ),
+            ),
+            Positioned(
+              top: -14,
+              right: -14,
+              child: GestureDetector(
+                onTap: () => Navigator.of(dialogContext).pop(),
+                child: Container(
+                  decoration: const BoxDecoration(
+                    color: Colors.white,
+                    shape: BoxShape.circle,
+                  ),
+                  padding: EdgeInsets.all(context.rs(6)),
+                  child: Icon(
+                    Icons.close_rounded,
+                    color: ChColors.text,
+                    size: context.rs(20),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }
 
