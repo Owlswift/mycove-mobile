@@ -13,7 +13,7 @@ import 'package:mycove/app.dart';
 /// suite hits the live MyCove API on localhost, so it has to run here.
 ///
 /// Run with the backend up (docker compose + `npm run start:dev` in
-/// communityhub-api) via: `flutter test integration_test/app_flow_test.dart -d <device>`
+/// mycove-api) via: `flutter test integration_test/app_flow_test.dart -d <device>`
 
 /// flutter_secure_storage would otherwise read/write the real device
 /// Keychain, leaking a login token across test runs and breaking test

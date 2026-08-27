@@ -1,10 +1,10 @@
 # MyCove Mobile App — Feature Documentation
 
 > Package `mycove` · application ID `com.zsolutionsit.mycove` · Firebase project
-> `mycove-7f39c`. Formerly **CommunityHub**.
+> `mycove-7f39c`. Formerly **MyCove**.
 >
-> Sibling docs: [`communityhub-api/docs/FEATURES.md`](../../communityhub-api/docs/FEATURES.md)
-> · [`communityhub-admin/docs/FEATURES.md`](../../communityhub-admin/docs/FEATURES.md)
+> Sibling docs: [`mycove-api/docs/FEATURES.md`](../../mycove-api/docs/FEATURES.md)
+> · [`mycove-admin/docs/FEATURES.md`](../../mycove-admin/docs/FEATURES.md)
 
 Flutter app serving two in-app roles: **residents** (bottom-tab shell) and
 **security guards** (scan/log/dues tabs). Accounts are admin-created or
@@ -194,7 +194,7 @@ lib/
 2. **Self-service emergency contact** — editable/removable anytime from Profile;
    save requires a phone; dedicated Remove action clears it server-side;
    `emergency_contact_updated` analytics distinguishes set/update/remove.
-3. **Rebrand to MyCove** — all `CommunityHub` naming replaced (`MyCove` display /
+3. **Rebrand to MyCove** — all `MyCove` naming replaced (`MyCove` display /
    `mycove` package / `myCove` identifiers): pubspec name, imports, classes,
    native runner names, web manifest/title, docs; `community_hub_api.dart` →
    `my_cove_api.dart`.

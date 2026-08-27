@@ -3,7 +3,7 @@
 > Flutter · package `mycove` · app ID `com.zsolutionsit.mycove`
 >
 > Feature inventory: [FEATURES.md](FEATURES.md) · API:
-> [`communityhub-api/docs/ARCHITECTURE.md`](../../communityhub-api/docs/ARCHITECTURE.md)
+> [`mycove-api/docs/ARCHITECTURE.md`](../../mycove-api/docs/ARCHITECTURE.md)
 
 ## 1. System context
 

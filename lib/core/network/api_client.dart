@@ -4,7 +4,7 @@ import 'estate_storage.dart';
 import 'token_storage.dart';
 
 /// Defaults to the dev Mac's LAN IP so the app on a simulator or a phone on
-/// the same Wi-Fi hits the local API (`npm run start:dev` in communityhub-api,
+/// the same Wi-Fi hits the local API (`npm run start:dev` in mycove-api,
 /// which listens on 0.0.0.0:3000). Update the IP here when the Mac's DHCP
 /// lease changes (`ipconfig getifaddr en0`).
 /// For remote testers, override with a Cloudflare quick tunnel instead:
