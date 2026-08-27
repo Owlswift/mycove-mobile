@@ -2,12 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:add_2_calendar/add_2_calendar.dart';
 
-import '../../../../core/theme/ch_colors.dart';
-import '../../../../core/theme/ch_responsive.dart';
-import '../../../../core/theme/ch_spacing.dart';
-import '../../../../core/theme/ch_text_styles.dart';
-import '../../../../core/widgets/ch_button.dart';
-import '../../../../core/widgets/ch_generic_header.dart';
+import '../../../../core/theme/mc_colors.dart';
+import '../../../../core/theme/mc_responsive.dart';
+import '../../../../core/theme/mc_spacing.dart';
+import '../../../../core/theme/mc_text_styles.dart';
+import '../../../../core/widgets/mc_button.dart';
+import '../../../../core/widgets/mc_generic_header.dart';
 import '../../../../state/app_notifier.dart';
 import '../../../../state/app_state.dart';
 import '../../../../state/detail_providers.dart';
@@ -26,7 +26,7 @@ class MeetingDetailPage extends ConsumerWidget {
 
     return Column(
       children: [
-        ChGenericHeader(
+        McGenericHeader(
           title: 'Meeting',
           // Lets a resident ask follow-up questions ("what was decided
           // about security?") right from the meeting they're already
@@ -37,18 +37,18 @@ class MeetingDetailPage extends ConsumerWidget {
             child: Container(
               width: context.rs(36),
               height: context.rs(36),
-              decoration: const BoxDecoration(color: ChColors.surfaceSunken, shape: BoxShape.circle),
-              child: Icon(Icons.mic_none_rounded, size: context.rs(18), color: ChColors.text),
+              decoration: const BoxDecoration(color: McColors.surfaceSunken, shape: BoxShape.circle),
+              child: Icon(Icons.mic_none_rounded, size: context.rs(18), color: McColors.text),
             ),
           ),
         ),
         Expanded(
           child: detail.when(
-            loading: () => const Center(child: CircularProgressIndicator(color: ChColors.accent)),
+            loading: () => const Center(child: CircularProgressIndicator(color: McColors.accent)),
             error: (e, _) => Center(
               child: Text(
                 'Could not load this meeting.',
-                style: ChTextStyles.body(fontSize: 14, color: ChColors.text),
+                style: McTextStyles.body(fontSize: 14, color: McColors.text),
               ),
             ),
             data: (json) {
@@ -69,17 +69,17 @@ class MeetingDetailPage extends ConsumerWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(json['title'] as String, style: ChTextStyles.heading(fontSize: 20)),
+                      Text(json['title'] as String, style: McTextStyles.heading(fontSize: 20)),
                       const SizedBox(height: 8),
                       Text(
                         '${json['date']} at ${json['time']}',
-                        style: ChTextStyles.body(fontSize: 14, color: ChColors.text),
+                        style: McTextStyles.body(fontSize: 14, color: McColors.text),
                       ),
-                      Text(json['location'] as String, style: ChTextStyles.body(fontSize: 14, color: ChColors.text)),
+                      Text(json['location'] as String, style: McTextStyles.body(fontSize: 14, color: McColors.text)),
                       const SizedBox(height: 16),
                       Text(
                         'AGENDA',
-                        style: ChTextStyles.body(fontSize: 11, fontWeight: FontWeight.w700, color: ChColors.text)
+                        style: McTextStyles.body(fontSize: 11, fontWeight: FontWeight.w700, color: McColors.text)
                             .copyWith(letterSpacing: 1),
                       ),
                       const SizedBox(height: 8),
@@ -93,9 +93,9 @@ class MeetingDetailPage extends ConsumerWidget {
                                 width: 5,
                                 height: 5,
                                 margin: const EdgeInsets.only(top: 8, right: 8),
-                                decoration: const BoxDecoration(color: ChColors.accent2, shape: BoxShape.circle),
+                                decoration: const BoxDecoration(color: McColors.accent2, shape: BoxShape.circle),
                               ),
-                              Expanded(child: Text(ag, style: ChTextStyles.body(fontSize: 14))),
+                              Expanded(child: Text(ag, style: McTextStyles.body(fontSize: 14))),
                             ],
                           ),
                         ),
@@ -103,11 +103,11 @@ class MeetingDetailPage extends ConsumerWidget {
                         const SizedBox(height: 16),
                         Text(
                           'MEETING REPORT',
-                          style: ChTextStyles.body(fontSize: 11, fontWeight: FontWeight.w700, color: ChColors.text)
+                          style: McTextStyles.body(fontSize: 11, fontWeight: FontWeight.w700, color: McColors.text)
                               .copyWith(letterSpacing: 1),
                         ),
                         const SizedBox(height: 8),
-                        Text(report, style: ChTextStyles.body(fontSize: 14, height: 1.5)),
+                        Text(report, style: McTextStyles.body(fontSize: 14, height: 1.5)),
                         const SizedBox(height: 12),
                         _ReportPlaybackControls(
                           state: isThisReport ? s.reportPlaybackState : ReportPlaybackState.stopped,
@@ -127,12 +127,12 @@ class MeetingDetailPage extends ConsumerWidget {
                               Container(
                                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                                 decoration: BoxDecoration(
-                                  color: ChColors.surfaceSunken,
-                                  borderRadius: BorderRadius.circular(ChRadii.pill),
+                                  color: McColors.surfaceSunken,
+                                  borderRadius: BorderRadius.circular(McRadii.pill),
                                 ),
                                 child: Text(
                                   t,
-                                  style: ChTextStyles.body(fontSize: 11.5, color: ChColors.text),
+                                  style: McTextStyles.body(fontSize: 11.5, color: McColors.text),
                                 ),
                               ),
                           ],
@@ -143,10 +143,10 @@ class MeetingDetailPage extends ConsumerWidget {
                         if (added)
                           Text(
                             '✓ Added to device calendar',
-                            style: ChTextStyles.body(fontSize: 14, fontWeight: FontWeight.w600, color: ChColors.accent2N(700)),
+                            style: McTextStyles.body(fontSize: 14, fontWeight: FontWeight.w600, color: McColors.accent2N(700)),
                           )
                         else
-                          ChButton(
+                          McButton(
                             label: 'Add to Calendar',
                             onPressed: () async {
                               final title = json['title'] as String;
@@ -242,25 +242,25 @@ class _ControlButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(ChRadii.button),
+      borderRadius: BorderRadius.circular(McRadii.button),
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
         decoration: BoxDecoration(
-          color: isSecondary ? ChColors.surface : ChColors.accent2,
-          borderRadius: BorderRadius.circular(ChRadii.button),
-          border: isSecondary ? Border.all(color: ChColors.divider) : null,
+          color: isSecondary ? McColors.surface : McColors.accent2,
+          borderRadius: BorderRadius.circular(McRadii.button),
+          border: isSecondary ? Border.all(color: McColors.divider) : null,
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(icon, size: 18, color: isSecondary ? ChColors.text : Colors.white),
+            Icon(icon, size: 18, color: isSecondary ? McColors.text : Colors.white),
             const SizedBox(width: 6),
             Text(
               label,
-              style: ChTextStyles.body(
+              style: McTextStyles.body(
                 fontSize: 13,
                 fontWeight: FontWeight.w600,
-                color: isSecondary ? ChColors.text : Colors.white,
+                color: isSecondary ? McColors.text : Colors.white,
               ),
             ),
           ],

@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../../core/theme/ch_colors.dart';
-import '../../../../core/theme/ch_responsive.dart';
+import '../../../../core/theme/mc_colors.dart';
+import '../../../../core/theme/mc_responsive.dart';
 import '../../../../state/app_notifier.dart';
 import '../../../../state/app_state.dart';
 import 'authorization_sheet.dart';
@@ -77,17 +77,17 @@ class ResidentShell extends ConsumerWidget {
       // whenever this shell sits inside a ShellRoute's nested Navigator.
       bottomNavigationBar: Container(
         decoration: const BoxDecoration(
-          color: ChColors.surface,
-          border: Border(top: BorderSide(color: ChColors.divider)),
+          color: McColors.surface,
+          border: Border(top: BorderSide(color: McColors.divider)),
         ),
         child: BottomNavigationBar(
           currentIndex: navigationShell.currentIndex,
           onTap: (i) => navigationShell.goBranch(i, initialLocation: i == navigationShell.currentIndex),
           type: BottomNavigationBarType.fixed,
-          backgroundColor: ChColors.surface,
+          backgroundColor: McColors.surface,
           elevation: 0,
-          selectedItemColor: ChColors.accent2,
-          unselectedItemColor: ChColors.bodyText,
+          selectedItemColor: McColors.accent2,
+          unselectedItemColor: McColors.bodyText,
           selectedLabelStyle: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.w600),
           unselectedLabelStyle: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.w500),
           items: [

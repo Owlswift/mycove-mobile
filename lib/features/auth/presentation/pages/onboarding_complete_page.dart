@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../../core/theme/ch_colors.dart';
-import '../../../../core/theme/ch_responsive.dart';
-import '../../../../core/theme/ch_spacing.dart';
-import '../../../../core/theme/ch_text_styles.dart';
-import '../../../../core/widgets/ch_data_media.dart';
+import '../../../../core/theme/mc_colors.dart';
+import '../../../../core/theme/mc_responsive.dart';
+import '../../../../core/theme/mc_spacing.dart';
+import '../../../../core/theme/mc_text_styles.dart';
+import '../../../../core/widgets/mc_data_media.dart';
 import '../../../../state/app_notifier.dart';
 
 /// Shown once, right after [AppNotifier.completeForceReset] succeeds —
@@ -20,7 +20,7 @@ class OnboardingCompletePage extends ConsumerWidget {
     final notifier = ref.read(appStateProvider.notifier);
 
     return Scaffold(
-      backgroundColor: ChColors.bg,
+      backgroundColor: McColors.bg,
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.fromLTRB(20, 12, 20, 28),
@@ -32,9 +32,9 @@ class OnboardingCompletePage extends ConsumerWidget {
               Center(
                 child: Text(
                   'You\'re All Set!',
-                  style: ChTextStyles.heading(
+                  style: McTextStyles.heading(
                     fontSize: 28,
-                    color: ChColors.accent2,
+                    color: McColors.accent2,
                   ),
                 ),
               ),
@@ -43,9 +43,9 @@ class OnboardingCompletePage extends ConsumerWidget {
                 child: Text(
                   'Your profile has been updated successfully. You can now access all community features.',
                   textAlign: TextAlign.center,
-                  style: ChTextStyles.body(
+                  style: McTextStyles.body(
                     fontSize: 14,
-                    color: ChColors.bodyText,
+                    color: McColors.bodyText,
                     height: 1.4,
                   ),
                 ),
@@ -53,9 +53,9 @@ class OnboardingCompletePage extends ConsumerWidget {
               const SizedBox(height: 24),
               Container(
                 decoration: BoxDecoration(
-                  color: ChColors.surface,
-                  borderRadius: BorderRadius.circular(ChRadii.card),
-                  boxShadow: ChColors.cardShadow,
+                  color: McColors.surface,
+                  borderRadius: BorderRadius.circular(McRadii.card),
+                  boxShadow: McColors.cardShadow,
                 ),
                 clipBehavior: Clip.antiAlias,
                 child: Column(
@@ -63,12 +63,12 @@ class OnboardingCompletePage extends ConsumerWidget {
                     Container(
                       width: double.infinity,
                       padding: const EdgeInsets.all(16),
-                      color: ChColors.accent2N(100),
+                      color: McColors.accent2N(100),
                       child: Text(
                         "What's next?",
-                        style: ChTextStyles.heading(
+                        style: McTextStyles.heading(
                           fontSize: 16,
-                          color: ChColors.accent2N(800),
+                          color: McColors.accent2N(800),
                         ),
                       ),
                     ),
@@ -104,15 +104,15 @@ class OnboardingCompletePage extends ConsumerWidget {
                   padding: const EdgeInsets.symmetric(vertical: 15),
                   alignment: Alignment.center,
                   decoration: BoxDecoration(
-                    color: ChColors.accent2,
-                    borderRadius: BorderRadius.circular(ChRadii.button),
+                    color: McColors.accent2,
+                    borderRadius: BorderRadius.circular(McRadii.button),
                   ),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Text(
                         'Go to Dashboard',
-                        style: ChTextStyles.body(
+                        style: McTextStyles.body(
                           fontSize: 15,
                           fontWeight: FontWeight.w600,
                           color: Colors.white,
@@ -134,10 +134,10 @@ class OnboardingCompletePage extends ConsumerWidget {
                   onTap: notifier.finishOnboarding,
                   child: Text(
                     'Explore App Features',
-                    style: ChTextStyles.body(
+                    style: McTextStyles.body(
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
-                      color: ChColors.accent2,
+                      color: McColors.accent2,
                     ),
                   ),
                 ),
@@ -169,7 +169,7 @@ class _NextStepRow extends StatelessWidget {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         border: showBorder
-            ? const Border(bottom: BorderSide(color: ChColors.divider))
+            ? const Border(bottom: BorderSide(color: McColors.divider))
             : null,
       ),
       child: Row(
@@ -179,10 +179,10 @@ class _NextStepRow extends StatelessWidget {
             width: context.rs(40),
             height: context.rs(40),
             decoration: BoxDecoration(
-              color: ChColors.accent2N(100),
+              color: McColors.accent2N(100),
               shape: BoxShape.circle,
             ),
-            child: Icon(icon, size: context.rs(19), color: ChColors.accent2N(700)),
+            child: Icon(icon, size: context.rs(19), color: McColors.accent2N(700)),
           ),
           SizedBox(width: context.rs(12)),
           Expanded(
@@ -191,7 +191,7 @@ class _NextStepRow extends StatelessWidget {
               children: [
                 Text(
                   title,
-                  style: ChTextStyles.body(
+                  style: McTextStyles.body(
                     fontSize: 14,
                     fontWeight: FontWeight.w700,
                   ),
@@ -199,9 +199,9 @@ class _NextStepRow extends StatelessWidget {
                 const SizedBox(height: 2),
                 Text(
                   description,
-                  style: ChTextStyles.body(
+                  style: McTextStyles.body(
                     fontSize: 12.5,
-                    color: ChColors.bodyText,
+                    color: McColors.bodyText,
                     height: 1.3,
                   ),
                 ),
@@ -247,7 +247,7 @@ class _SuccessGraphic extends StatelessWidget {
                   topRight: Radius.circular(160),
                 ),
                 child: estateImage != null
-                    ? ChDataMedia(dataUrl: estateImage!, height: context.rs(204))
+                    ? McDataMedia(dataUrl: estateImage!, height: context.rs(204))
                     : Image.asset(
                         'assets/images/welcome_banner.png',
                         height: context.rs(204),
@@ -260,13 +260,13 @@ class _SuccessGraphic extends StatelessWidget {
           _confetti(
             dx: -0.42,
             dy: 0.02,
-            color: ChColors.accentN(400),
+            color: McColors.accentN(400),
             angle: -0.4,
           ),
           _confetti(
             dx: 0.46,
             dy: 0.1,
-            color: ChColors.accent2N(300),
+            color: McColors.accent2N(300),
             angle: 0.5,
           ),
           _confetti(
@@ -278,7 +278,7 @@ class _SuccessGraphic extends StatelessWidget {
           _confetti(
             dx: 0.24,
             dy: -0.15,
-            color: ChColors.accentN(300),
+            color: McColors.accentN(300),
             angle: -0.3,
           ),
           Padding(
@@ -291,8 +291,8 @@ class _SuccessGraphic extends StatelessWidget {
                 shape: BoxShape.circle,
                 gradient: RadialGradient(
                   colors: [
-                    ChColors.accent2N(100).withValues(alpha: 0.9),
-                    ChColors.accent2N(100).withValues(alpha: 0),
+                    McColors.accent2N(100).withValues(alpha: 0.9),
+                    McColors.accent2N(100).withValues(alpha: 0),
                   ],
                 ),
               ),
@@ -300,7 +300,7 @@ class _SuccessGraphic extends StatelessWidget {
                 width: context.rs(56),
                 height: context.rs(56),
                 decoration: const BoxDecoration(
-                  color: ChColors.accent2,
+                  color: McColors.accent2,
                   shape: BoxShape.circle,
                 ),
                 child: Icon(

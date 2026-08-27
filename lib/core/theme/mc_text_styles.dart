@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-import 'ch_colors.dart';
+import 'mc_colors.dart';
 
 /// Inter throughout, for both headings/titles and body text.
 ///
@@ -9,12 +9,12 @@ import 'ch_colors.dart';
 /// entry points most call sites use; the named roles below (heroTitle
 /// through [button]) are the fixed weight/size scale — use these directly
 /// wherever a screen maps cleanly onto one of these roles.
-class ChTextStyles {
-  ChTextStyles._();
+class McTextStyles {
+  McTextStyles._();
 
   static TextStyle heading({
     double fontSize = 22,
-    Color color = ChColors.titleText,
+    Color color = McColors.titleText,
     FontWeight fontWeight = FontWeight.w700,
     double? height,
   }) {
@@ -30,7 +30,7 @@ class ChTextStyles {
   static TextStyle body({
     double fontSize = 15,
     FontWeight fontWeight = FontWeight.w400,
-    Color color = ChColors.bodyText,
+    Color color = McColors.bodyText,
     double? height,
     double letterSpacing = -0.1,
   }) {
@@ -45,7 +45,7 @@ class ChTextStyles {
 
   // ── Named scale ──────────────────────────────────────────────────────
   static TextStyle heroTitle({
-    Color color = ChColors.titleText,
+    Color color = McColors.titleText,
     double fontSize = 36,
     double? height,
   }) => heading(
@@ -54,15 +54,15 @@ class ChTextStyles {
     color: color,
     height: height,
   );
-  static TextStyle screenTitle({Color color = ChColors.titleText}) =>
+  static TextStyle screenTitle({Color color = McColors.titleText}) =>
       heading(fontSize: 30, fontWeight: FontWeight.w700, color: color);
-  static TextStyle sectionTitle({Color color = ChColors.titleText}) =>
+  static TextStyle sectionTitle({Color color = McColors.titleText}) =>
       heading(fontSize: 22, fontWeight: FontWeight.w600, color: color);
-  static TextStyle cardTitle({Color color = ChColors.titleText}) =>
+  static TextStyle cardTitle({Color color = McColors.titleText}) =>
       heading(fontSize: 18, fontWeight: FontWeight.w600, color: color);
-  static TextStyle caption({Color color = ChColors.bodyText}) =>
+  static TextStyle caption({Color color = McColors.bodyText}) =>
       body(fontSize: 14, fontWeight: FontWeight.w400, color: color);
-  static TextStyle small({Color color = ChColors.bodyText}) =>
+  static TextStyle small({Color color = McColors.bodyText}) =>
       body(fontSize: 12, fontWeight: FontWeight.w500, color: color);
   static TextStyle button({Color color = Colors.white}) =>
       body(fontSize: 16, fontWeight: FontWeight.w600, color: color);

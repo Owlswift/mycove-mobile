@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../../core/theme/ch_colors.dart';
-import '../../../../core/theme/ch_responsive.dart';
-import '../../../../core/theme/ch_spacing.dart';
-import '../../../../core/theme/ch_text_styles.dart';
-import '../../../../core/widgets/ch_generic_header.dart';
+import '../../../../core/theme/mc_colors.dart';
+import '../../../../core/theme/mc_responsive.dart';
+import '../../../../core/theme/mc_spacing.dart';
+import '../../../../core/theme/mc_text_styles.dart';
+import '../../../../core/widgets/mc_generic_header.dart';
 import '../../../../data/models/notification_item.dart';
 import '../../../../data/models/session_info.dart';
 import '../../../../state/app_notifier.dart';
@@ -52,12 +52,12 @@ class _ManageDevicesPageState extends ConsumerState<ManageDevicesPage> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            style: TextButton.styleFrom(foregroundColor: ChColors.text),
+            style: TextButton.styleFrom(foregroundColor: McColors.text),
             child: const Text('Cancel'),
           ),
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
-            style: TextButton.styleFrom(foregroundColor: ChColors.danger),
+            style: TextButton.styleFrom(foregroundColor: McColors.danger),
             child: const Text('Log Out'),
           ),
         ],
@@ -83,11 +83,11 @@ class _ManageDevicesPageState extends ConsumerState<ManageDevicesPage> {
 
     return Column(
       children: [
-        const ChGenericHeader(title: 'Manage Devices'),
+        const McGenericHeader(title: 'Manage Devices'),
         Expanded(
           child: _loading
               ? const Center(
-                  child: CircularProgressIndicator(color: ChColors.accent2),
+                  child: CircularProgressIndicator(color: McColors.accent2),
                 )
               : RefreshIndicator(
                   onRefresh: _load,
@@ -100,9 +100,9 @@ class _ManageDevicesPageState extends ConsumerState<ManageDevicesPage> {
                               child: Text(
                                 'No other devices are logged in.',
                                 textAlign: TextAlign.center,
-                                style: ChTextStyles.body(
+                                style: McTextStyles.body(
                                   fontSize: 14,
-                                  color: ChColors.bodyText,
+                                  color: McColors.bodyText,
                                 ),
                               ),
                             ),
@@ -143,8 +143,8 @@ class _DeviceTile extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: ChColors.surface,
-        borderRadius: BorderRadius.circular(ChRadii.card),
+        color: McColors.surface,
+        borderRadius: BorderRadius.circular(McRadii.card),
       ),
       child: Row(
         children: [
@@ -152,7 +152,7 @@ class _DeviceTile extends StatelessWidget {
             width: context.rs(40),
             height: context.rs(40),
             decoration: BoxDecoration(
-              color: ChColors.accent2N(100),
+              color: McColors.accent2N(100),
               shape: BoxShape.circle,
             ),
             child: Icon(
@@ -160,7 +160,7 @@ class _DeviceTile extends StatelessWidget {
                   ? Icons.phone_iphone
                   : Icons.phone_android,
               size: context.rs(20),
-              color: ChColors.accent2N(700),
+              color: McColors.accent2N(700),
             ),
           ),
           SizedBox(width: context.rs(12)),
@@ -177,7 +177,7 @@ class _DeviceTile extends StatelessWidget {
                                 ? 'iPhone'
                                 : 'Android device'),
                         overflow: TextOverflow.ellipsis,
-                        style: ChTextStyles.body(
+                        style: McTextStyles.body(
                           fontSize: 14,
                           fontWeight: FontWeight.w600,
                         ),
@@ -191,15 +191,15 @@ class _DeviceTile extends StatelessWidget {
                           vertical: 2,
                         ),
                         decoration: BoxDecoration(
-                          color: ChColors.accent2N(100),
-                          borderRadius: BorderRadius.circular(ChRadii.pill),
+                          color: McColors.accent2N(100),
+                          borderRadius: BorderRadius.circular(McRadii.pill),
                         ),
                         child: Text(
                           'This device',
-                          style: ChTextStyles.body(
+                          style: McTextStyles.body(
                             fontSize: 10,
                             fontWeight: FontWeight.w700,
-                            color: ChColors.accent2N(700),
+                            color: McColors.accent2N(700),
                           ),
                         ),
                       ),
@@ -209,9 +209,9 @@ class _DeviceTile extends StatelessWidget {
                 const SizedBox(height: 2),
                 Text(
                   'Active ${relativeTime(session.lastUsedAt)}',
-                  style: ChTextStyles.body(
+                  style: McTextStyles.body(
                     fontSize: 12,
-                    color: ChColors.neutralN(500),
+                    color: McColors.neutralN(500),
                   ),
                 ),
               ],
@@ -219,7 +219,7 @@ class _DeviceTile extends StatelessWidget {
           ),
           TextButton(
             onPressed: onRevoke,
-            style: TextButton.styleFrom(foregroundColor: ChColors.danger),
+            style: TextButton.styleFrom(foregroundColor: McColors.danger),
             child: const Text('Log Out'),
           ),
         ],

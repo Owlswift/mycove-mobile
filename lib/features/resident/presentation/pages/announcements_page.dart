@@ -2,13 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../../core/theme/ch_colors.dart';
-import '../../../../core/theme/ch_responsive.dart';
-import '../../../../core/theme/ch_spacing.dart';
-import '../../../../core/theme/ch_text_styles.dart';
-import '../../../../core/widgets/ch_filter_chips.dart';
-import '../../../../core/widgets/ch_generic_header.dart';
-import '../../../../core/widgets/ch_tag.dart';
+import '../../../../core/theme/mc_colors.dart';
+import '../../../../core/theme/mc_responsive.dart';
+import '../../../../core/theme/mc_spacing.dart';
+import '../../../../core/theme/mc_text_styles.dart';
+import '../../../../core/widgets/mc_filter_chips.dart';
+import '../../../../core/widgets/mc_generic_header.dart';
+import '../../../../core/widgets/mc_tag.dart';
 import '../../../../state/app_notifier.dart';
 
 class AnnouncementsPage extends ConsumerStatefulWidget {
@@ -29,13 +29,13 @@ class _AnnouncementsPageState extends ConsumerState<AnnouncementsPage> {
 
     return Column(
       children: [
-        const ChGenericHeader(title: 'Notices', showBack: false),
+        const McGenericHeader(title: 'Notices', showBack: false),
         Padding(
           padding: const EdgeInsets.fromLTRB(20, 0, 20, 12),
-          child: ChFilterChips(
+          child: McFilterChips(
             options: [
               for (final c in categories)
-                ChFilterChipOption(
+                McFilterChipOption(
                   label: c == 'All' ? 'All Notices' : c,
                   selected: _category == c,
                   onSelect: () => setState(() => _category = c),
@@ -62,15 +62,15 @@ class _AnnouncementsPageState extends ConsumerState<AnnouncementsPage> {
                   },
                   child: Container(
                     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 15),
-                    decoration: BoxDecoration(color: ChColors.surface, borderRadius: BorderRadius.circular(ChRadii.card)),
+                    decoration: BoxDecoration(color: McColors.surface, borderRadius: BorderRadius.circular(McRadii.card)),
                     child: Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Container(
                           width: context.rs(36),
                           height: context.rs(36),
-                          decoration: BoxDecoration(color: ChColors.accent2N(100), shape: BoxShape.circle),
-                          child: Icon(Icons.campaign_outlined, size: context.rs(16), color: ChColors.accent2N(700)),
+                          decoration: BoxDecoration(color: McColors.accent2N(100), shape: BoxShape.circle),
+                          child: Icon(Icons.campaign_outlined, size: context.rs(16), color: McColors.accent2N(700)),
                         ),
                         SizedBox(width: context.rs(12)),
                         Expanded(
@@ -80,12 +80,12 @@ class _AnnouncementsPageState extends ConsumerState<AnnouncementsPage> {
                               Row(
                                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                 children: [
-                                  ChTag(label: item.category, background: ChColors.accent2N(100), foreground: ChColors.accent2N(800)),
-                                  Text(item.date, style: ChTextStyles.body(fontSize: 12, color: ChColors.text)),
+                                  McTag(label: item.category, background: McColors.accent2N(100), foreground: McColors.accent2N(800)),
+                                  Text(item.date, style: McTextStyles.body(fontSize: 12, color: McColors.text)),
                                 ],
                               ),
                               const SizedBox(height: 8),
-                              Text(item.title, style: ChTextStyles.body(fontSize: 13, fontWeight: FontWeight.w500, color: ChColors.text)),
+                              Text(item.title, style: McTextStyles.body(fontSize: 13, fontWeight: FontWeight.w500, color: McColors.text)),
                             ],
                           ),
                         ),
@@ -94,7 +94,7 @@ class _AnnouncementsPageState extends ConsumerState<AnnouncementsPage> {
                             width: 8,
                             height: 8,
                             margin: const EdgeInsets.only(left: 8, top: 2),
-                            decoration: const BoxDecoration(color: ChColors.accent2, shape: BoxShape.circle),
+                            decoration: const BoxDecoration(color: McColors.accent2, shape: BoxShape.circle),
                           ),
                       ],
                     ),

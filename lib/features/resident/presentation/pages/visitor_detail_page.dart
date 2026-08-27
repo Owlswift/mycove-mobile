@@ -5,11 +5,11 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:share_plus/share_plus.dart';
 
-import '../../../../core/theme/ch_colors.dart';
-import '../../../../core/theme/ch_responsive.dart';
-import '../../../../core/theme/ch_spacing.dart';
-import '../../../../core/theme/ch_text_styles.dart';
-import '../../../../core/widgets/ch_generic_header.dart';
+import '../../../../core/theme/mc_colors.dart';
+import '../../../../core/theme/mc_responsive.dart';
+import '../../../../core/theme/mc_spacing.dart';
+import '../../../../core/theme/mc_text_styles.dart';
+import '../../../../core/widgets/mc_generic_header.dart';
 import '../../../../data/models/visitor_pass.dart';
 import '../../../../state/app_notifier.dart';
 
@@ -23,7 +23,7 @@ int _hash(String s) {
 
 List<Color> qrCells(String code) {
   final h = _hash(code);
-  return List.generate(64, (i) => ((h >> (i % 24)) ^ (i * 7)) % 3 == 0 ? ChColors.text : ChColors.bg);
+  return List.generate(64, (i) => ((h >> (i % 24)) ^ (i * 7)) % 3 == 0 ? McColors.text : McColors.bg);
 }
 
 class VisitorDetailPage extends ConsumerStatefulWidget {
@@ -63,12 +63,12 @@ class _VisitorDetailPageState extends ConsumerState<VisitorDetailPage> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            style: TextButton.styleFrom(foregroundColor: ChColors.text),
+            style: TextButton.styleFrom(foregroundColor: McColors.text),
             child: const Text('Cancel'),
           ),
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
-            style: TextButton.styleFrom(foregroundColor: ChColors.danger),
+            style: TextButton.styleFrom(foregroundColor: McColors.danger),
             child: const Text('Revoke'),
           ),
         ],
@@ -113,7 +113,7 @@ class _VisitorDetailPageState extends ConsumerState<VisitorDetailPage> {
 
     return Column(
       children: [
-        const ChGenericHeader(title: 'Visitor Pass'),
+        const McGenericHeader(title: 'Visitor Pass'),
         Expanded(
           child: RefreshIndicator(
             onRefresh: () async => ref.read(appStateProvider.notifier).refreshResident(),
@@ -124,32 +124,32 @@ class _VisitorDetailPageState extends ConsumerState<VisitorDetailPage> {
                   Container(
                     width: double.infinity,
                     padding: const EdgeInsets.all(22),
-                    decoration: BoxDecoration(color: ChColors.surface, borderRadius: BorderRadius.circular(ChRadii.card)),
+                    decoration: BoxDecoration(color: McColors.surface, borderRadius: BorderRadius.circular(McRadii.card)),
                     child: Column(
                       children: [
-                        Text(pass.name, style: ChTextStyles.body(fontSize: 15, fontWeight: FontWeight.w600)),
+                        Text(pass.name, style: McTextStyles.body(fontSize: 15, fontWeight: FontWeight.w600)),
                         const SizedBox(height: 6),
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
                           decoration: BoxDecoration(
-                            color: pass.isInside ? ChColors.accent2N(100) : ChColors.neutralN(200),
-                            borderRadius: BorderRadius.circular(ChRadii.pill),
+                            color: pass.isInside ? McColors.accent2N(100) : McColors.neutralN(200),
+                            borderRadius: BorderRadius.circular(McRadii.pill),
                           ),
                           child: Text(
                             _statusLabel(pass),
-                            style: ChTextStyles.body(
+                            style: McTextStyles.body(
                               fontSize: 10.5,
                               fontWeight: FontWeight.w600,
-                              color: pass.isInside ? ChColors.accent2N(700) : ChColors.bodyText,
+                              color: pass.isInside ? McColors.accent2N(700) : McColors.bodyText,
                             ),
                           ),
                         ),
                         const SizedBox(height: 2),
-                        Text(pass.visitLabel, style: ChTextStyles.body(fontSize: 13, color: ChColors.bodyText)),
+                        Text(pass.visitLabel, style: McTextStyles.body(fontSize: 13, color: McColors.bodyText)),
                         const SizedBox(height: 18),
                         Container(
                           padding: const EdgeInsets.all(14),
-                          decoration: BoxDecoration(color: ChColors.surfaceSunken, borderRadius: BorderRadius.circular(ChRadii.md)),
+                          decoration: BoxDecoration(color: McColors.surfaceSunken, borderRadius: BorderRadius.circular(McRadii.md)),
                           child: SizedBox(
                             width: context.rs(8 * 12),
                             height: context.rs(8 * 12),
@@ -162,11 +162,11 @@ class _VisitorDetailPageState extends ConsumerState<VisitorDetailPage> {
                           ),
                         ),
                         const SizedBox(height: 16),
-                        Text('Fallback code', style: ChTextStyles.body(fontSize: 12, color: ChColors.bodyText)),
+                        Text('Fallback code', style: McTextStyles.body(fontSize: 12, color: McColors.bodyText)),
                         const SizedBox(height: 4),
                         Text(
                           pass.code,
-                          style: ChTextStyles.heading(fontSize: 24).copyWith(letterSpacing: 4),
+                          style: McTextStyles.heading(fontSize: 24).copyWith(letterSpacing: 4),
                         ),
                         const SizedBox(height: 14),
                         Row(
@@ -176,10 +176,10 @@ class _VisitorDetailPageState extends ConsumerState<VisitorDetailPage> {
                               onTap: () => _copyCode(pass.code),
                               child: Container(
                                 padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 9),
-                                decoration: BoxDecoration(color: ChColors.surfaceSunken, borderRadius: BorderRadius.circular(ChRadii.pill)),
+                                decoration: BoxDecoration(color: McColors.surfaceSunken, borderRadius: BorderRadius.circular(McRadii.pill)),
                                 child: Text(
                                   _copied ? 'Copied!' : 'Copy Code',
-                                  style: ChTextStyles.body(fontSize: 13, fontWeight: FontWeight.w600),
+                                  style: McTextStyles.body(fontSize: 13, fontWeight: FontWeight.w600),
                                 ),
                               ),
                             ),
@@ -188,7 +188,7 @@ class _VisitorDetailPageState extends ConsumerState<VisitorDetailPage> {
                               onTap: () => _sharePass(pass),
                               child: Container(
                                 padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 9),
-                                decoration: BoxDecoration(color: ChColors.accent2, borderRadius: BorderRadius.circular(ChRadii.pill)),
+                                decoration: BoxDecoration(color: McColors.accent2, borderRadius: BorderRadius.circular(McRadii.pill)),
                                 child: Row(
                                   mainAxisSize: MainAxisSize.min,
                                   children: [
@@ -196,7 +196,7 @@ class _VisitorDetailPageState extends ConsumerState<VisitorDetailPage> {
                                     const SizedBox(width: 6),
                                     Text(
                                       'Share',
-                                      style: ChTextStyles.body(fontSize: 13, fontWeight: FontWeight.w600, color: Colors.white),
+                                      style: McTextStyles.body(fontSize: 13, fontWeight: FontWeight.w600, color: Colors.white),
                                     ),
                                   ],
                                 ),
@@ -212,7 +212,7 @@ class _VisitorDetailPageState extends ConsumerState<VisitorDetailPage> {
                     alignment: Alignment.centerLeft,
                     child: Text(
                       'Vehicle: ${pass.plate}\nPhone: ${pass.phone}',
-                      style: ChTextStyles.body(fontSize: 13, color: ChColors.bodyText),
+                      style: McTextStyles.body(fontSize: 13, color: McColors.bodyText),
                     ),
                   ),
                   if (pass.status == VisitorPassStatus.active)
@@ -225,12 +225,12 @@ class _VisitorDetailPageState extends ConsumerState<VisitorDetailPage> {
                           padding: const EdgeInsets.symmetric(vertical: 12),
                           alignment: Alignment.center,
                           decoration: BoxDecoration(
-                            color: ChColors.danger,
-                            borderRadius: BorderRadius.circular(ChRadii.button),
+                            color: McColors.danger,
+                            borderRadius: BorderRadius.circular(McRadii.button),
                           ),
                           child: Text(
                             'Revoke Pass',
-                            style: ChTextStyles.body(fontSize: 14, fontWeight: FontWeight.w600, color: Colors.white),
+                            style: McTextStyles.body(fontSize: 14, fontWeight: FontWeight.w600, color: Colors.white),
                           ),
                         ),
                       ),

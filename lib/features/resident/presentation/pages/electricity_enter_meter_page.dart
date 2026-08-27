@@ -2,12 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../../core/theme/ch_colors.dart';
-import '../../../../core/theme/ch_responsive.dart';
-import '../../../../core/theme/ch_spacing.dart';
-import '../../../../core/theme/ch_text_styles.dart';
-import '../../../../core/widgets/ch_button.dart';
-import '../../../../core/widgets/ch_generic_header.dart';
+import '../../../../core/theme/mc_colors.dart';
+import '../../../../core/theme/mc_responsive.dart';
+import '../../../../core/theme/mc_spacing.dart';
+import '../../../../core/theme/mc_text_styles.dart';
+import '../../../../core/widgets/mc_button.dart';
+import '../../../../core/widgets/mc_generic_header.dart';
 import '../../../../data/models/utility_meter.dart';
 import '../../../../state/app_notifier.dart';
 import '../widgets/utility_wizard_stepper.dart';
@@ -42,7 +42,7 @@ class _ElectricityEnterMeterPageState extends ConsumerState<ElectricityEnterMete
 
     return Column(
       children: [
-        ChGenericHeader(
+        McGenericHeader(
           title: 'Buy Electricity',
           centerTitle: true,
           onBack: () {
@@ -60,15 +60,15 @@ class _ElectricityEnterMeterPageState extends ConsumerState<ElectricityEnterMete
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Enter Meter Details', style: ChTextStyles.heading(fontSize: 16)),
+                Text('Enter Meter Details', style: McTextStyles.heading(fontSize: 16)),
                 SizedBox(height: context.rs(14)),
                 if (s.elecDiscoCode.isNotEmpty)
                   Container(
                     width: double.infinity,
                     padding: EdgeInsets.all(context.rs(12)),
                     decoration: BoxDecoration(
-                      color: ChColors.surfaceSunken,
-                      borderRadius: BorderRadius.circular(ChRadii.md),
+                      color: McColors.surfaceSunken,
+                      borderRadius: BorderRadius.circular(McRadii.md),
                     ),
                     child: Row(
                       children: [
@@ -83,11 +83,11 @@ class _ElectricityEnterMeterPageState extends ConsumerState<ElectricityEnterMete
                             children: [
                               Text(
                                 discoShortCode(s.discos, s.elecDiscoCode),
-                                style: ChTextStyles.body(fontSize: 13.5, fontWeight: FontWeight.w700, color: ChColors.text),
+                                style: McTextStyles.body(fontSize: 13.5, fontWeight: FontWeight.w700, color: McColors.text),
                               ),
                               Text(
                                 s.elecDiscoName,
-                                style: ChTextStyles.body(fontSize: 12, color: ChColors.bodyText),
+                                style: McTextStyles.body(fontSize: 12, color: McColors.bodyText),
                               ),
                             ],
                           ),
@@ -96,7 +96,7 @@ class _ElectricityEnterMeterPageState extends ConsumerState<ElectricityEnterMete
                     ),
                   ),
                 SizedBox(height: context.rs(20)),
-                Text('Meter Type', style: ChTextStyles.body(fontSize: 14, color: ChColors.text, fontWeight: FontWeight.w700)),
+                Text('Meter Type', style: McTextStyles.body(fontSize: 14, color: McColors.text, fontWeight: FontWeight.w700)),
                 SizedBox(height: context.rs(8)),
                 Row(
                   children: [
@@ -118,7 +118,7 @@ class _ElectricityEnterMeterPageState extends ConsumerState<ElectricityEnterMete
                   ],
                 ),
                 SizedBox(height: context.rs(20)),
-                Text('Meter Number', style: ChTextStyles.body(fontSize: 14, color: ChColors.text, fontWeight: FontWeight.w700)),
+                Text('Meter Number', style: McTextStyles.body(fontSize: 14, color: McColors.text, fontWeight: FontWeight.w700)),
                 SizedBox(height: context.rs(5)),
                 TextField(
                   controller: _meterController,
@@ -130,18 +130,18 @@ class _ElectricityEnterMeterPageState extends ConsumerState<ElectricityEnterMete
                       onTap: () => ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(content: Text('Meter scanning is coming soon.')),
                       ),
-                      child: Icon(Icons.qr_code_scanner_rounded, color: ChColors.bodyText, size: context.rs(20)),
+                      child: Icon(Icons.qr_code_scanner_rounded, color: McColors.bodyText, size: context.rs(20)),
                     ),
                   ),
                 ),
                 SizedBox(height: context.rs(20)),
                 if (s.utilityError.isNotEmpty) ...[
-                  Text(s.utilityError, style: ChTextStyles.body(fontSize: 13, color: ChColors.danger)),
+                  Text(s.utilityError, style: McTextStyles.body(fontSize: 13, color: McColors.danger)),
                   SizedBox(height: context.rs(12)),
                 ],
                 SizedBox(height: context.rs(20)),
 
-                ChButton(
+                McButton(
                   label: 'Verify Meter',
                   isLoading: s.utilityLoading,
                   onPressed: (s.utilityLoading || s.elecMeterNumber.trim().isEmpty)
@@ -158,13 +158,13 @@ class _ElectricityEnterMeterPageState extends ConsumerState<ElectricityEnterMete
                   width: double.infinity,
                   padding: EdgeInsets.all(context.rs(14)),
                   decoration: BoxDecoration(
-                    color: ChColors.surfaceSunken,
-                    borderRadius: BorderRadius.circular(ChRadii.md),
+                    color: McColors.surfaceSunken,
+                    borderRadius: BorderRadius.circular(McRadii.md),
                   ),
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Icon(Icons.lock_outline_rounded, color: ChColors.bodyText, size: context.rs(20)),
+                      Icon(Icons.lock_outline_rounded, color: McColors.bodyText, size: context.rs(20)),
                       SizedBox(width: context.rs(20)),
                       Expanded(
                         child: Column(
@@ -172,14 +172,14 @@ class _ElectricityEnterMeterPageState extends ConsumerState<ElectricityEnterMete
                           children: [
                             Text(
                               'Your details are secure',
-                              style: ChTextStyles.body(fontSize: 13, fontWeight: FontWeight.w700, color: ChColors.text),
+                              style: McTextStyles.body(fontSize: 13, fontWeight: FontWeight.w700, color: McColors.text),
                             ),
                             SizedBox(height: context.rs(4)),
                             Padding(
                               padding: EdgeInsets.only(right: context.rs(80)),
                               child: Text(
                                 'We use bank-level security to protect your information.',
-                                style: ChTextStyles.body(fontSize: 12, color: ChColors.text, fontWeight: FontWeight.w500),
+                                style: McTextStyles.body(fontSize: 12, color: McColors.text, fontWeight: FontWeight.w500),
                               ),
                             ),
                           ],
@@ -212,16 +212,16 @@ class _MeterTypeOption extends StatelessWidget {
         alignment: Alignment.center,
         padding: EdgeInsets.symmetric(vertical: context.rs(12)),
         decoration: BoxDecoration(
-          color: selected ? ChColors.accent2N(100) : ChColors.inputFill,
-          borderRadius: BorderRadius.circular(ChRadii.button),
-          border: Border.all(color: selected ? ChColors.accent2 : ChColors.divider),
+          color: selected ? McColors.accent2N(100) : McColors.inputFill,
+          borderRadius: BorderRadius.circular(McRadii.button),
+          border: Border.all(color: selected ? McColors.accent2 : McColors.divider),
         ),
         child: Text(
           label,
-          style: ChTextStyles.body(
+          style: McTextStyles.body(
             fontSize: 13.5,
             fontWeight: FontWeight.w700,
-            color: selected ? ChColors.accent2 : ChColors.text,
+            color: selected ? McColors.accent2 : McColors.text,
           ),
         ),
       ),

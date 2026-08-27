@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../../core/theme/ch_colors.dart';
-import '../../../../core/theme/ch_responsive.dart';
-import '../../../../core/theme/ch_spacing.dart';
-import '../../../../core/theme/ch_text_styles.dart';
-import '../../../../core/widgets/ch_help_pill.dart';
-import '../../../../core/widgets/ch_password_field.dart';
-import '../../../../core/widgets/ch_square_icon_button.dart';
+import '../../../../core/theme/mc_colors.dart';
+import '../../../../core/theme/mc_responsive.dart';
+import '../../../../core/theme/mc_spacing.dart';
+import '../../../../core/theme/mc_text_styles.dart';
+import '../../../../core/widgets/mc_help_pill.dart';
+import '../../../../core/widgets/mc_password_field.dart';
+import '../../../../core/widgets/mc_square_icon_button.dart';
 import '../../../../state/app_notifier.dart';
 
 /// First-login flow for an admin-created account: this is a two-step
@@ -69,7 +69,7 @@ class _ForceResetPageState extends ConsumerState<ForceResetPage> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            style: TextButton.styleFrom(foregroundColor: ChColors.text),
+            style: TextButton.styleFrom(foregroundColor: McColors.text),
             child: const Text('OK'),
           ),
         ],
@@ -81,7 +81,7 @@ class _ForceResetPageState extends ConsumerState<ForceResetPage> {
   Widget build(BuildContext context) {
     final notifier = ref.read(appStateProvider.notifier);
     return Scaffold(
-      backgroundColor: ChColors.bg,
+      backgroundColor: McColors.bg,
       body: SafeArea(
         child: _step == 0
             ? _PasswordStep(
@@ -125,19 +125,19 @@ class _PasswordStep extends ConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          ChSquareIconButton(icon: Icons.arrow_back, onTap: onBack),
+          McSquareIconButton(icon: Icons.arrow_back, onTap: onBack),
           const _CelebrationGraphic(),
           const SizedBox(height: 16),
           Center(
             child: Column(
               children: [
-                Text('Welcome to', style: ChTextStyles.heading(fontSize: 32)),
+                Text('Welcome to', style: McTextStyles.heading(fontSize: 32)),
                 Text(
                   '${s.estateName ?? 'your estate'}!',
                   textAlign: TextAlign.center,
-                  style: ChTextStyles.heading(
+                  style: McTextStyles.heading(
                     fontSize: 32,
-                    color: ChColors.accent2,
+                    color: McColors.accent2,
                   ),
                 ),
               ],
@@ -150,7 +150,7 @@ class _PasswordStep extends ConsumerWidget {
               child: Text(
                 'Your account has been created by the estate management. For your security, please set a new password to continue.',
                 textAlign: TextAlign.center,
-                style: ChTextStyles.body(
+                style: McTextStyles.body(
                   fontSize: 13,
                   height: 1.4,
                 ),
@@ -164,7 +164,7 @@ class _PasswordStep extends ConsumerWidget {
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
                 color: const Color(0xfff4f5f0),
-                borderRadius: BorderRadius.circular(ChRadii.card),
+                borderRadius: BorderRadius.circular(McRadii.card),
                 border: Border.all(color: const Color(0xffe9ebe6)),
               ),
               child: Row(
@@ -175,7 +175,7 @@ class _PasswordStep extends ConsumerWidget {
                     height: context.rs(60),
                     alignment: Alignment.center,
                     decoration: BoxDecoration(
-                      border: Border.all(color: ChColors.accent2N(200)),
+                      border: Border.all(color: McColors.accent2N(200)),
                       shape: BoxShape.circle,
                     ),
                     child: Stack(
@@ -184,12 +184,12 @@ class _PasswordStep extends ConsumerWidget {
                         Icon(
                           Icons.shield_outlined,
                           size: context.rs(44),
-                          color: ChColors.accent2N(700),
+                          color: McColors.accent2N(700),
                         ),
                         Icon(
                           Icons.lock,
                           size: context.rs(18),
-                          color: ChColors.accent2N(700),
+                          color: McColors.accent2N(700),
                         ),
                       ],
                     ),
@@ -202,10 +202,10 @@ class _PasswordStep extends ConsumerWidget {
                       children: [
                         Text(
                           'Keep your account secure',
-                          style: ChTextStyles.body(
+                          style: McTextStyles.body(
                             fontSize: 13.5,
                             fontWeight: FontWeight.w600,
-                            color: ChColors.accent2N(800),
+                            color: McColors.accent2N(800),
                           ),
                         ),
                         const SizedBox(height: 2),
@@ -213,7 +213,7 @@ class _PasswordStep extends ConsumerWidget {
                           padding: const EdgeInsets.only(right: 30),
                           child: Text(
                             "Choose a strong password that you don't use on other apps.",
-                            style: ChTextStyles.body(
+                            style: McTextStyles.body(
                               fontSize: 12,
                               height: 1.3,
                             ),
@@ -229,13 +229,13 @@ class _PasswordStep extends ConsumerWidget {
           const SizedBox(height: 20),
           Text(
             'New Password',
-            style: ChTextStyles.body(
+            style: McTextStyles.body(
               fontSize: 13,
               fontWeight: FontWeight.w500,
             ),
           ),
           const SizedBox(height: 6),
-          ChPasswordField(
+          McPasswordField(
             value: s.newPass1,
             onChanged: notifier.onNewPass1,
             hintText: 'Enter new password',
@@ -245,13 +245,13 @@ class _PasswordStep extends ConsumerWidget {
           const SizedBox(height: 16),
           Text(
             'Confirm New Password',
-            style: ChTextStyles.body(
+            style: McTextStyles.body(
               fontSize: 13,
               fontWeight: FontWeight.w500,
             ),
           ),
           const SizedBox(height: 6),
-          ChPasswordField(
+          McPasswordField(
             value: s.newPass2,
             onChanged: notifier.onNewPass2,
             hintText: 'Confirm new password',
@@ -261,7 +261,7 @@ class _PasswordStep extends ConsumerWidget {
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 16),
             decoration: BoxDecoration(
               color: const Color(0xfff4f5f0),
-              borderRadius: BorderRadius.circular(ChRadii.sm),
+              borderRadius: BorderRadius.circular(McRadii.sm),
               border: Border.all(color: const Color(0xffe9ebe6)),
             ),
             child: Row(
@@ -291,7 +291,7 @@ class _PasswordStep extends ConsumerWidget {
             const SizedBox(height: 12),
             Text(
               error.isNotEmpty ? error : s.resetMsg,
-              style: ChTextStyles.body(fontSize: 13, color: ChColors.danger),
+              style: McTextStyles.body(fontSize: 13, color: McColors.danger),
             ),
           ],
           const SizedBox(height: 18),
@@ -304,8 +304,8 @@ class _PasswordStep extends ConsumerWidget {
                 horizontal: 20,
               ),
               decoration: BoxDecoration(
-                color: ChColors.accent2,
-                borderRadius: BorderRadius.circular(ChRadii.button),
+                color: McColors.accent2,
+                borderRadius: BorderRadius.circular(McRadii.button),
               ),
               child: s.isLoading
                   ? Center(
@@ -320,7 +320,7 @@ class _PasswordStep extends ConsumerWidget {
                 children: [
                   Text(
                     'Continue',
-                    style: ChTextStyles.body(
+                    style: McTextStyles.body(
                       fontSize: 15,
                       fontWeight: FontWeight.w600,
                       color: Colors.white,
@@ -348,23 +348,23 @@ class _PasswordStep extends ConsumerWidget {
                   Icon(
                     Icons.shield_outlined,
                     size: context.rs(15),
-                    color: ChColors.neutralN(600),
+                    color: McColors.neutralN(600),
                   ),
                   SizedBox(width: context.rs(6)),
                   RichText(
                     text: TextSpan(
-                      style: ChTextStyles.body(
+                      style: McTextStyles.body(
                         fontSize: 13,
-                        color: ChColors.bodyText,
+                        color: McColors.bodyText,
                       ),
                       children: [
                         const TextSpan(text: 'Need help? '),
                         TextSpan(
                           text: 'Contact estate management',
-                          style: ChTextStyles.body(
+                          style: McTextStyles.body(
                             fontSize: 13,
                             fontWeight: FontWeight.w700,
-                            color: ChColors.accent2,
+                            color: McColors.accent2,
                           ),
                         ),
                       ],
@@ -402,14 +402,14 @@ class _CelebrationGraphic extends StatelessWidget {
               height: context.rs(50),
               alignment: Alignment.center,
               decoration: BoxDecoration(
-                color: ChColors.surface,
+                color: McColors.surface,
                 shape: BoxShape.circle,
-                boxShadow: ChColors.cardShadow,
+                boxShadow: McColors.cardShadow,
               ),
               child: Icon(
                 Icons.check_rounded,
                 size: context.rs(38),
-                color: ChColors.accent2,
+                color: McColors.accent2,
               ),
             ),
           ),
@@ -441,7 +441,7 @@ class _StrengthMeter extends StatelessWidget {
             width: context.rs(48),
             height: 4,
             decoration: BoxDecoration(
-              color: i < filled ? ChColors.accent2 : ChColors.divider,
+              color: i < filled ? McColors.accent2 : McColors.divider,
               borderRadius: BorderRadius.circular(2),
             ),
           ),
@@ -449,7 +449,7 @@ class _StrengthMeter extends StatelessWidget {
         SizedBox(width: context.rs(10)),
         Text(
           label,
-          style: ChTextStyles.body(fontSize: 12),
+          style: McTextStyles.body(fontSize: 12),
         ),
       ],
     );
@@ -472,13 +472,13 @@ class _RuleCheck extends StatelessWidget {
           Icon(
             Icons.check_circle_outlined,
             size: context.rs(16),
-            color: met ? ChColors.accent2 : ChColors.neutralN(400),
+            color: met ? McColors.accent2 : McColors.neutralN(400),
           ),
           SizedBox(width: context.rs(6)),
           Expanded(
             child: Text(
               label,
-              style: ChTextStyles.body(
+              style: McTextStyles.body(
                 fontSize: 10.5,
                 height: 1.2,
               ),
@@ -512,7 +512,7 @@ class _HouseholdContactStep extends ConsumerWidget {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            style: TextButton.styleFrom(foregroundColor: ChColors.text),
+            style: TextButton.styleFrom(foregroundColor: McColors.text),
             child: const Text('OK'),
           ),
         ],
@@ -534,14 +534,14 @@ class _HouseholdContactStep extends ConsumerWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              ChSquareIconButton(
+              McSquareIconButton(
                 icon: Icons.arrow_back,
                 onTap: onBack,
-                iconColor: ChColors.accent2,
+                iconColor: McColors.accent2,
               ),
-              ChHelpPill(
+              McHelpPill(
                 onTap: () => _showHelp(context),
-                color: ChColors.accent2,
+                color: McColors.accent2,
               ),
             ],
           ),
@@ -551,7 +551,7 @@ class _HouseholdContactStep extends ConsumerWidget {
           Center(
             child: Text(
               'Almost Done',
-              style: ChTextStyles.heading(fontSize: 26),
+              style: McTextStyles.heading(fontSize: 26),
               textAlign: TextAlign.center,
             ),
           ),
@@ -560,9 +560,9 @@ class _HouseholdContactStep extends ConsumerWidget {
             child: Text(
               'Add an emergency contact so we know who to reach alongside estate security.',
               textAlign: TextAlign.center,
-              style: ChTextStyles.body(
+              style: McTextStyles.body(
                 fontSize: 14,
-                color: ChColors.bodyText,
+                color: McColors.bodyText,
                 height: 1.4,
               ),
             ),
@@ -572,8 +572,8 @@ class _HouseholdContactStep extends ConsumerWidget {
             width: double.infinity,
             padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
-              color: ChColors.surfaceSunken,
-              borderRadius: BorderRadius.circular(ChRadii.card),
+              color: McColors.surfaceSunken,
+              borderRadius: BorderRadius.circular(McRadii.card),
             ),
             child: Row(
               children: [
@@ -582,12 +582,12 @@ class _HouseholdContactStep extends ConsumerWidget {
                   height: context.rs(44),
                   alignment: Alignment.center,
                   decoration: const BoxDecoration(
-                    color: ChColors.accent2,
+                    color: McColors.accent2,
                     shape: BoxShape.circle,
                   ),
                   child: Text(
                     user?.initials ?? '',
-                    style: ChTextStyles.body(
+                    style: McTextStyles.body(
                       fontSize: 15,
                       fontWeight: FontWeight.w700,
                       color: Colors.white,
@@ -601,7 +601,7 @@ class _HouseholdContactStep extends ConsumerWidget {
                     children: [
                       Text(
                         user?.fullName ?? '',
-                        style: ChTextStyles.body(
+                        style: McTextStyles.body(
                           fontSize: 13.5,
                           fontWeight: FontWeight.w700,
                         ),
@@ -610,9 +610,9 @@ class _HouseholdContactStep extends ConsumerWidget {
                         const SizedBox(height: 2),
                         Text(
                           'Joined ${user!.invitedByName}\u2019s household · ${user.house}',
-                          style: ChTextStyles.body(
+                          style: McTextStyles.body(
                             fontSize: 12,
-                            color: ChColors.bodyText,
+                            color: McColors.bodyText,
                           ),
                         ),
                       ],
@@ -633,9 +633,9 @@ class _HouseholdContactStep extends ConsumerWidget {
             padding: const EdgeInsets.symmetric(horizontal: 4),
             child: Text(
               'We\'ll only use this during an SOS emergency.',
-              style: ChTextStyles.body(
+              style: McTextStyles.body(
                 fontSize: 12,
-                color: ChColors.bodyText,
+                color: McColors.bodyText,
               ),
             ),
           ),
@@ -643,7 +643,7 @@ class _HouseholdContactStep extends ConsumerWidget {
           if (s.resetMsg.isNotEmpty) ...[
             Text(
               s.resetMsg,
-              style: ChTextStyles.body(fontSize: 13, color: ChColors.danger),
+              style: McTextStyles.body(fontSize: 13, color: McColors.danger),
             ),
             const SizedBox(height: 12),
           ],
@@ -656,8 +656,8 @@ class _HouseholdContactStep extends ConsumerWidget {
                 horizontal: 20,
               ),
               decoration: BoxDecoration(
-                color: ChColors.accent2,
-                borderRadius: BorderRadius.circular(ChRadii.button),
+                color: McColors.accent2,
+                borderRadius: BorderRadius.circular(McRadii.button),
               ),
               child: s.isLoading
                   ? Center(
@@ -675,7 +675,7 @@ class _HouseholdContactStep extends ConsumerWidget {
                       children: [
                         Text(
                           'Save & Continue',
-                          style: ChTextStyles.body(
+                          style: McTextStyles.body(
                             fontSize: 15,
                             fontWeight: FontWeight.w600,
                             color: Colors.white,
@@ -720,7 +720,7 @@ class _ProfileStep extends ConsumerWidget {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            style: TextButton.styleFrom(foregroundColor: ChColors.text),
+            style: TextButton.styleFrom(foregroundColor: McColors.text),
             child: const Text('OK'),
           ),
         ],
@@ -741,14 +741,14 @@ class _ProfileStep extends ConsumerWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              ChSquareIconButton(
+              McSquareIconButton(
                 icon: Icons.arrow_back,
                 onTap: onBack,
-                iconColor: ChColors.accent2,
+                iconColor: McColors.accent2,
               ),
-              ChHelpPill(
+              McHelpPill(
                 onTap: () => _showHelp(context),
-                color: ChColors.accent2,
+                color: McColors.accent2,
               ),
             ],
           ),
@@ -758,7 +758,7 @@ class _ProfileStep extends ConsumerWidget {
           Center(
             child: Text(
               'Complete Your Profile',
-              style: ChTextStyles.heading(fontSize: 26),
+              style: McTextStyles.heading(fontSize: 26),
               textAlign: TextAlign.center,
             ),
           ),
@@ -767,9 +767,9 @@ class _ProfileStep extends ConsumerWidget {
             child: Text(
               'Help us personalize your experience and keep your community secure.',
               textAlign: TextAlign.center,
-              style: ChTextStyles.body(
+              style: McTextStyles.body(
                 fontSize: 14,
-                color: ChColors.bodyText,
+                color: McColors.bodyText,
                 height: 1.4,
               ),
             ),
@@ -793,7 +793,7 @@ class _ProfileStep extends ConsumerWidget {
             hint: 'House number, street, estate',
             trailing: Icon(
               Icons.keyboard_arrow_down_rounded,
-              color: ChColors.neutralN(600),
+              color: McColors.neutralN(600),
             ),
           ),
           const SizedBox(height: 12),
@@ -808,9 +808,9 @@ class _ProfileStep extends ConsumerWidget {
           const SizedBox(height: 6),
           Text(
             'Add your vehicle plate number for easy gate access.',
-            style: ChTextStyles.body(
+            style: McTextStyles.body(
               fontSize: 12,
-              color: ChColors.bodyText,
+              color: McColors.bodyText,
             ),
           ),
           const SizedBox(height: 12),
@@ -832,8 +832,8 @@ class _ProfileStep extends ConsumerWidget {
           Container(
             padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
-              color: ChColors.surfaceSunken,
-              borderRadius: BorderRadius.circular(ChRadii.card),
+              color: McColors.surfaceSunken,
+              borderRadius: BorderRadius.circular(McRadii.card),
             ),
             child: Row(
               children: [
@@ -841,13 +841,13 @@ class _ProfileStep extends ConsumerWidget {
                   width: context.rs(44),
                   height: context.rs(44),
                   decoration: BoxDecoration(
-                    color: ChColors.accent2N(100),
+                    color: McColors.accent2N(100),
                     shape: BoxShape.circle,
                   ),
                   child: Icon(
                     Icons.verified_user_outlined,
                     size: context.rs(21),
-                    color: ChColors.accent2N(700),
+                    color: McColors.accent2N(700),
                   ),
                 ),
                 SizedBox(width: context.rs(12)),
@@ -857,18 +857,18 @@ class _ProfileStep extends ConsumerWidget {
                     children: [
                       Text(
                         'Your information is secure',
-                        style: ChTextStyles.body(
+                        style: McTextStyles.body(
                           fontSize: 13.5,
                           fontWeight: FontWeight.w700,
-                          color: ChColors.accent2N(800),
+                          color: McColors.accent2N(800),
                         ),
                       ),
                       const SizedBox(height: 2),
                       Text(
                         'Your details are encrypted and only visible to estate management.',
-                        style: ChTextStyles.body(
+                        style: McTextStyles.body(
                           fontSize: 12,
-                          color: ChColors.bodyText,
+                          color: McColors.bodyText,
                           height: 1.3,
                         ),
                       ),
@@ -882,7 +882,7 @@ class _ProfileStep extends ConsumerWidget {
           if (s.resetMsg.isNotEmpty) ...[
             Text(
               s.resetMsg,
-              style: ChTextStyles.body(fontSize: 13, color: ChColors.danger),
+              style: McTextStyles.body(fontSize: 13, color: McColors.danger),
             ),
             const SizedBox(height: 12),
           ],
@@ -895,8 +895,8 @@ class _ProfileStep extends ConsumerWidget {
                 horizontal: 20,
               ),
               decoration: BoxDecoration(
-                color: ChColors.accent2,
-                borderRadius: BorderRadius.circular(ChRadii.button),
+                color: McColors.accent2,
+                borderRadius: BorderRadius.circular(McRadii.button),
               ),
               child: s.isLoading
                   ? Center(
@@ -914,7 +914,7 @@ class _ProfileStep extends ConsumerWidget {
                       children: [
                         Text(
                           'Save & Continue',
-                          style: ChTextStyles.body(
+                          style: McTextStyles.body(
                             fontSize: 15,
                             fontWeight: FontWeight.w600,
                             color: Colors.white,
@@ -950,10 +950,10 @@ class _StepProgress extends StatelessWidget {
       children: [
         Text(
           'Step $current of $total',
-          style: ChTextStyles.body(
+          style: McTextStyles.body(
             fontSize: 13,
             fontWeight: FontWeight.w700,
-            color: ChColors.accent2,
+            color: McColors.accent2,
           ),
         ),
         const SizedBox(height: 8),
@@ -962,8 +962,8 @@ class _StepProgress extends StatelessWidget {
           child: LinearProgressIndicator(
             value: current / total,
             minHeight: 6,
-            backgroundColor: ChColors.divider,
-            valueColor: const AlwaysStoppedAnimation(ChColors.accent2),
+            backgroundColor: McColors.divider,
+            valueColor: const AlwaysStoppedAnimation(McColors.accent2),
           ),
         ),
       ],
@@ -984,8 +984,8 @@ class _AvatarPicker extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.symmetric(vertical: 24),
       decoration: BoxDecoration(
-        color: ChColors.accent2N(100),
-        borderRadius: BorderRadius.circular(ChRadii.card),
+        color: McColors.accent2N(100),
+        borderRadius: BorderRadius.circular(McRadii.card),
       ),
       clipBehavior: Clip.antiAlias,
       child: Stack(
@@ -997,7 +997,7 @@ class _AvatarPicker extends StatelessWidget {
             child: Icon(
               Icons.home_outlined,
               size: context.rs(20),
-              color: ChColors.accent2N(300),
+              color: McColors.accent2N(300),
             ),
           ),
           Positioned(
@@ -1006,7 +1006,7 @@ class _AvatarPicker extends StatelessWidget {
             child: Icon(
               Icons.park_outlined,
               size: context.rs(22),
-              color: ChColors.accent2N(300),
+              color: McColors.accent2N(300),
             ),
           ),
           Positioned(
@@ -1015,7 +1015,7 @@ class _AvatarPicker extends StatelessWidget {
             child: Icon(
               Icons.home_work_outlined,
               size: context.rs(18),
-              color: ChColors.accent2N(300),
+              color: McColors.accent2N(300),
             ),
           ),
           GestureDetector(
@@ -1027,13 +1027,13 @@ class _AvatarPicker extends StatelessWidget {
                   width: context.rs(84),
                   height: context.rs(84),
                   decoration: BoxDecoration(
-                    color: ChColors.accent2N(200),
+                    color: McColors.accent2N(200),
                     shape: BoxShape.circle,
                   ),
                   child: Icon(
                     Icons.person_rounded,
                     size: context.rs(46),
-                    color: ChColors.accent2N(600),
+                    color: McColors.accent2N(600),
                   ),
                 ),
                 Positioned(
@@ -1043,14 +1043,14 @@ class _AvatarPicker extends StatelessWidget {
                     width: context.rs(30),
                     height: context.rs(30),
                     decoration: BoxDecoration(
-                      color: ChColors.surface,
+                      color: McColors.surface,
                       shape: BoxShape.circle,
-                      boxShadow: ChColors.cardShadow,
+                      boxShadow: McColors.cardShadow,
                     ),
                     child: Icon(
                       Icons.edit_outlined,
                       size: context.rs(15),
-                      color: ChColors.accent2N(700),
+                      color: McColors.accent2N(700),
                     ),
                   ),
                 ),
@@ -1070,7 +1070,7 @@ class _AvatarPicker extends StatelessWidget {
 }
 
 /// Icon-in-box + stacked bold label/hint pattern used throughout this
-/// screen — a plain [ChTextField] doesn't match this look (label above
+/// screen — a plain [McTextField] doesn't match this look (label above
 /// the field rather than inline with a leading icon).
 class _ProfileField extends StatefulWidget {
   const _ProfileField({
@@ -1124,9 +1124,9 @@ class _ProfileFieldState extends State<_ProfileField> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
       decoration: BoxDecoration(
-        color: ChColors.surface,
-        borderRadius: BorderRadius.circular(ChRadii.button),
-        border: Border.all(color: ChColors.divider),
+        color: McColors.surface,
+        borderRadius: BorderRadius.circular(McRadii.button),
+        border: Border.all(color: McColors.divider),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
@@ -1135,10 +1135,10 @@ class _ProfileFieldState extends State<_ProfileField> {
             width: context.rs(40),
             height: context.rs(40),
             decoration: BoxDecoration(
-              color: ChColors.accent2N(100),
-              borderRadius: BorderRadius.circular(ChRadii.sm),
+              color: McColors.accent2N(100),
+              borderRadius: BorderRadius.circular(McRadii.sm),
             ),
-            child: Icon(widget.icon, size: context.rs(19), color: ChColors.accent2N(700)),
+            child: Icon(widget.icon, size: context.rs(19), color: McColors.accent2N(700)),
           ),
           SizedBox(width: context.rs(12)),
           Expanded(
@@ -1148,7 +1148,7 @@ class _ProfileFieldState extends State<_ProfileField> {
               children: [
                 RichText(
                   text: TextSpan(
-                    style: ChTextStyles.body(
+                    style: McTextStyles.body(
                       fontSize: 13.5,
                       fontWeight: FontWeight.w700,
                     ),
@@ -1157,9 +1157,9 @@ class _ProfileFieldState extends State<_ProfileField> {
                       if (widget.optional)
                         TextSpan(
                           text: ' (Optional)',
-                          style: ChTextStyles.body(
+                          style: McTextStyles.body(
                             fontSize: 12,
-                            color: ChColors.neutralN(500),
+                            color: McColors.neutralN(500),
                           ),
                         ),
                     ],
@@ -1169,9 +1169,9 @@ class _ProfileFieldState extends State<_ProfileField> {
                   controller: _controller,
                   onChanged: widget.onChanged,
                   keyboardType: widget.keyboardType,
-                  style: ChTextStyles.body(
+                  style: McTextStyles.body(
                     fontSize: 13.5,
-                    color: ChColors.bodyText,
+                    color: McColors.bodyText,
                   ),
                   decoration: InputDecoration(
                     isDense: true,
@@ -1181,9 +1181,9 @@ class _ProfileFieldState extends State<_ProfileField> {
                     focusedBorder: InputBorder.none,
                     disabledBorder: InputBorder.none,
                     hintText: widget.hint,
-                    hintStyle: ChTextStyles.body(
+                    hintStyle: McTextStyles.body(
                       fontSize: 13.5,
-                      color: ChColors.neutralN(500),
+                      color: McColors.neutralN(500),
                     ),
                   ),
                 ),
@@ -1237,9 +1237,9 @@ class _EmergencyContactFieldState extends State<_EmergencyContactField> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
       decoration: BoxDecoration(
-        color: ChColors.surface,
-        borderRadius: BorderRadius.circular(ChRadii.button),
-        border: Border.all(color: ChColors.divider),
+        color: McColors.surface,
+        borderRadius: BorderRadius.circular(McRadii.button),
+        border: Border.all(color: McColors.divider),
       ),
       child: Row(
         children: [
@@ -1247,13 +1247,13 @@ class _EmergencyContactFieldState extends State<_EmergencyContactField> {
             width: context.rs(40),
             height: context.rs(40),
             decoration: BoxDecoration(
-              color: ChColors.accent2N(100),
-              borderRadius: BorderRadius.circular(ChRadii.sm),
+              color: McColors.accent2N(100),
+              borderRadius: BorderRadius.circular(McRadii.sm),
             ),
             child: Icon(
               Icons.call_outlined,
               size: context.rs(19),
-              color: ChColors.accent2N(700),
+              color: McColors.accent2N(700),
             ),
           ),
           SizedBox(width: context.rs(12)),
@@ -1264,7 +1264,7 @@ class _EmergencyContactFieldState extends State<_EmergencyContactField> {
               children: [
                 RichText(
                   text: TextSpan(
-                    style: ChTextStyles.body(
+                    style: McTextStyles.body(
                       fontSize: 13.5,
                       fontWeight: FontWeight.w700,
                     ),
@@ -1272,9 +1272,9 @@ class _EmergencyContactFieldState extends State<_EmergencyContactField> {
                       const TextSpan(text: 'Emergency Contact'),
                       TextSpan(
                         text: ' (Optional)',
-                        style: ChTextStyles.body(
+                        style: McTextStyles.body(
                           fontSize: 12,
-                          color: ChColors.neutralN(500),
+                          color: McColors.neutralN(500),
                         ),
                       ),
                     ],
@@ -1287,22 +1287,22 @@ class _EmergencyContactFieldState extends State<_EmergencyContactField> {
                     const SizedBox(width: 4),
                     Text(
                       '+234',
-                      style: ChTextStyles.body(
+                      style: McTextStyles.body(
                         fontSize: 13.5,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
                     const SizedBox(width: 8),
-                    Container(width: 1, height: context.rs(16), color: ChColors.divider),
+                    Container(width: 1, height: context.rs(16), color: McColors.divider),
                     const SizedBox(width: 8),
                     Expanded(
                       child: TextField(
                         controller: _controller,
                         onChanged: widget.onChanged,
                         keyboardType: TextInputType.phone,
-                        style: ChTextStyles.body(
+                        style: McTextStyles.body(
                           fontSize: 13.5,
-                          color: ChColors.bodyText,
+                          color: McColors.bodyText,
                         ),
                         decoration: InputDecoration(
                           isDense: true,
@@ -1312,9 +1312,9 @@ class _EmergencyContactFieldState extends State<_EmergencyContactField> {
                           focusedBorder: InputBorder.none,
                           disabledBorder: InputBorder.none,
                           hintText: 'Enter phone number',
-                          hintStyle: ChTextStyles.body(
+                          hintStyle: McTextStyles.body(
                             fontSize: 13.5,
-                            color: ChColors.neutralN(500),
+                            color: McColors.neutralN(500),
                           ),
                         ),
                       ),

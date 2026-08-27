@@ -3,12 +3,12 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../../core/theme/ch_colors.dart';
-import '../../../../core/theme/ch_responsive.dart';
-import '../../../../core/theme/ch_spacing.dart';
-import '../../../../core/theme/ch_text_styles.dart';
-import '../../../../core/widgets/ch_data_media.dart';
-import '../../../../core/widgets/ch_square_icon_button.dart';
+import '../../../../core/theme/mc_colors.dart';
+import '../../../../core/theme/mc_responsive.dart';
+import '../../../../core/theme/mc_spacing.dart';
+import '../../../../core/theme/mc_text_styles.dart';
+import '../../../../core/widgets/mc_data_media.dart';
+import '../../../../core/widgets/mc_square_icon_button.dart';
 import '../../../../state/app_notifier.dart';
 
 /// Shown after [EstateCodePage] resolves a valid code — confirms which
@@ -26,14 +26,14 @@ class EstateFoundPage extends ConsumerWidget {
     final imageHeight = MediaQuery.sizeOf(context).height * 0.20;
 
     return Scaffold(
-      backgroundColor: ChColors.bg,
+      backgroundColor: McColors.bg,
       body: SafeArea(
         child: SingleChildScrollView(
           padding: EdgeInsets.fromLTRB(context.rs(20), 0, context.rs(20), context.rs(18)),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              ChSquareIconButton(
+              McSquareIconButton(
                 icon: Icons.arrow_back,
                 onTap: notifier.reenterEstateCode,
               ),
@@ -41,9 +41,9 @@ class EstateFoundPage extends ConsumerWidget {
               Center(
                 child: Text(
                   'Estate found!',
-                  style: ChTextStyles.heading(
+                  style: McTextStyles.heading(
                     fontSize: 32,
-                    color: ChColors.accent2,
+                    color: McColors.accent2,
                   ),
                 ),
               ),
@@ -54,9 +54,9 @@ class EstateFoundPage extends ConsumerWidget {
                   child: Text(
                     'We found your estate. Please confirm the details below to continue.',
                     textAlign: TextAlign.center,
-                    style: ChTextStyles.body(
+                    style: McTextStyles.body(
                       fontSize: 14,
-                      color: ChColors.text,
+                      color: McColors.text,
                       height: 1.4,
                     ),
                   ),
@@ -65,15 +65,15 @@ class EstateFoundPage extends ConsumerWidget {
               SizedBox(height: context.rs(14)),
               Container(
                 decoration: BoxDecoration(
-                  color: ChColors.surface,
-                  borderRadius: BorderRadius.circular(ChRadii.card),
-                  boxShadow: ChColors.cardShadow,
+                  color: McColors.surface,
+                  borderRadius: BorderRadius.circular(McRadii.card),
+                  boxShadow: McColors.cardShadow,
                 ),
                 clipBehavior: Clip.antiAlias,
                 child: Column(
                   children: [
                     s.pendingEstateImage != null
-                        ? ChDataMedia(
+                        ? McDataMedia(
                             dataUrl: s.pendingEstateImage!,
                             height: imageHeight,
                           )
@@ -91,13 +91,13 @@ class EstateFoundPage extends ConsumerWidget {
                             width: context.rs(60),
                             height: context.rs(60),
                             decoration: BoxDecoration(
-                              color: ChColors.accent2N(100),
-                              borderRadius: BorderRadius.circular(ChRadii.sm),
+                              color: McColors.accent2N(100),
+                              borderRadius: BorderRadius.circular(McRadii.sm),
                             ),
                             child: Icon(
                               Icons.park_outlined,
                               size: context.rs(36),
-                              color: ChColors.accent2N(700),
+                              color: McColors.accent2N(700),
                             ),
                           ),
                           SizedBox(width: context.rs(14)),
@@ -107,7 +107,7 @@ class EstateFoundPage extends ConsumerWidget {
                               children: [
                                 Text(
                                   s.pendingEstateName ?? '',
-                                  style: ChTextStyles.heading(fontSize: 18),
+                                  style: McTextStyles.heading(fontSize: 18),
                                 ),
                                 if ((s.pendingEstateAddress ?? '')
                                     .isNotEmpty) ...[
@@ -117,15 +117,15 @@ class EstateFoundPage extends ConsumerWidget {
                                       Icon(
                                         Icons.location_on_outlined,
                                         size: context.rs(14),
-                                        color: ChColors.text,
+                                        color: McColors.text,
                                       ),
                                       SizedBox(width: context.rs(4)),
                                       Expanded(
                                         child: Text(
                                           s.pendingEstateAddress!,
-                                          style: ChTextStyles.body(
+                                          style: McTextStyles.body(
                                             fontSize: 13,
-                                            color: ChColors.text,
+                                            color: McColors.text,
                                           ),
                                         ),
                                       ),
@@ -140,7 +140,7 @@ class EstateFoundPage extends ConsumerWidget {
                     ),
                     Padding(
                       padding: EdgeInsets.symmetric(horizontal: context.rs(16)),
-                      child: Divider(height: 1, color: ChColors.divider),
+                      child: Divider(height: 1, color: McColors.divider),
                     ),
                     Padding(
                       padding: EdgeInsets.symmetric(
@@ -163,7 +163,7 @@ class EstateFoundPage extends ConsumerWidget {
                           Container(
                             width: 1,
                             height: context.rs(34),
-                            color: ChColors.divider,
+                            color: McColors.divider,
                           ),
                           SizedBox(width: context.rs(8)),
                           const Expanded(
@@ -178,7 +178,7 @@ class EstateFoundPage extends ConsumerWidget {
                           Container(
                             width: 1,
                             height: context.rs(34),
-                            color: ChColors.divider,
+                            color: McColors.divider,
                           ),
                           SizedBox(width: context.rs(8)),
                           Expanded(
@@ -202,9 +202,9 @@ class EstateFoundPage extends ConsumerWidget {
                   vertical: context.rs(16),
                 ),
                 decoration: BoxDecoration(
-                  color: ChColors.surfaceSunken,
-                  borderRadius: BorderRadius.circular(ChRadii.button),
-                  border: Border.all(color: ChColors.divider),
+                  color: McColors.surfaceSunken,
+                  borderRadius: BorderRadius.circular(McRadii.button),
+                  border: Border.all(color: McColors.divider),
                 ),
                 child: Row(
                   children: [
@@ -212,13 +212,13 @@ class EstateFoundPage extends ConsumerWidget {
                       width: context.rs(50),
                       height: context.rs(50),
                       decoration: BoxDecoration(
-                        color: ChColors.accent2N(100),
+                        color: McColors.accent2N(100),
                         shape: BoxShape.circle,
                       ),
                       child: Icon(
                         Icons.verified_user_outlined,
                         size: context.rs(24),
-                        color: ChColors.accent2N(700),
+                        color: McColors.accent2N(700),
                       ),
                     ),
                     SizedBox(width: context.rs(12)),
@@ -228,10 +228,10 @@ class EstateFoundPage extends ConsumerWidget {
                         children: [
                           Text(
                             'Is this your estate?',
-                            style: ChTextStyles.body(
+                            style: McTextStyles.body(
                               fontSize: 13.5,
                               fontWeight: FontWeight.w600,
-                              color: ChColors.text
+                              color: McColors.text
                             ),
                           ),
                           SizedBox(height: context.rs(2)),
@@ -240,9 +240,9 @@ class EstateFoundPage extends ConsumerWidget {
                             child: Text(
                               'You will be able to login and access your estate community.',
                               textAlign: TextAlign.left,
-                              style: ChTextStyles.body(
+                              style: McTextStyles.body(
                                 fontSize: 12,
-                                color: ChColors.text,
+                                color: McColors.text,
                                 height: 1.3,
                               ),
                             ),
@@ -261,15 +261,15 @@ class EstateFoundPage extends ConsumerWidget {
                   padding: EdgeInsets.symmetric(vertical: context.rs(15)),
                   alignment: Alignment.center,
                   decoration: BoxDecoration(
-                    color: ChColors.accent2,
-                    borderRadius: BorderRadius.circular(ChRadii.button),
+                    color: McColors.accent2,
+                    borderRadius: BorderRadius.circular(McRadii.button),
                   ),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Text(
                         'Continue to Login',
-                        style: ChTextStyles.body(
+                        style: McTextStyles.body(
                           fontSize: 15,
                           fontWeight: FontWeight.w600,
                           color: Colors.white,
@@ -291,10 +291,10 @@ class EstateFoundPage extends ConsumerWidget {
                   onTap: notifier.reenterEstateCode,
                   child: Text(
                     'Enter a different code',
-                    style: ChTextStyles.body(
+                    style: McTextStyles.body(
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
-                      color: ChColors.accent2,
+                      color: McColors.accent2,
                     ),
                   ),
                 ),
@@ -328,10 +328,10 @@ class _StatItem extends StatelessWidget {
           height: context.rs(24),
           alignment: Alignment.center,
           decoration: BoxDecoration(
-            color: ChColors.accent2N(100),
-            borderRadius: BorderRadius.circular(ChRadii.sm),
+            color: McColors.accent2N(100),
+            borderRadius: BorderRadius.circular(McRadii.sm),
           ),
-          child: Icon(icon, size: context.rs(16), color: ChColors.accent2N(700)),
+          child: Icon(icon, size: context.rs(16), color: McColors.accent2N(700)),
         ),
         SizedBox(width: context.rs(8)),
         Expanded(
@@ -342,18 +342,18 @@ class _StatItem extends StatelessWidget {
                 value,
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
-                style: ChTextStyles.body(
+                style: McTextStyles.body(
                   fontSize: 10.5,
                   fontWeight: FontWeight.w600,
                   height: 1.5,
-                  color: ChColors.text,
+                  color: McColors.text,
                 ),
               ),
               Text(
                 label,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: ChTextStyles.body(fontSize: 9, color: ChColors.text),
+                style: McTextStyles.body(fontSize: 9, color: McColors.text),
               ),
             ],
           ),
@@ -404,7 +404,7 @@ class _CelebrationBadgeState extends State<_CelebrationBadge>
                 phase: 0,
                 dx: -0.22,
                 dy: -0.75,
-                color: ChColors.accentN(400),
+                color: McColors.accentN(400),
                 angle: -0.5,
                 spin: 1,
               ),
@@ -413,7 +413,7 @@ class _CelebrationBadgeState extends State<_CelebrationBadge>
                 phase: 0.15,
                 dx: 0.2,
                 dy: -0.55,
-                color: ChColors.accent2N(300),
+                color: McColors.accent2N(300),
                 angle: 0.6,
                 spin: -1,
               ),
@@ -431,7 +431,7 @@ class _CelebrationBadgeState extends State<_CelebrationBadge>
                 phase: 0.45,
                 dx: 0.28,
                 dy: 0.45,
-                color: ChColors.accentN(300),
+                color: McColors.accentN(300),
                 angle: -0.4,
                 spin: -1,
               ),
@@ -440,7 +440,7 @@ class _CelebrationBadgeState extends State<_CelebrationBadge>
                 phase: 0.6,
                 dx: 0.4,
                 dy: -0.95,
-                color: ChColors.accent2N(400),
+                color: McColors.accent2N(400),
                 angle: 0.2,
                 spin: 1,
               ),
@@ -449,7 +449,7 @@ class _CelebrationBadgeState extends State<_CelebrationBadge>
                 phase: 0.75,
                 dx: -0.42,
                 dy: -0.1,
-                color: ChColors.accent2N(200),
+                color: McColors.accent2N(200),
                 angle: 0.8,
                 spin: -1,
               ),
@@ -467,7 +467,7 @@ class _CelebrationBadgeState extends State<_CelebrationBadge>
                 phase: 0.5,
                 dx: -0.05,
                 dy: -0.9,
-                color: ChColors.accentN(500),
+                color: McColors.accentN(500),
                 angle: 0.4,
                 spin: -1,
               ),
@@ -476,7 +476,7 @@ class _CelebrationBadgeState extends State<_CelebrationBadge>
                   width: context.rs(72),
                   height: context.rs(72),
                   decoration: const BoxDecoration(
-                    color: ChColors.accent2,
+                    color: McColors.accent2,
                     shape: BoxShape.circle,
                   ),
                   child: Icon(

@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../../core/theme/ch_colors.dart';
-import '../../../../core/theme/ch_spacing.dart';
-import '../../../../core/theme/ch_text_styles.dart';
-import '../../../../core/widgets/ch_button.dart';
-import '../../../../core/widgets/ch_generic_header.dart';
+import '../../../../core/theme/mc_colors.dart';
+import '../../../../core/theme/mc_spacing.dart';
+import '../../../../core/theme/mc_text_styles.dart';
+import '../../../../core/widgets/mc_button.dart';
+import '../../../../core/widgets/mc_generic_header.dart';
 import '../../../../data/ui_options.dart';
 import '../../../../state/app_notifier.dart';
 
@@ -20,14 +20,14 @@ class ComplaintPage extends ConsumerWidget {
 
     return Column(
       children: [
-        const ChGenericHeader(title: 'Submit a Complaint'),
+        const McGenericHeader(title: 'Submit a Complaint'),
         Expanded(
           child: SingleChildScrollView(
             padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Category', style: ChTextStyles.body(fontSize: 12, color: ChColors.bodyText)),
+                Text('Category', style: McTextStyles.body(fontSize: 12, color: McColors.bodyText)),
                 const SizedBox(height: 8),
                 Wrap(
                   spacing: 8,
@@ -42,7 +42,7 @@ class ComplaintPage extends ConsumerWidget {
                   ],
                 ),
                 const SizedBox(height: 16),
-                Text('Details', style: ChTextStyles.body(fontSize: 12, color: ChColors.bodyText)),
+                Text('Details', style: McTextStyles.body(fontSize: 12, color: McColors.bodyText)),
                 const SizedBox(height: 5),
                 TextField(
                   minLines: 5,
@@ -52,10 +52,10 @@ class ComplaintPage extends ConsumerWidget {
                 ),
                 const SizedBox(height: 14),
                 if (s.complaintError.isNotEmpty) ...[
-                  Text(s.complaintError, style: ChTextStyles.body(fontSize: 13, color: ChColors.danger)),
+                  Text(s.complaintError, style: McTextStyles.body(fontSize: 13, color: McColors.danger)),
                   const SizedBox(height: 12),
                 ],
-                ChButton(
+                McButton(
                   label: 'Submit Complaint',
                   onPressed: () async {
                     final generatedRef = await notifier.submitComplaint();
@@ -87,11 +87,11 @@ class _CategoryChip extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
         decoration: BoxDecoration(
-          color: selected ? ChColors.accent2 : null,
-          border: selected ? null : Border.all(color: ChColors.divider),
-          borderRadius: BorderRadius.circular(ChRadii.pill),
+          color: selected ? McColors.accent2 : null,
+          border: selected ? null : Border.all(color: McColors.divider),
+          borderRadius: BorderRadius.circular(McRadii.pill),
         ),
-        child: Text(label, style: ChTextStyles.body(fontSize: 13, fontWeight: FontWeight.w600, color: selected ? Colors.white : ChColors.text)),
+        child: Text(label, style: McTextStyles.body(fontSize: 13, fontWeight: FontWeight.w600, color: selected ? Colors.white : McColors.text)),
       ),
     );
   }

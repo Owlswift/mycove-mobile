@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../../core/theme/ch_colors.dart';
-import '../../../../core/theme/ch_responsive.dart';
-import '../../../../core/theme/ch_spacing.dart';
-import '../../../../core/theme/ch_text_styles.dart';
-import '../../../../core/widgets/ch_generic_header.dart';
+import '../../../../core/theme/mc_colors.dart';
+import '../../../../core/theme/mc_responsive.dart';
+import '../../../../core/theme/mc_spacing.dart';
+import '../../../../core/theme/mc_text_styles.dart';
+import '../../../../core/widgets/mc_generic_header.dart';
 import '../../../../data/models/notification_item.dart';
 import '../../../../data/models/utility_purchase.dart';
 import '../../../../state/app_notifier.dart';
@@ -61,7 +61,7 @@ class UtilityHistoryPage extends ConsumerWidget {
 
     return Column(
       children: [
-        ChGenericHeader(
+        McGenericHeader(
           title: title,
           centerTitle: true,
           onBack: () {
@@ -81,15 +81,15 @@ class UtilityHistoryPage extends ConsumerWidget {
               width: double.infinity,
               padding: EdgeInsets.all(context.rs(16)),
               decoration: BoxDecoration(
-                color: ChColors.accent2,
-                borderRadius: BorderRadius.circular(ChRadii.md),
+                color: McColors.accent2,
+                borderRadius: BorderRadius.circular(McRadii.md),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     'Total in ${_monthLabels[filterMonth - 1]}',
-                    style: ChTextStyles.body(
+                    style: McTextStyles.body(
                       fontSize: 12.5,
                       color: Colors.white.withValues(alpha: 0.8),
                     ),
@@ -99,7 +99,7 @@ class UtilityHistoryPage extends ConsumerWidget {
                     formatNaira(
                       purchases.fold<int>(0, (sum, p) => sum + p.amount),
                     ),
-                    style: ChTextStyles.heading(
+                    style: McTextStyles.heading(
                       fontSize: 26,
                       color: Colors.white,
                     ),
@@ -120,15 +120,15 @@ class UtilityHistoryPage extends ConsumerWidget {
               width: double.infinity,
               padding: EdgeInsets.all(context.rs(16)),
               decoration: BoxDecoration(
-                color: ChColors.accent2,
-                borderRadius: BorderRadius.circular(ChRadii.md),
+                color: McColors.accent2,
+                borderRadius: BorderRadius.circular(McRadii.md),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     'MyCove Balance',
-                    style: ChTextStyles.body(
+                    style: McTextStyles.body(
                       fontSize: 12.5,
                       color: Colors.white.withValues(alpha: 0.8),
                     ),
@@ -136,7 +136,7 @@ class UtilityHistoryPage extends ConsumerWidget {
                   SizedBox(height: context.rs(4)),
                   Text(
                     s.walletBalanceLabel,
-                    style: ChTextStyles.heading(
+                    style: McTextStyles.heading(
                       fontSize: 26,
                       color: Colors.white,
                     ),
@@ -162,9 +162,9 @@ class UtilityHistoryPage extends ConsumerWidget {
                         child: Text(
                           'No purchases yet.',
                           textAlign: TextAlign.center,
-                          style: ChTextStyles.body(
+                          style: McTextStyles.body(
                             fontSize: 13.5,
-                            color: ChColors.bodyText,
+                            color: McColors.bodyText,
                           ),
                         ),
                       ),
@@ -201,13 +201,13 @@ class _HistoryTile extends StatelessWidget {
     final String statusLabel;
     switch (purchase.status) {
       case UtilityPurchaseStatus.successful:
-        statusColor = ChColors.accent2;
+        statusColor = McColors.accent2;
         statusLabel = 'Successful';
       case UtilityPurchaseStatus.failed:
-        statusColor = ChColors.danger;
+        statusColor = McColors.danger;
         statusLabel = 'Failed';
       case UtilityPurchaseStatus.pending:
-        statusColor = ChColors.warning;
+        statusColor = McColors.warning;
         statusLabel = 'Pending';
     }
 
@@ -217,9 +217,9 @@ class _HistoryTile extends StatelessWidget {
       child: Container(
       padding: EdgeInsets.all(context.rs(14)),
       decoration: BoxDecoration(
-        color: ChColors.surface,
-        borderRadius: BorderRadius.circular(ChRadii.md),
-        boxShadow: ChColors.cardShadow,
+        color: McColors.surface,
+        borderRadius: BorderRadius.circular(McRadii.md),
+        boxShadow: McColors.cardShadow,
       ),
       child: Row(
         children: [
@@ -229,18 +229,18 @@ class _HistoryTile extends StatelessWidget {
               children: [
                 Text(
                   formatNaira(purchase.amount),
-                  style: ChTextStyles.body(
+                  style: McTextStyles.body(
                     fontSize: 14.5,
                     fontWeight: FontWeight.w700,
-                    color: ChColors.text,
+                    color: McColors.text,
                   ),
                 ),
                 SizedBox(height: context.rs(3)),
                 Text(
                   relativeTime(purchase.createdAt),
-                  style: ChTextStyles.body(
+                  style: McTextStyles.body(
                     fontSize: 12,
-                    color: ChColors.bodyText,
+                    color: McColors.bodyText,
                   ),
                 ),
               ],
@@ -253,11 +253,11 @@ class _HistoryTile extends StatelessWidget {
             ),
             decoration: BoxDecoration(
               color: statusColor.withValues(alpha: 0.12),
-              borderRadius: BorderRadius.circular(ChRadii.pill),
+              borderRadius: BorderRadius.circular(McRadii.pill),
             ),
             child: Text(
               statusLabel,
-              style: ChTextStyles.body(
+              style: McTextStyles.body(
                 fontSize: 11.5,
                 fontWeight: FontWeight.w700,
                 color: statusColor,

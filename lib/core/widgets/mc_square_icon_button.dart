@@ -1,17 +1,17 @@
 import 'package:flutter/material.dart';
 
-import '../theme/ch_colors.dart';
-import '../theme/ch_responsive.dart';
-import '../theme/ch_spacing.dart';
+import '../theme/mc_colors.dart';
+import '../theme/mc_responsive.dart';
+import '../theme/mc_spacing.dart';
 
 /// The white rounded-square icon button (back arrow, etc.) used in the
 /// header row of the estate-code/estate-found/login screens.
-class ChSquareIconButton extends StatelessWidget {
-  const ChSquareIconButton({
+class McSquareIconButton extends StatelessWidget {
+  const McSquareIconButton({
     super.key,
     required this.icon,
     required this.onTap,
-    this.iconColor = ChColors.text,
+    this.iconColor = McColors.text,
   });
 
   final IconData icon;
@@ -27,9 +27,9 @@ class ChSquareIconButton extends StatelessWidget {
         height: context.rs(44),
         alignment: Alignment.center,
         decoration: BoxDecoration(
-          color: ChColors.surface,
-          borderRadius: BorderRadius.circular(ChRadii.button),
-          boxShadow: ChColors.cardShadow,
+          color: McColors.surface,
+          borderRadius: BorderRadius.circular(McRadii.button),
+          boxShadow: McColors.cardShadow,
         ),
         child: Icon(icon, size: context.rs(18), color: iconColor),
       ),

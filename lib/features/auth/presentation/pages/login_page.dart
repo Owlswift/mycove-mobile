@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../../core/theme/ch_colors.dart';
-import '../../../../core/theme/ch_responsive.dart';
-import '../../../../core/theme/ch_spacing.dart';
-import '../../../../core/theme/ch_text_styles.dart';
-import '../../../../core/widgets/ch_data_media.dart';
-import '../../../../core/widgets/ch_help_pill.dart';
-import '../../../../core/widgets/ch_password_field.dart';
-import '../../../../core/widgets/ch_phone_field.dart';
-import '../../../../core/widgets/ch_square_icon_button.dart';
+import '../../../../core/theme/mc_colors.dart';
+import '../../../../core/theme/mc_responsive.dart';
+import '../../../../core/theme/mc_spacing.dart';
+import '../../../../core/theme/mc_text_styles.dart';
+import '../../../../core/widgets/mc_data_media.dart';
+import '../../../../core/widgets/mc_help_pill.dart';
+import '../../../../core/widgets/mc_password_field.dart';
+import '../../../../core/widgets/mc_phone_field.dart';
+import '../../../../core/widgets/mc_square_icon_button.dart';
 import '../../../../state/app_notifier.dart';
 import '../../../../state/app_state.dart';
 
@@ -23,7 +23,7 @@ class LoginPage extends ConsumerWidget {
     final isResident = s.role == Role.resident;
 
     return Scaffold(
-      backgroundColor: ChColors.bg,
+      backgroundColor: McColors.bg,
       body: SafeArea(
         child: SingleChildScrollView(
           padding: EdgeInsets.fromLTRB(context.rs(25), context.rs(12), context.rs(25), context.rs(28)),
@@ -33,11 +33,11 @@ class LoginPage extends ConsumerWidget {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  ChSquareIconButton(
+                  McSquareIconButton(
                     icon: Icons.arrow_back,
                     onTap: notifier.backToWelcome,
                   ),
-                  ChHelpPill(onTap: () => _showHelp(context)),
+                  McHelpPill(onTap: () => _showHelp(context)),
                 ],
               ),
               SizedBox(height: context.rs(16)),
@@ -48,13 +48,13 @@ class LoginPage extends ConsumerWidget {
                 onChange: s.estateLocked ? null : notifier.changeEstate,
               ),
               SizedBox(height: context.rs(22)),
-              Text('Welcome back', style: ChTextStyles.heading(fontSize: 30)),
+              Text('Welcome back', style: McTextStyles.heading(fontSize: 30)),
               SizedBox(height: context.rs(6)),
               Text(
                 'Sign in to access your estate community',
-                style: ChTextStyles.body(
+                style: McTextStyles.body(
                   fontSize: 14,
-                  color: ChColors.text,
+                  color: McColors.text,
                 ),
               ),
               SizedBox(height: context.rs(22)),
@@ -66,14 +66,14 @@ class LoginPage extends ConsumerWidget {
               SizedBox(height: context.rs(20)),
               _FieldLabel('Phone Number'),
               SizedBox(height: context.rs(6)),
-              ChPhoneField(
+              McPhoneField(
                 value: s.loginPhone,
                 onChanged: notifier.onPhoneChange,
               ),
               SizedBox(height: context.rs(16)),
               _FieldLabel('Password'),
               SizedBox(height: context.rs(6)),
-              ChPasswordField(
+              McPasswordField(
                 value: s.loginPassword,
                 onChanged: notifier.onPasswordChange,
               ),
@@ -90,7 +90,7 @@ class LoginPage extends ConsumerWidget {
                         SizedBox(width: context.rs(7)),
                         Text(
                           'Remember me',
-                          style: ChTextStyles.body(fontSize: 11, color: ChColors.text),
+                          style: McTextStyles.body(fontSize: 11, color: McColors.text),
                         ),
                       ],
                     ),
@@ -99,10 +99,10 @@ class LoginPage extends ConsumerWidget {
                     onTap: notifier.goForgot,
                     child: Text(
                       'Forgot password?',
-                      style: ChTextStyles.body(
+                      style: McTextStyles.body(
                         fontSize: 11,
                         fontWeight: FontWeight.w600,
-                        color: ChColors.accent2,
+                        color: McColors.accent2,
                       ),
                     ),
                   ),
@@ -112,9 +112,9 @@ class LoginPage extends ConsumerWidget {
                 SizedBox(height: context.rs(12)),
                 Text(
                   s.loginError,
-                  style: ChTextStyles.body(
+                  style: McTextStyles.body(
                     fontSize: 13,
-                    color: ChColors.danger,
+                    color: McColors.danger,
                   ),
                 ),
               ],
@@ -128,8 +128,8 @@ class LoginPage extends ConsumerWidget {
                     horizontal: context.rs(20),
                   ),
                   decoration: BoxDecoration(
-                    color: ChColors.accent2,
-                    borderRadius: BorderRadius.circular(ChRadii.button),
+                    color: McColors.accent2,
+                    borderRadius: BorderRadius.circular(McRadii.button),
                   ),
                   child: s.isLoading
                       ? Center(
@@ -147,7 +147,7 @@ class LoginPage extends ConsumerWidget {
                           children: [
                             Text(
                               'Continue',
-                              style: ChTextStyles.body(
+                              style: McTextStyles.body(
                                 fontSize: 15,
                                 fontWeight: FontWeight.w600,
                                 color: Colors.white,
@@ -169,9 +169,9 @@ class LoginPage extends ConsumerWidget {
               Container(
                 padding: EdgeInsets.all(context.rs(14)),
                 decoration: BoxDecoration(
-                  color: ChColors.surfaceSunken,
-                  borderRadius: BorderRadius.circular(ChRadii.button),
-                  border: Border.all(color: ChColors.divider)
+                  color: McColors.surfaceSunken,
+                  borderRadius: BorderRadius.circular(McRadii.button),
+                  border: Border.all(color: McColors.divider)
                 ),
                 child: Row(
                   children: [
@@ -179,13 +179,13 @@ class LoginPage extends ConsumerWidget {
                       width: context.rs(50),
                       height: context.rs(50),
                       decoration: BoxDecoration(
-                        color: ChColors.accent2N(100),
+                        color: McColors.accent2N(100),
                         shape: BoxShape.circle,
                       ),
                       child: Icon(
                         Icons.verified_user_outlined,
                         size: context.rs(24),
-                        color: ChColors.accent2N(700),
+                        color: McColors.accent2N(700),
                       ),
                     ),
                     SizedBox(width: context.rs(18)),
@@ -195,10 +195,10 @@ class LoginPage extends ConsumerWidget {
                         children: [
                           Text(
                             'Secure & Private',
-                            style: ChTextStyles.body(
+                            style: McTextStyles.body(
                               fontSize: 13,
                               fontWeight: FontWeight.w500,
-                              color: ChColors.text
+                              color: McColors.text
                             ),
                           ),
                           SizedBox(height: context.rs(2)),
@@ -206,9 +206,9 @@ class LoginPage extends ConsumerWidget {
                             padding: EdgeInsets.only(right: context.rs(20)),
                             child: Text(
                               'Your information is encrypted and protected. We value your privacy.',
-                              style: ChTextStyles.body(
+                              style: McTextStyles.body(
                                 fontSize: 11,
-                                color: ChColors.text,
+                                color: McColors.text,
                                 height: 1.3,
                               ),
                             ),
@@ -230,7 +230,7 @@ class LoginPage extends ConsumerWidget {
                       child: Icon(
                         Icons.lock_outline_rounded,
                         size: context.rs(19),
-                        color: ChColors.text,
+                        color: McColors.text,
                       ),
                     ),
                     SizedBox(width: context.rs(6)),
@@ -238,9 +238,9 @@ class LoginPage extends ConsumerWidget {
                       child: RichText(
                         textAlign: TextAlign.left,
                         text: TextSpan(
-                          style: ChTextStyles.body(
+                          style: McTextStyles.body(
                             fontSize: 11,
-                            color: ChColors.text,
+                            color: McColors.text,
                             height: 1.8,
                           ),
                           children: [
@@ -249,19 +249,19 @@ class LoginPage extends ConsumerWidget {
                             ),
                             TextSpan(
                               text: 'Terms of Service',
-                              style: ChTextStyles.body(
+                              style: McTextStyles.body(
                                 fontSize: 11,
                                 fontWeight: FontWeight.w500,
-                                color: ChColors.accent2,
+                                color: McColors.accent2,
                               ),
                             ),
                             const TextSpan(text: ' and '),
                             TextSpan(
                               text: 'Privacy Policy',
-                              style: ChTextStyles.body(
+                              style: McTextStyles.body(
                                 fontSize: 11,
                                 fontWeight: FontWeight.w500,
-                                color: ChColors.accent2,
+                                color: McColors.accent2,
                               ),
                             ),
                             const TextSpan(text: '.'),
@@ -290,7 +290,7 @@ class LoginPage extends ConsumerWidget {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            style: TextButton.styleFrom(foregroundColor: ChColors.text),
+            style: TextButton.styleFrom(foregroundColor: McColors.text),
             child: const Text('OK'),
           ),
         ],
@@ -308,10 +308,10 @@ class _FieldLabel extends StatelessWidget {
   Widget build(BuildContext context) {
     return Text(
       text,
-      style: ChTextStyles.body(
+      style: McTextStyles.body(
         fontSize: 12,
         fontWeight: FontWeight.w500,
-        color: ChColors.text,
+        color: McColors.text,
       ),
     );
   }
@@ -349,9 +349,9 @@ class _EstateBanner extends StatelessWidget {
                 right: 0,
                 width: photoWidth,
                 child: ClipRRect(
-                  borderRadius: BorderRadius.circular(ChRadii.card),
+                  borderRadius: BorderRadius.circular(McRadii.card),
                   child: image != null
-                      ? ChDataMedia(dataUrl: image!)
+                      ? McDataMedia(dataUrl: image!)
                       : Image.asset(
                           'assets/images/welcome_banner.png',
                           fit: BoxFit.cover,
@@ -366,9 +366,9 @@ class _EstateBanner extends StatelessWidget {
                 child: Container(
                   padding: EdgeInsets.all(context.rs(14)),
                   decoration: BoxDecoration(
-                    color: ChColors.surface,
-                    borderRadius: BorderRadius.circular(ChRadii.card),
-                    boxShadow: ChColors.cardShadow,
+                    color: McColors.surface,
+                    borderRadius: BorderRadius.circular(McRadii.card),
+                    boxShadow: McColors.cardShadow,
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -380,13 +380,13 @@ class _EstateBanner extends StatelessWidget {
                             width: context.rs(40),
                             height: context.rs(40),
                             decoration: BoxDecoration(
-                              color: ChColors.accent2N(100),
-                              borderRadius: BorderRadius.circular(ChRadii.sm),
+                              color: McColors.accent2N(100),
+                              borderRadius: BorderRadius.circular(McRadii.sm),
                             ),
                             child: Icon(
                               Icons.park_outlined,
                               size: context.rs(20),
-                              color: ChColors.accent2N(700),
+                              color: McColors.accent2N(700),
                             ),
                           ),
                           SizedBox(width: context.rs(10)),
@@ -398,7 +398,7 @@ class _EstateBanner extends StatelessWidget {
                                   name,
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
-                                  style: ChTextStyles.heading(fontSize: 15),
+                                  style: McTextStyles.heading(fontSize: 15),
                                 ),
                                 if (address != null) ...[
                                   SizedBox(height: context.rs(2)),
@@ -407,7 +407,7 @@ class _EstateBanner extends StatelessWidget {
                                       Icon(
                                         Icons.location_on_outlined,
                                         size: context.rs(12),
-                                        color: ChColors.text,
+                                        color: McColors.text,
                                       ),
                                       SizedBox(width: context.rs(3)),
                                       Expanded(
@@ -415,9 +415,9 @@ class _EstateBanner extends StatelessWidget {
                                           address!,
                                           maxLines: 1,
                                           overflow: TextOverflow.ellipsis,
-                                          style: ChTextStyles.body(
+                                          style: McTextStyles.body(
                                             fontSize: 11,
-                                            color: ChColors.text,
+                                            color: McColors.text,
                                           ),
                                         ),
                                       ),
@@ -438,16 +438,16 @@ class _EstateBanner extends StatelessWidget {
                             children: [
                               Text(
                                 'Change',
-                                style: ChTextStyles.body(
+                                style: McTextStyles.body(
                                   fontSize: 12.5,
                                   fontWeight: FontWeight.w500,
-                                  color: ChColors.accent2,
+                                  color: McColors.accent2,
                                 ),
                               ),
                               Icon(
                                 Icons.chevron_right,
                                 size: context.rs(16),
-                                color: ChColors.accent2,
+                                color: McColors.accent2,
                               ),
                             ],
                           ),
@@ -522,9 +522,9 @@ class _RoleButton extends StatelessWidget {
         padding: EdgeInsets.symmetric(vertical: context.rs(13)),
         alignment: Alignment.center,
         decoration: BoxDecoration(
-          color: selected ? ChColors.accent2 : ChColors.surfaceSunken,
-          borderRadius: BorderRadius.circular(ChRadii.button),
-          border: Border.all(color: ChColors.neutralN(200)),
+          color: selected ? McColors.accent2 : McColors.surfaceSunken,
+          borderRadius: BorderRadius.circular(McRadii.button),
+          border: Border.all(color: McColors.neutralN(200)),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
@@ -532,17 +532,17 @@ class _RoleButton extends StatelessWidget {
             Icon(
               icon,
               size: context.rs(22),
-              color: selected ? Colors.white : ChColors.neutralN(700),
+              color: selected ? Colors.white : McColors.neutralN(700),
             ),
             SizedBox(width: context.rs(6)),
             Flexible(
               child: Text(
                 label,
                 overflow: TextOverflow.ellipsis,
-                style: ChTextStyles.body(
+                style: McTextStyles.body(
                   fontSize: 12.5,
                   fontWeight: FontWeight.w400,
-                  color: selected ? Colors.white : ChColors.text,
+                  color: selected ? Colors.white : McColors.text,
                 ),
               ),
             ),
@@ -565,11 +565,11 @@ class _Checkbox extends StatelessWidget {
       height: context.rs(20),
       alignment: Alignment.center,
       decoration: BoxDecoration(
-        color: checked ? ChColors.accent2 : Colors.transparent,
+        color: checked ? McColors.accent2 : Colors.transparent,
         borderRadius: BorderRadius.circular(5),
         border: checked
             ? null
-            : Border.all(color: ChColors.divider, width: 1.5),
+            : Border.all(color: McColors.divider, width: 1.5),
       ),
       child: checked
           ? Icon(Icons.check_rounded, size: context.rs(14), color: Colors.white)

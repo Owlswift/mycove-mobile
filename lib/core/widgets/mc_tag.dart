@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 
-import '../theme/ch_responsive.dart';
-import '../theme/ch_spacing.dart';
-import '../theme/ch_text_styles.dart';
+import '../theme/mc_responsive.dart';
+import '../theme/mc_spacing.dart';
+import '../theme/mc_text_styles.dart';
 
-class ChTag extends StatelessWidget {
-  const ChTag({
+class McTag extends StatelessWidget {
+  const McTag({
     super.key,
     required this.label,
     required this.background,
@@ -25,10 +25,10 @@ class ChTag extends StatelessWidget {
         horizontal: context.rs(10),
         vertical: context.rs(3),
       ),
-      decoration: BoxDecoration(color: background, borderRadius: BorderRadius.circular(ChRadii.pill)),
+      decoration: BoxDecoration(color: background, borderRadius: BorderRadius.circular(McRadii.pill)),
       child: Text(
         uppercase ? label.toUpperCase() : label,
-        style: ChTextStyles.body(fontSize: 10.5, fontWeight: FontWeight.w600, color: foreground)
+        style: McTextStyles.body(fontSize: 10.5, fontWeight: FontWeight.w600, color: foreground)
             .copyWith(letterSpacing: 0.3),
       ),
     );

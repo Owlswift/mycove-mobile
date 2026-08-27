@@ -7,14 +7,14 @@ import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:video_player/video_player.dart';
 
-import '../theme/ch_colors.dart';
+import '../theme/mc_colors.dart';
 
 /// Renders a project's media — image or short video clip — stored as a
 /// base64 data URL (e.g. "data:image/png;base64,..." or
 /// "data:video/mp4;base64,..."). The backend returns the same field either
 /// way; the MIME prefix decides how it's displayed.
-class ChDataMedia extends StatelessWidget {
-  const ChDataMedia({super.key, required this.dataUrl, this.height, this.borderRadius, this.fit = BoxFit.cover});
+class McDataMedia extends StatelessWidget {
+  const McDataMedia({super.key, required this.dataUrl, this.height, this.borderRadius, this.fit = BoxFit.cover});
 
   final String dataUrl;
   final double? height;
@@ -118,7 +118,7 @@ class _InlineVideoState extends State<_InlineVideo> {
     if (controller == null) {
       return SizedBox(
         height: widget.height,
-        child: const Center(child: CircularProgressIndicator(strokeWidth: 2, color: ChColors.accent)),
+        child: const Center(child: CircularProgressIndicator(strokeWidth: 2, color: McColors.accent)),
       );
     }
     return GestureDetector(

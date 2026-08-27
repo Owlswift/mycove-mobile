@@ -2,12 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../../core/theme/ch_colors.dart';
-import '../../../../core/theme/ch_responsive.dart';
-import '../../../../core/theme/ch_spacing.dart';
-import '../../../../core/theme/ch_text_styles.dart';
-import '../../../../core/widgets/ch_button.dart';
-import '../../../../core/widgets/ch_generic_header.dart';
+import '../../../../core/theme/mc_colors.dart';
+import '../../../../core/theme/mc_responsive.dart';
+import '../../../../core/theme/mc_spacing.dart';
+import '../../../../core/theme/mc_text_styles.dart';
+import '../../../../core/widgets/mc_button.dart';
+import '../../../../core/widgets/mc_generic_header.dart';
 import '../../../../data/models/utility_meter.dart';
 import '../../../../state/app_notifier.dart';
 
@@ -26,14 +26,14 @@ class ElectricitySelectMeterPage extends ConsumerWidget {
 
     return Column(
       children: [
-        ChGenericHeader(title: 'Select Meter', centerTitle: true, onBack: () => context.pop()),
+        McGenericHeader(title: 'Select Meter', centerTitle: true, onBack: () => context.pop()),
         Padding(
           padding: EdgeInsets.fromLTRB(context.rs(20), 0, context.rs(20), context.rs(10)),
           child: Align(
             alignment: Alignment.centerLeft,
             child: Text(
               'Which meter would you like to recharge?',
-              style: ChTextStyles.body(fontSize: 13, color: ChColors.bodyText),
+              style: McTextStyles.body(fontSize: 13, color: McColors.bodyText),
             ),
           ),
         ),
@@ -57,7 +57,7 @@ class ElectricitySelectMeterPage extends ConsumerWidget {
         ),
         Padding(
           padding: EdgeInsets.fromLTRB(context.rs(20), 0, context.rs(20), context.rs(24)),
-          child: ChButton(
+          child: McButton(
             label: 'Add New Meter',
             variant: ChButtonVariant.secondary,
             onPressed: () {
@@ -81,22 +81,22 @@ class _MeterTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return InkWell(
-      borderRadius: BorderRadius.circular(ChRadii.md),
+      borderRadius: BorderRadius.circular(McRadii.md),
       onTap: onTap,
       child: Container(
         padding: EdgeInsets.all(context.rs(14)),
         decoration: BoxDecoration(
-          color: ChColors.surface,
-          borderRadius: BorderRadius.circular(ChRadii.md),
-          boxShadow: ChColors.cardShadow,
+          color: McColors.surface,
+          borderRadius: BorderRadius.circular(McRadii.md),
+          boxShadow: McColors.cardShadow,
         ),
         child: Row(
           children: [
             Container(
               width: context.rs(36),
               height: context.rs(36),
-              decoration: BoxDecoration(color: ChColors.accent2N(100), shape: BoxShape.circle),
-              child: Icon(Icons.bolt_rounded, color: ChColors.accent2, size: context.rs(18)),
+              decoration: BoxDecoration(color: McColors.accent2N(100), shape: BoxShape.circle),
+              child: Icon(Icons.bolt_rounded, color: McColors.accent2, size: context.rs(18)),
             ),
             SizedBox(width: context.rs(12)),
             Expanded(
@@ -105,18 +105,18 @@ class _MeterTile extends StatelessWidget {
                 children: [
                   Text(
                     formatMeterNumber(meter.meterNumber),
-                    style: ChTextStyles.body(fontSize: 14.5, fontWeight: FontWeight.w700, color: ChColors.text),
+                    style: McTextStyles.body(fontSize: 14.5, fontWeight: FontWeight.w700, color: McColors.text),
                   ),
                   SizedBox(height: context.rs(3)),
                   Text(
                     '$discoLabel · ${meter.meterType == MeterType.postpaid ? 'Postpaid' : 'Prepaid'}'
                     '${meter.customerName != null && meter.customerName!.isNotEmpty ? ' · ${meter.customerName}' : ''}',
-                    style: ChTextStyles.body(fontSize: 12, color: ChColors.bodyText),
+                    style: McTextStyles.body(fontSize: 12, color: McColors.bodyText),
                   ),
                 ],
               ),
             ),
-            Icon(Icons.chevron_right_rounded, color: ChColors.bodyText, size: context.rs(20)),
+            Icon(Icons.chevron_right_rounded, color: McColors.bodyText, size: context.rs(20)),
           ],
         ),
       ),

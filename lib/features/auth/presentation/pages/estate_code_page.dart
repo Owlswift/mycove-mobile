@@ -2,12 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 
-import '../../../../core/theme/ch_colors.dart';
-import '../../../../core/theme/ch_responsive.dart';
-import '../../../../core/theme/ch_spacing.dart';
-import '../../../../core/theme/ch_text_styles.dart';
-import '../../../../core/widgets/ch_help_pill.dart';
-import '../../../../core/widgets/ch_square_icon_button.dart';
+import '../../../../core/theme/mc_colors.dart';
+import '../../../../core/theme/mc_responsive.dart';
+import '../../../../core/theme/mc_spacing.dart';
+import '../../../../core/theme/mc_text_styles.dart';
+import '../../../../core/widgets/mc_help_pill.dart';
+import '../../../../core/widgets/mc_square_icon_button.dart';
 import '../../../../state/app_notifier.dart';
 
 /// Shown once, before login — this app is shared across estates, so a
@@ -27,7 +27,7 @@ class EstateCodePage extends ConsumerWidget {
     final cardOverlap = imageHeight * 0.11;
 
     return Scaffold(
-      backgroundColor: ChColors.bg,
+      backgroundColor: McColors.bg,
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.only(top: 12, bottom: 28),
@@ -39,11 +39,11 @@ class EstateCodePage extends ConsumerWidget {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    ChSquareIconButton(
+                    McSquareIconButton(
                       icon: Icons.arrow_back,
                       onTap: notifier.backToWelcome,
                     ),
-                    ChHelpPill(onTap: () => _showHelp(context)),
+                    McHelpPill(onTap: () => _showHelp(context)),
                   ],
                 ),
               ),
@@ -92,14 +92,14 @@ class EstateCodePage extends ConsumerWidget {
                         padding: EdgeInsets.symmetric(horizontal: context.rs(20)),
                         child: RichText(
                           text: TextSpan(
-                            style: ChTextStyles.heading(fontSize: 32),
+                            style: McTextStyles.heading(fontSize: 32),
                             children: [
                               const TextSpan(text: 'Find your '),
                               TextSpan(
                                 text: 'estate',
-                                style: ChTextStyles.heading(
+                                style: McTextStyles.heading(
                                   fontSize: 32,
-                                  color: ChColors.accent2,
+                                  color: McColors.accent2,
                                 ),
                               ),
                             ],
@@ -112,10 +112,10 @@ class EstateCodePage extends ConsumerWidget {
                         child: Text(
                           'Join your residential community using the unique code provided by your estate management.',
                           textAlign: TextAlign.left,
-                          style: ChTextStyles.body(
+                          style: McTextStyles.body(
                             fontSize: 13.5,
                             height: 1.6,
-                            color: ChColors.text
+                            color: McColors.text
                           ),
                         ),
                       ),
@@ -169,7 +169,7 @@ class EstateCodePage extends ConsumerWidget {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            style: TextButton.styleFrom(foregroundColor: ChColors.text),
+            style: TextButton.styleFrom(foregroundColor: McColors.text),
             child: const Text('OK'),
           ),
         ],
@@ -200,14 +200,14 @@ class _EstateCodeCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: ChColors.surface,
-        borderRadius: BorderRadius.circular(ChRadii.card),
-        boxShadow: ChColors.cardShadow,
+        color: McColors.surface,
+        borderRadius: BorderRadius.circular(McRadii.card),
+        boxShadow: McColors.cardShadow,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Estate Access Code', style: ChTextStyles.heading(fontSize: 14.5)),
+          Text('Estate Access Code', style: McTextStyles.heading(fontSize: 14.5)),
           const SizedBox(height: 12),
           _CodeField(value: value, onChanged: onChanged, onClear: onClear),
           const SizedBox(height: 8),
@@ -215,11 +215,11 @@ class _EstateCodeCard extends StatelessWidget {
             error.isNotEmpty
                 ? error
                 : 'Enter the code exactly as provided (case-sensitive).',
-            style: ChTextStyles.body(
+            style: McTextStyles.body(
               fontSize: 12,
               color: error.isNotEmpty
-                  ? ChColors.danger
-                  : ChColors.text,
+                  ? McColors.danger
+                  : McColors.text,
             ),
           ),
           const SizedBox(height: 26),
@@ -234,8 +234,8 @@ class _EstateCodeCard extends StatelessWidget {
                   horizontal: 20,
                 ),
                 decoration: BoxDecoration(
-                  color: ChColors.accent2,
-                  borderRadius: BorderRadius.circular(ChRadii.button),
+                  color: McColors.accent2,
+                  borderRadius: BorderRadius.circular(McRadii.button),
                 ),
                 child: loading
                     ? SizedBox(
@@ -251,7 +251,7 @@ class _EstateCodeCard extends StatelessWidget {
                         children: [
                           Text(
                             'Continue',
-                            style: ChTextStyles.body(
+                            style: McTextStyles.body(
                               fontSize: 15,
                               fontWeight: FontWeight.w600,
                               color: Colors.white,
@@ -318,8 +318,8 @@ class _CodeFieldState extends State<_CodeField> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12),
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(ChRadii.button),
-        border: Border.all(color: ChColors.divider),
+        borderRadius: BorderRadius.circular(McRadii.button),
+        border: Border.all(color: McColors.divider),
       ),
       child: Row(
         children: [
@@ -329,7 +329,7 @@ class _CodeFieldState extends State<_CodeField> {
             child: Icon(
               Iconsax.key,
               size: context.rs(18),
-              color: ChColors.accent2N(700),
+              color: McColors.accent2N(700),
             ),
           ),
           SizedBox(width: context.rs(10)),
@@ -338,7 +338,7 @@ class _CodeFieldState extends State<_CodeField> {
               controller: _controller,
               onChanged: widget.onChanged,
               textCapitalization: TextCapitalization.characters,
-              style: ChTextStyles.body(
+              style: McTextStyles.body(
                 fontSize: 15,
                 fontWeight: FontWeight.w600,
               ),
@@ -350,9 +350,9 @@ class _CodeFieldState extends State<_CodeField> {
                 focusedBorder: InputBorder.none,
                 disabledBorder: InputBorder.none,
                 hintText: 'e.g. PALM001',
-                hintStyle: ChTextStyles.body(
+                hintStyle: McTextStyles.body(
                   fontSize: 15,
-                  color: ChColors.neutralN(500),
+                  color: McColors.neutralN(500),
                 ),
               ),
             ),
@@ -363,7 +363,7 @@ class _CodeFieldState extends State<_CodeField> {
               child: Icon(
                 Iconsax.close_circle,
                 size: context.rs(18),
-                color: ChColors.neutralN(500),
+                color: McColors.neutralN(500),
               ),
             ),
         ],
@@ -384,9 +384,9 @@ class _HelpBox extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
-          color: ChColors.surfaceSunken,
-          borderRadius: BorderRadius.circular(ChRadii.button),
-          border: Border.all(color: ChColors.divider)
+          color: McColors.surfaceSunken,
+          borderRadius: BorderRadius.circular(McRadii.button),
+          border: Border.all(color: McColors.divider)
         ),
         child: Row(
           children: [
@@ -394,13 +394,13 @@ class _HelpBox extends StatelessWidget {
               width: context.rs(42),
               height: context.rs(42),
               decoration: BoxDecoration(
-                color: ChColors.accent2N(100),
+                color: McColors.accent2N(100),
                 shape: BoxShape.circle,
               ),
               child: Icon(
                 Iconsax.headphone,
                 size: context.rs(24),
-                color: ChColors.accent2N(700),
+                color: McColors.accent2N(700),
               ),
             ),
             SizedBox(width: context.rs(12)),
@@ -410,10 +410,10 @@ class _HelpBox extends StatelessWidget {
                 children: [
                   Text(
                     "Don't know your estate code?",
-                    style: ChTextStyles.body(
+                    style: McTextStyles.body(
                       fontSize: 13.5,
                       fontWeight: FontWeight.w600,
-                      color: ChColors.text,
+                      color: McColors.text,
                     ),
                   ),
                   const SizedBox(height: 2),
@@ -422,17 +422,17 @@ class _HelpBox extends StatelessWidget {
                     child: Text(
                       'Contact your estate management office to get your unique access code.',
                       textAlign: TextAlign.left,
-                      style: ChTextStyles.body(
+                      style: McTextStyles.body(
                         fontSize: 11,
                         height: 1.3,
-                        color: ChColors.text,
+                        color: McColors.text,
                       ),
                     ),
                   ),
                 ],
               ),
             ),
-            Icon(Icons.chevron_right, size: context.rs(22), color: ChColors.text),
+            Icon(Icons.chevron_right, size: context.rs(22), color: McColors.text),
           ],
         ),
       ),
@@ -452,23 +452,23 @@ class _SecureRow extends StatelessWidget {
           Icon(
             Iconsax.shield_tick,
             size: context.rs(20),
-            color: ChColors.accent2,
+            color: McColors.accent2,
           ),
           SizedBox(width: context.rs(8)),
           RichText(
             text: TextSpan(
-              style: ChTextStyles.body(
+              style: McTextStyles.body(
                 fontSize: 11,
-                color: ChColors.text,
+                color: McColors.text,
               ),
               children: [
                 const TextSpan(text: 'Your information is '),
                 TextSpan(
                   text: 'secure',
-                  style: ChTextStyles.body(
+                  style: McTextStyles.body(
                     fontSize: 11,
                     fontWeight: FontWeight.w700,
-                    color: ChColors.accent2,
+                    color: McColors.accent2,
                   ),
                 ),
                 const TextSpan(text: ' with us'),

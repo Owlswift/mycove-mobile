@@ -2,12 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../../core/theme/ch_colors.dart';
-import '../../../../core/theme/ch_responsive.dart';
-import '../../../../core/theme/ch_spacing.dart';
-import '../../../../core/theme/ch_text_styles.dart';
-import '../../../../core/widgets/ch_generic_header.dart';
-import '../../../../core/widgets/ch_underline_tabs.dart';
+import '../../../../core/theme/mc_colors.dart';
+import '../../../../core/theme/mc_responsive.dart';
+import '../../../../core/theme/mc_spacing.dart';
+import '../../../../core/theme/mc_text_styles.dart';
+import '../../../../core/widgets/mc_generic_header.dart';
+import '../../../../core/widgets/mc_underline_tabs.dart';
 import '../../../../state/app_notifier.dart';
 
 class ComplaintLogPage extends ConsumerStatefulWidget {
@@ -31,7 +31,7 @@ class _ComplaintLogPageState extends ConsumerState<ComplaintLogPage> {
 
     return Column(
       children: [
-        ChGenericHeader(
+        McGenericHeader(
           title: 'Complaints',
           trailing: GestureDetector(
             onTap: () {
@@ -41,17 +41,17 @@ class _ComplaintLogPageState extends ConsumerState<ComplaintLogPage> {
             child: Container(
               width: context.rs(32),
               height: context.rs(32),
-              decoration: const BoxDecoration(color: ChColors.accent2, shape: BoxShape.circle),
+              decoration: const BoxDecoration(color: McColors.accent2, shape: BoxShape.circle),
               child: Icon(Icons.add, size: context.rs(18), color: Colors.white),
             ),
           ),
         ),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 20),
-          child: ChUnderlineTabs(
+          child: McUnderlineTabs(
             options: [
-              ChUnderlineTabOption(label: 'My Complaints (${s.complaints.length})', selected: _mineOnly, onSelect: () => setState(() => _mineOnly = true)),
-              ChUnderlineTabOption(label: 'All', selected: !_mineOnly, onSelect: () => setState(() => _mineOnly = false)),
+              McUnderlineTabOption(label: 'My Complaints (${s.complaints.length})', selected: _mineOnly, onSelect: () => setState(() => _mineOnly = true)),
+              McUnderlineTabOption(label: 'All', selected: !_mineOnly, onSelect: () => setState(() => _mineOnly = false)),
             ],
           ),
         ),
@@ -63,18 +63,18 @@ class _ComplaintLogPageState extends ConsumerState<ComplaintLogPage> {
                     physics: const AlwaysScrollableScrollPhysics(),
                     padding: const EdgeInsets.fromLTRB(20, 40, 20, 24),
                     children: [
-                      Icon(Icons.report_gmailerrorred_outlined, size: 48, color: ChColors.neutralN(400)),
+                      Icon(Icons.report_gmailerrorred_outlined, size: 48, color: McColors.neutralN(400)),
                       const SizedBox(height: 12),
                       Text(
                         'No complaints yet',
                         textAlign: TextAlign.center,
-                        style: ChTextStyles.body(fontSize: 15, fontWeight: FontWeight.w600),
+                        style: McTextStyles.body(fontSize: 15, fontWeight: FontWeight.w600),
                       ),
                       const SizedBox(height: 4),
                       Text(
                         'Complaints you submit will appear here with their ticket number and status.',
                         textAlign: TextAlign.center,
-                        style: ChTextStyles.body(fontSize: 13, color: ChColors.bodyText),
+                        style: McTextStyles.body(fontSize: 13, color: McColors.bodyText),
                       ),
                     ],
                   )
@@ -89,8 +89,8 @@ class _ComplaintLogPageState extends ConsumerState<ComplaintLogPage> {
                         child: Container(
                           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                           decoration: BoxDecoration(
-                            color: ChColors.surface,
-                            borderRadius: BorderRadius.circular(ChRadii.card),
+                            color: McColors.surface,
+                            borderRadius: BorderRadius.circular(McRadii.card),
                           ),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -100,7 +100,7 @@ class _ComplaintLogPageState extends ConsumerState<ComplaintLogPage> {
                                   Expanded(
                                     child: Text(
                                       c.category,
-                                      style: ChTextStyles.body(fontSize: 14, fontWeight: FontWeight.w700),
+                                      style: McTextStyles.body(fontSize: 14, fontWeight: FontWeight.w700),
                                     ),
                                   ),
                                   _StatusBadge(status: c.status),
@@ -111,23 +111,23 @@ class _ComplaintLogPageState extends ConsumerState<ComplaintLogPage> {
                                 c.description,
                                 maxLines: 2,
                                 overflow: TextOverflow.ellipsis,
-                                style: ChTextStyles.body(fontSize: 13, color: ChColors.bodyText),
+                                style: McTextStyles.body(fontSize: 13, color: McColors.bodyText),
                               ),
                               const SizedBox(height: 10),
                               Row(
                                 children: [
                                   Text(
                                     'Ticket #${c.ref}',
-                                    style: ChTextStyles.body(
+                                    style: McTextStyles.body(
                                       fontSize: 12.5,
                                       fontWeight: FontWeight.w600,
-                                      color: ChColors.accentN(700),
+                                      color: McColors.accentN(700),
                                     ),
                                   ),
                                   const Spacer(),
                                   Text(
                                     c.timeLabel,
-                                    style: ChTextStyles.body(fontSize: 12, color: ChColors.bodyText),
+                                    style: McTextStyles.body(fontSize: 12, color: McColors.bodyText),
                                   ),
                                 ],
                               ),
@@ -152,18 +152,18 @@ class _StatusBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final (label, color, bg) = switch (status) {
-      'SUBMITTED' => ('Submitted', ChColors.warning, ChColors.warning.withValues(alpha: 0.14)),
-      'IN_REVIEW' => ('In Review', ChColors.warning, ChColors.warning.withValues(alpha: 0.14)),
-      'RESOLVED' => ('Resolved', ChColors.accent2N(700), ChColors.accent2N(100)),
-      _ => (status, ChColors.bodyText, ChColors.neutralN(200)),
+      'SUBMITTED' => ('Submitted', McColors.warning, McColors.warning.withValues(alpha: 0.14)),
+      'IN_REVIEW' => ('In Review', McColors.warning, McColors.warning.withValues(alpha: 0.14)),
+      'RESOLVED' => ('Resolved', McColors.accent2N(700), McColors.accent2N(100)),
+      _ => (status, McColors.bodyText, McColors.neutralN(200)),
     };
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-      decoration: BoxDecoration(color: bg, borderRadius: BorderRadius.circular(ChRadii.pill)),
+      decoration: BoxDecoration(color: bg, borderRadius: BorderRadius.circular(McRadii.pill)),
       child: Text(
         label,
-        style: ChTextStyles.body(fontSize: 11, fontWeight: FontWeight.w700, color: color),
+        style: McTextStyles.body(fontSize: 11, fontWeight: FontWeight.w700, color: color),
       ),
     );
   }

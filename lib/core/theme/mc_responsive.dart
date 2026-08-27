@@ -10,8 +10,8 @@ import 'package:flutter/material.dart';
 /// The clamp keeps scaling from going too far in either direction: text
 /// and spacing shrink gracefully on small phones without becoming
 /// illegibly small, and don't blow up unreasonably on larger ones.
-class ChResponsive {
-  ChResponsive._();
+class McResponsive {
+  McResponsive._();
 
   static const double _baseWidth = 430;
 
@@ -22,7 +22,7 @@ class ChResponsive {
 
   /// Scales a spacing/dimension value — padding, gaps, icon sizes, fixed
   /// widths/heights — for the current screen width. Font sizes don't need
-  /// this: they're scaled globally instead (see [ChTheme] wiring in
+  /// this: they're scaled globally instead (see [McTheme] wiring in
   /// `app.dart`), since `Text` widgets already respond to `MediaQuery`'s
   /// `textScaler` without every call site needing to opt in individually.
   static double space(BuildContext context, double value) =>
@@ -32,9 +32,9 @@ class ChResponsive {
 extension ChResponsiveX on BuildContext {
   /// The raw scale factor for this screen, e.g. for one-off calculations
   /// that don't fit [rs].
-  double get rScale => ChResponsive.scaleOf(this);
+  double get rScale => McResponsive.scaleOf(this);
 
   /// Scales a single spacing/dimension value — shorthand for
-  /// `ChResponsive.space(context, value)`.
-  double rs(double value) => ChResponsive.space(this, value);
+  /// `McResponsive.space(context, value)`.
+  double rs(double value) => McResponsive.space(this, value);
 }

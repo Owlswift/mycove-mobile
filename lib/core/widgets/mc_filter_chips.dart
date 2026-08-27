@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 
-import '../theme/ch_colors.dart';
-import '../theme/ch_responsive.dart';
-import '../theme/ch_spacing.dart';
-import '../theme/ch_text_styles.dart';
+import '../theme/mc_colors.dart';
+import '../theme/mc_responsive.dart';
+import '../theme/mc_spacing.dart';
+import '../theme/mc_text_styles.dart';
 
-class ChFilterChipOption {
-  const ChFilterChipOption({required this.label, required this.onSelect, required this.selected});
+class McFilterChipOption {
+  const McFilterChipOption({required this.label, required this.onSelect, required this.selected});
 
   final String label;
   final VoidCallback onSelect;
@@ -16,10 +16,10 @@ class ChFilterChipOption {
 /// Horizontally scrollable row of standalone filter chips — selected chip
 /// fills solid green, unselected chips are outlined. Used by the Notices
 /// category filter.
-class ChFilterChips extends StatelessWidget {
-  const ChFilterChips({super.key, required this.options});
+class McFilterChips extends StatelessWidget {
+  const McFilterChips({super.key, required this.options});
 
-  final List<ChFilterChipOption> options;
+  final List<McFilterChipOption> options;
 
   @override
   Widget build(BuildContext context) {
@@ -38,16 +38,16 @@ class ChFilterChips extends StatelessWidget {
                     vertical: context.rs(9),
                   ),
                   decoration: BoxDecoration(
-                    color: option.selected ? ChColors.accent2 : ChColors.surface,
-                    borderRadius: BorderRadius.circular(ChRadii.pill),
-                    border: option.selected ? null : Border.all(color: ChColors.divider),
+                    color: option.selected ? McColors.accent2 : McColors.surface,
+                    borderRadius: BorderRadius.circular(McRadii.pill),
+                    border: option.selected ? null : Border.all(color: McColors.divider),
                   ),
                   child: Text(
                     option.label,
-                    style: ChTextStyles.body(
+                    style: McTextStyles.body(
                       fontSize: 13,
                       fontWeight: FontWeight.w600,
-                      color: option.selected ? Colors.white : ChColors.bodyText,
+                      color: option.selected ? Colors.white : McColors.bodyText,
                     ),
                   ),
                 ),

@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../../core/theme/ch_colors.dart';
-import '../../../../core/theme/ch_responsive.dart';
-import '../../../../core/theme/ch_text_styles.dart';
-import '../../../../core/widgets/ch_generic_header.dart';
-import '../../../../core/widgets/ch_pin_boxes.dart';
+import '../../../../core/theme/mc_colors.dart';
+import '../../../../core/theme/mc_responsive.dart';
+import '../../../../core/theme/mc_text_styles.dart';
+import '../../../../core/widgets/mc_generic_header.dart';
+import '../../../../core/widgets/mc_pin_boxes.dart';
 import '../../../../state/app_notifier.dart';
 
 const _pinLength = 4;
@@ -94,25 +94,25 @@ class _SetPinPageState extends ConsumerState<SetPinPage> {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        ChGenericHeader(title: 'Transaction PIN', centerTitle: true, onBack: () => context.pop()),
+        McGenericHeader(title: 'Transaction PIN', centerTitle: true, onBack: () => context.pop()),
         Expanded(
           child: Padding(
             padding: EdgeInsets.symmetric(horizontal: context.rs(24)),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(Icons.pin_outlined, size: context.rs(40), color: ChColors.accent2),
+                Icon(Icons.pin_outlined, size: context.rs(40), color: McColors.accent2),
                 SizedBox(height: context.rs(12)),
-                Text(_title, style: ChTextStyles.heading(fontSize: 18), textAlign: TextAlign.center),
+                Text(_title, style: McTextStyles.heading(fontSize: 18), textAlign: TextAlign.center),
                 SizedBox(height: context.rs(6)),
                 Text(
                   _subtitle,
-                  style: ChTextStyles.body(fontSize: 13, color: ChColors.bodyText),
+                  style: McTextStyles.body(fontSize: 13, color: McColors.bodyText),
                   textAlign: TextAlign.center,
                 ),
                 SizedBox(height: context.rs(28)),
                 if (_step == _Step.verifyCurrent)
-                  ChPinBoxes(
+                  McPinBoxes(
                     length: _pinLength,
                     value: _currentPin,
                     obscureText: true,
@@ -122,7 +122,7 @@ class _SetPinPageState extends ConsumerState<SetPinPage> {
                     },
                   ),
                 if (_step == _Step.enterNew)
-                  ChPinBoxes(
+                  McPinBoxes(
                     length: _pinLength,
                     value: _newPin,
                     obscureText: true,
@@ -132,7 +132,7 @@ class _SetPinPageState extends ConsumerState<SetPinPage> {
                     },
                   ),
                 if (_step == _Step.confirmNew)
-                  ChPinBoxes(
+                  McPinBoxes(
                     length: _pinLength,
                     value: _confirmPin,
                     obscureText: true,
@@ -143,7 +143,7 @@ class _SetPinPageState extends ConsumerState<SetPinPage> {
                   ),
                 if (_error != null) ...[
                   SizedBox(height: context.rs(14)),
-                  Text(_error!, style: ChTextStyles.body(fontSize: 13, color: ChColors.danger), textAlign: TextAlign.center),
+                  Text(_error!, style: McTextStyles.body(fontSize: 13, color: McColors.danger), textAlign: TextAlign.center),
                 ],
                 if (_busy) ...[
                   SizedBox(height: context.rs(20)),

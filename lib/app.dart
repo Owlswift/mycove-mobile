@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'core/router/app_router.dart';
-import 'core/theme/ch_colors.dart';
-import 'core/theme/ch_responsive.dart';
-import 'core/theme/ch_theme.dart';
+import 'core/theme/mc_colors.dart';
+import 'core/theme/mc_responsive.dart';
+import 'core/theme/mc_theme.dart';
 import 'features/auth/presentation/pages/biometric_unlock_page.dart';
 import 'state/app_notifier.dart';
 import 'state/app_state.dart';
@@ -15,7 +15,7 @@ import 'state/app_state.dart';
 /// with no per-screen changes needed.
 Widget _scaleText(BuildContext context, Widget? child) {
   final mediaQuery = MediaQuery.of(context);
-  final deviceScale = ChResponsive.scaleOf(context);
+  final deviceScale = McResponsive.scaleOf(context);
   final composedScale = mediaQuery.textScaler.scale(1.0) * deviceScale;
   return MediaQuery(
     data: mediaQuery.copyWith(
@@ -74,12 +74,12 @@ class _MyCoveAppState extends ConsumerState<MyCoveApp>
       return MaterialApp(
         title: 'MyCove',
         debugShowCheckedModeBanner: false,
-        theme: ChTheme.light,
+        theme: McTheme.light,
         builder: _scaleText,
         home: const Scaffold(
-          backgroundColor: ChColors.bg,
+          backgroundColor: McColors.bg,
           body: Center(
-            child: CircularProgressIndicator(color: ChColors.accent),
+            child: CircularProgressIndicator(color: McColors.accent),
           ),
         ),
       );
@@ -92,7 +92,7 @@ class _MyCoveAppState extends ConsumerState<MyCoveApp>
       return MaterialApp(
         title: 'MyCove',
         debugShowCheckedModeBanner: false,
-        theme: ChTheme.light,
+        theme: McTheme.light,
         builder: _scaleText,
         home: const BiometricUnlockPage(),
       );
@@ -103,7 +103,7 @@ class _MyCoveAppState extends ConsumerState<MyCoveApp>
       title: 'MyCove',
       debugShowCheckedModeBanner: false,
       builder: _scaleText,
-      theme: ChTheme.light,
+      theme: McTheme.light,
       routerConfig: router,
     );
   }

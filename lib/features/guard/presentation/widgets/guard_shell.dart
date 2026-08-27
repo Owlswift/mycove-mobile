@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../../core/theme/ch_colors.dart';
-import '../../../../core/theme/ch_responsive.dart';
-import '../../../../core/theme/ch_text_styles.dart';
+import '../../../../core/theme/mc_colors.dart';
+import '../../../../core/theme/mc_responsive.dart';
+import '../../../../core/theme/mc_text_styles.dart';
 import '../../../../state/app_notifier.dart';
 
 class GuardShell extends ConsumerWidget {
@@ -29,15 +29,15 @@ class GuardShell extends ConsumerWidget {
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Security Gate', style: ChTextStyles.body(fontSize: 13, color: ChColors.bodyText)),
-                      Text(s.currentUser?.fullName ?? '', style: ChTextStyles.heading(fontSize: 19)),
+                      Text('Security Gate', style: McTextStyles.body(fontSize: 13, color: McColors.bodyText)),
+                      Text(s.currentUser?.fullName ?? '', style: McTextStyles.heading(fontSize: 19)),
                     ],
                   ),
                   GestureDetector(
                     onTap: notifier.logout,
                     child: Text(
                       'Log Out',
-                      style: ChTextStyles.body(fontSize: 13, fontWeight: FontWeight.w600, color: ChColors.danger),
+                      style: McTextStyles.body(fontSize: 13, fontWeight: FontWeight.w600, color: McColors.danger),
                     ),
                   ),
                 ],
@@ -51,8 +51,8 @@ class GuardShell extends ConsumerWidget {
       // custom Row of gesture widgets, or this shell's body renders blank.
       bottomNavigationBar: Container(
         decoration: const BoxDecoration(
-          color: ChColors.surface,
-          border: Border(top: BorderSide(color: ChColors.divider)),
+          color: McColors.surface,
+          border: Border(top: BorderSide(color: McColors.divider)),
         ),
         child: BottomNavigationBar(
           currentIndex: navigationShell.currentIndex,
@@ -66,10 +66,10 @@ class GuardShell extends ConsumerWidget {
             navigationShell.goBranch(i, initialLocation: true);
           },
           type: BottomNavigationBarType.fixed,
-          backgroundColor: ChColors.surface,
+          backgroundColor: McColors.surface,
           elevation: 0,
-          selectedItemColor: ChColors.accent2,
-          unselectedItemColor: ChColors.neutralN(500),
+          selectedItemColor: McColors.accent2,
+          unselectedItemColor: McColors.neutralN(500),
           items: const [
             BottomNavigationBarItem(icon: Icon(Icons.qr_code_scanner_rounded), label: 'Scan'),
             BottomNavigationBarItem(icon: Icon(Icons.list_alt_rounded), label: 'Log'),

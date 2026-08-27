@@ -2,12 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../../core/theme/ch_colors.dart';
-import '../../../../core/theme/ch_responsive.dart';
-import '../../../../core/theme/ch_spacing.dart';
-import '../../../../core/theme/ch_text_styles.dart';
-import '../../../../core/widgets/ch_button.dart';
-import '../../../../core/widgets/ch_generic_header.dart';
+import '../../../../core/theme/mc_colors.dart';
+import '../../../../core/theme/mc_responsive.dart';
+import '../../../../core/theme/mc_spacing.dart';
+import '../../../../core/theme/mc_text_styles.dart';
+import '../../../../core/widgets/mc_button.dart';
+import '../../../../core/widgets/mc_generic_header.dart';
 import '../../../../state/app_notifier.dart';
 
 class SosPage extends ConsumerWidget {
@@ -22,12 +22,12 @@ class SosPage extends ConsumerWidget {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            style: TextButton.styleFrom(foregroundColor: ChColors.text),
+            style: TextButton.styleFrom(foregroundColor: McColors.text),
             child: const Text('Cancel'),
           ),
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
-            style: TextButton.styleFrom(foregroundColor: ChColors.danger),
+            style: TextButton.styleFrom(foregroundColor: McColors.danger),
             child: const Text('Send Alert'),
           ),
         ],
@@ -57,7 +57,7 @@ class SosPage extends ConsumerWidget {
 
     return Column(
       children: [
-        const ChGenericHeader(title: 'Send SOS'),
+        const McGenericHeader(title: 'Send SOS'),
         Expanded(
           child: SingleChildScrollView(
             padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
@@ -68,8 +68,8 @@ class SosPage extends ConsumerWidget {
                   width: double.infinity,
                   padding: const EdgeInsets.symmetric(vertical: 28, horizontal: 20),
                   decoration: BoxDecoration(
-                    color: ChColors.danger.withValues(alpha: 0.08),
-                    borderRadius: BorderRadius.circular(ChRadii.card),
+                    color: McColors.danger.withValues(alpha: 0.08),
+                    borderRadius: BorderRadius.circular(McRadii.card),
                   ),
                   child: Column(
                     children: [
@@ -77,25 +77,25 @@ class SosPage extends ConsumerWidget {
                         width: context.rs(72),
                         height: context.rs(72),
                         alignment: Alignment.center,
-                        decoration: BoxDecoration(color: ChColors.danger.withValues(alpha: 0.14), shape: BoxShape.circle),
+                        decoration: BoxDecoration(color: McColors.danger.withValues(alpha: 0.14), shape: BoxShape.circle),
                         child: Container(
                           width: context.rs(48),
                           height: context.rs(48),
                           alignment: Alignment.center,
-                          decoration: const BoxDecoration(color: ChColors.danger, shape: BoxShape.circle),
+                          decoration: const BoxDecoration(color: McColors.danger, shape: BoxShape.circle),
                           child: Icon(Icons.shield_outlined, color: Colors.white, size: context.rs(24)),
                         ),
                       ),
                       const SizedBox(height: 18),
-                      Text('Need immediate help?', style: ChTextStyles.heading(fontSize: 18)),
+                      Text('Need immediate help?', style: McTextStyles.heading(fontSize: 18)),
                       const SizedBox(height: 6),
                       Text(
                         'Press the button below to alert security and emergency contacts.',
                         textAlign: TextAlign.center,
-                        style: ChTextStyles.body(fontSize: 13, color: ChColors.bodyText),
+                        style: McTextStyles.body(fontSize: 13, color: McColors.bodyText),
                       ),
                       const SizedBox(height: 20),
-                      ChButton(label: 'Send SOS Alert', variant: ChButtonVariant.danger, onPressed: () => _sendAlert(context)),
+                      McButton(label: 'Send SOS Alert', variant: ChButtonVariant.danger, onPressed: () => _sendAlert(context)),
                     ],
                   ),
                 ),
@@ -103,11 +103,11 @@ class SosPage extends ConsumerWidget {
                 Container(
                   width: double.infinity,
                   padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(color: ChColors.surface, borderRadius: BorderRadius.circular(ChRadii.card)),
+                  decoration: BoxDecoration(color: McColors.surface, borderRadius: BorderRadius.circular(McRadii.card)),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('What happens when you send an SOS?', style: ChTextStyles.body(fontSize: 13, fontWeight: FontWeight.w700)),
+                      Text('What happens when you send an SOS?', style: McTextStyles.body(fontSize: 13, fontWeight: FontWeight.w700)),
                       const SizedBox(height: 10),
                       _bullet('Security team will be notified immediately'),
                       _bullet('Your location will be shared'),
@@ -116,22 +116,22 @@ class SosPage extends ConsumerWidget {
                   ),
                 ),
                 const SizedBox(height: 18),
-                Text('Emergency Contacts', style: ChTextStyles.heading(fontSize: 15)),
+                Text('Emergency Contacts', style: McTextStyles.heading(fontSize: 15)),
                 const SizedBox(height: 12),
                 if (securityPhone == null && officePhone == null && !hasPersonalContact)
                   Container(
                     width: double.infinity,
                     padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(color: ChColors.surface, borderRadius: BorderRadius.circular(ChRadii.card)),
+                    decoration: BoxDecoration(color: McColors.surface, borderRadius: BorderRadius.circular(McRadii.card)),
                     child: Text(
                       'No emergency contacts have been set up yet. Add a personal one from your profile, or ask estate management to publish their numbers.',
-                      style: ChTextStyles.body(fontSize: 12.5, color: ChColors.bodyText, height: 1.4),
+                      style: McTextStyles.body(fontSize: 12.5, color: McColors.bodyText, height: 1.4),
                     ),
                   )
                 else
                   Container(
                     width: double.infinity,
-                    decoration: BoxDecoration(color: ChColors.surface, borderRadius: BorderRadius.circular(ChRadii.card)),
+                    decoration: BoxDecoration(color: McColors.surface, borderRadius: BorderRadius.circular(McRadii.card)),
                     child: Column(
                       children: [
                         if (securityPhone != null)
@@ -176,9 +176,9 @@ class SosPage extends ConsumerWidget {
             width: 5,
             height: 5,
             margin: const EdgeInsets.only(top: 7, right: 8),
-            decoration: BoxDecoration(color: ChColors.neutralN(600), shape: BoxShape.circle),
+            decoration: BoxDecoration(color: McColors.neutralN(600), shape: BoxShape.circle),
           ),
-          Expanded(child: Text(text, style: ChTextStyles.body(fontSize: 13, color: ChColors.bodyText))),
+          Expanded(child: Text(text, style: McTextStyles.body(fontSize: 13, color: McColors.bodyText))),
         ],
       ),
     );
@@ -199,24 +199,24 @@ class _ContactRow extends StatelessWidget {
       onTap: onTap,
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-        decoration: BoxDecoration(border: showBorder ? const Border(bottom: BorderSide(color: ChColors.divider)) : null),
+        decoration: BoxDecoration(border: showBorder ? const Border(bottom: BorderSide(color: McColors.divider)) : null),
         child: Row(
           children: [
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(label, style: ChTextStyles.body(fontSize: 14, fontWeight: FontWeight.w600)),
+                  Text(label, style: McTextStyles.body(fontSize: 14, fontWeight: FontWeight.w600)),
                   const SizedBox(height: 2),
-                  Text(phone, style: ChTextStyles.body(fontSize: 12.5, color: ChColors.bodyText)),
+                  Text(phone, style: McTextStyles.body(fontSize: 12.5, color: McColors.bodyText)),
                 ],
               ),
             ),
             Container(
               width: context.rs(34),
               height: context.rs(34),
-              decoration: BoxDecoration(color: ChColors.accent2N(100), shape: BoxShape.circle),
-              child: Icon(Icons.call_outlined, size: context.rs(15), color: ChColors.accent2N(700)),
+              decoration: BoxDecoration(color: McColors.accent2N(100), shape: BoxShape.circle),
+              child: Icon(Icons.call_outlined, size: context.rs(15), color: McColors.accent2N(700)),
             ),
           ],
         ),

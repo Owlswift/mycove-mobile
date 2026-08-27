@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
-import '../../../../core/theme/ch_colors.dart';
-import '../../../../core/theme/ch_text_styles.dart';
-import '../../../../core/widgets/ch_generic_header.dart';
-import '../../../../core/widgets/ch_tag.dart';
+import '../../../../core/theme/mc_colors.dart';
+import '../../../../core/theme/mc_text_styles.dart';
+import '../../../../core/widgets/mc_generic_header.dart';
+import '../../../../core/widgets/mc_tag.dart';
 import '../../../../state/app_notifier.dart';
 import '../../../../state/detail_providers.dart';
 
@@ -21,18 +21,18 @@ class AnnouncementDetailPage extends ConsumerWidget {
 
     return Column(
       children: [
-        const ChGenericHeader(title: 'Notice'),
+        const McGenericHeader(title: 'Notice'),
         Expanded(
           child: detail.when(
             loading: () => const Center(
-              child: CircularProgressIndicator(color: ChColors.accent),
+              child: CircularProgressIndicator(color: McColors.accent),
             ),
             error: (e, _) => Center(
               child: Text(
                 'Could not load this announcement.',
-                style: ChTextStyles.body(
+                style: McTextStyles.body(
                   fontSize: 14,
-                  color: ChColors.bodyText,
+                  color: McColors.bodyText,
                 ),
               ),
             ),
@@ -46,19 +46,19 @@ class AnnouncementDetailPage extends ConsumerWidget {
                   children: [
                     Row(
                       children: [
-                        ChTag(
+                        McTag(
                           label: json['category'] as String,
-                          background: ChColors.accent2N(100),
-                          foreground: ChColors.accent2N(800),
+                          background: McColors.accent2N(100),
+                          foreground: McColors.accent2N(800),
                         ),
                         const SizedBox(width: 8),
                         Text(
                           DateFormat('d MMM').format(
                             DateTime.parse(json['publishedAt'] as String),
                           ),
-                          style: ChTextStyles.body(
+                          style: McTextStyles.body(
                             fontSize: 12,
-                            color: ChColors.bodyText,
+                            color: McColors.bodyText,
                           ),
                         ),
                       ],
@@ -66,14 +66,14 @@ class AnnouncementDetailPage extends ConsumerWidget {
                     const SizedBox(height: 10),
                     Text(
                       json['title'] as String,
-                      style: ChTextStyles.heading(fontSize: 20),
+                      style: McTextStyles.heading(fontSize: 20),
                     ),
                     const SizedBox(height: 14),
                     Text(
                       json['body'] as String,
-                      style: ChTextStyles.body(
+                      style: McTextStyles.body(
                         fontSize: 14,
-                        color: ChColors.text,
+                        color: McColors.text,
                         height: 1.5,
                       ),
                     ),

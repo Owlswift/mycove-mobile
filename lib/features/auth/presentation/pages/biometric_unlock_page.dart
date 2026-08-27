@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../../core/theme/ch_colors.dart';
-import '../../../../core/theme/ch_responsive.dart';
-import '../../../../core/theme/ch_text_styles.dart';
-import '../../../../core/widgets/ch_brand_mark.dart';
+import '../../../../core/theme/mc_colors.dart';
+import '../../../../core/theme/mc_responsive.dart';
+import '../../../../core/theme/mc_text_styles.dart';
+import '../../../../core/widgets/mc_brand_mark.dart';
 import '../../../../state/app_notifier.dart';
 
 const _pinLength = 4;
@@ -76,7 +76,7 @@ class _BiometricUnlockPageState extends ConsumerState<BiometricUnlockPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: ChColors.bg,
+      backgroundColor: McColors.bg,
       body: SafeArea(
         child: _PinKeypadBody(
           pin: _pin,
@@ -129,24 +129,24 @@ class _PinKeypadBody extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
       child: Column(
         children: [
-          const ChBrandMark(size: 52),
+          const McBrandMark(size: 52),
           const SizedBox(height: 10),
           RichText(
             text: TextSpan(
-              style: ChTextStyles.heading(fontSize: 26),
+              style: McTextStyles.heading(fontSize: 26),
               children: [
                 const TextSpan(text: 'My'),
-                TextSpan(text: 'Cove', style: ChTextStyles.heading(fontSize: 26, color: ChColors.accent2)),
+                TextSpan(text: 'Cove', style: McTextStyles.heading(fontSize: 26, color: McColors.accent2)),
               ],
             ),
           ),
           const SizedBox(height: 28),
-          Text('Welcome back', style: ChTextStyles.heading(fontSize: 20)),
+          Text('Welcome back', style: McTextStyles.heading(fontSize: 20)),
           const SizedBox(height: 6),
           Text(
             'Enter your PIN or use biometrics to continue',
             textAlign: TextAlign.center,
-            style: ChTextStyles.body(fontSize: 14, color: ChColors.bodyText),
+            style: McTextStyles.body(fontSize: 14, color: McColors.bodyText),
           ),
           const SizedBox(height: 28),
           Row(
@@ -165,7 +165,7 @@ class _PinKeypadBody extends StatelessWidget {
                     padding: const EdgeInsets.only(top: 10),
                     child: Text(
                       error!,
-                      style: ChTextStyles.body(fontSize: 13, color: ChColors.danger),
+                      style: McTextStyles.body(fontSize: 13, color: McColors.danger),
                       textAlign: TextAlign.center,
                     ),
                   )
@@ -190,14 +190,14 @@ class _PinKeypadBody extends StatelessWidget {
             children: [
               _KeypadKey(
                 onTap: busy ? null : onBiometric,
-                background: ChColors.accent2N(100),
+                background: McColors.accent2N(100),
                 child: biometricBusy
                     ? const SizedBox(
                         width: 20,
                         height: 20,
-                        child: CircularProgressIndicator(strokeWidth: 2, color: ChColors.accent2),
+                        child: CircularProgressIndicator(strokeWidth: 2, color: McColors.accent2),
                       )
-                    : Icon(Icons.fingerprint, size: context.rs(28), color: ChColors.accent2),
+                    : Icon(Icons.fingerprint, size: context.rs(28), color: McColors.accent2),
               ),
               _KeypadKey(
                 onTap: busy ? null : () => onDigit('0'),
@@ -205,7 +205,7 @@ class _PinKeypadBody extends StatelessWidget {
               ),
               _KeypadKey(
                 onTap: busy ? null : onBackspace,
-                child: Icon(Icons.backspace_outlined, size: context.rs(22), color: ChColors.text),
+                child: Icon(Icons.backspace_outlined, size: context.rs(22), color: McColors.text),
               ),
             ],
           ),
@@ -214,7 +214,7 @@ class _PinKeypadBody extends StatelessWidget {
             onPressed: onLogout,
             child: Text(
               'Log Out',
-              style: ChTextStyles.body(fontSize: 14, fontWeight: FontWeight.w600, color: ChColors.bodyText),
+              style: McTextStyles.body(fontSize: 14, fontWeight: FontWeight.w600, color: McColors.bodyText),
             ),
           ),
         ],
@@ -236,8 +236,8 @@ class _PinDot extends StatelessWidget {
       height: context.rs(14),
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        color: filled ? ChColors.accent2 : Colors.transparent,
-        border: Border.all(color: filled ? ChColors.accent2 : ChColors.neutralN(300), width: 1.5),
+        color: filled ? McColors.accent2 : Colors.transparent,
+        border: Border.all(color: filled ? McColors.accent2 : McColors.neutralN(300), width: 1.5),
       ),
     );
   }
@@ -276,11 +276,11 @@ class _DigitLabel extends StatelessWidget {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Text(digit, style: ChTextStyles.heading(fontSize: 26)),
+        Text(digit, style: McTextStyles.heading(fontSize: 26)),
         if (letters.isNotEmpty)
           Text(
             letters,
-            style: ChTextStyles.body(fontSize: 10, fontWeight: FontWeight.w600, color: ChColors.bodyText),
+            style: McTextStyles.body(fontSize: 10, fontWeight: FontWeight.w600, color: McColors.bodyText),
           ),
       ],
     );

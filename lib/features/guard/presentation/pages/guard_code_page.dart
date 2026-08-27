@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../../core/theme/ch_colors.dart';
-import '../../../../core/theme/ch_text_styles.dart';
-import '../../../../core/widgets/ch_button.dart';
-import '../../../../core/widgets/ch_text_field.dart';
+import '../../../../core/theme/mc_colors.dart';
+import '../../../../core/theme/mc_text_styles.dart';
+import '../../../../core/widgets/mc_button.dart';
+import '../../../../core/widgets/mc_text_field.dart';
 import '../../../../state/app_notifier.dart';
 
 class GuardCodePage extends ConsumerWidget {
@@ -21,9 +21,9 @@ class GuardCodePage extends ConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('6-digit fallback code', style: ChTextStyles.body(fontSize: 13, fontWeight: FontWeight.w600, color: ChColors.bodyText)),
+          Text('6-digit fallback code', style: McTextStyles.body(fontSize: 13, fontWeight: FontWeight.w600, color: McColors.bodyText)),
           const SizedBox(height: 8),
-          ChTextField(
+          McTextField(
             value: s.guardCode,
             onChanged: notifier.onGuardCodeChange,
             placeholder: '000000',
@@ -34,7 +34,7 @@ class GuardCodePage extends ConsumerWidget {
             fontSize: 22,
           ),
           const SizedBox(height: 16),
-          ChButton(
+          McButton(
             label: 'Validate',
             onPressed: () async {
               final error = await notifier.submitGuardCode();
@@ -50,7 +50,7 @@ class GuardCodePage extends ConsumerWidget {
           Center(
             child: GestureDetector(
               onTap: () => context.pop(),
-              child: Text('← Back to scanner', style: ChTextStyles.body(fontSize: 13, color: ChColors.bodyText)),
+              child: Text('← Back to scanner', style: McTextStyles.body(fontSize: 13, color: McColors.bodyText)),
             ),
           ),
         ],

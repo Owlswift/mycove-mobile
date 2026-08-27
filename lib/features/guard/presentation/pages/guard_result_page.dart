@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../../core/theme/ch_colors.dart';
-import '../../../../core/theme/ch_responsive.dart';
-import '../../../../core/theme/ch_spacing.dart';
-import '../../../../core/theme/ch_text_styles.dart';
+import '../../../../core/theme/mc_colors.dart';
+import '../../../../core/theme/mc_responsive.dart';
+import '../../../../core/theme/mc_spacing.dart';
+import '../../../../core/theme/mc_text_styles.dart';
 import '../../../../state/app_notifier.dart';
 
 class GuardResultPage extends ConsumerWidget {
@@ -29,7 +29,7 @@ class GuardResultPage extends ConsumerWidget {
     final subtitle = pass != null
         ? '${pass.name} · ${pass.visitLabel}'
         : 'No matching visitor pass found.';
-    final bg = valid ? ChColors.accent2 : ChColors.danger;
+    final bg = valid ? McColors.accent2 : McColors.danger;
     final icon = valid ? Icons.check : Icons.close;
 
     // First time a code is scanned → show "Record Entry".
@@ -49,7 +49,7 @@ class GuardResultPage extends ConsumerWidget {
             width: double.infinity,
             padding: const EdgeInsets.all(22),
             margin: const EdgeInsets.only(bottom: 16),
-            decoration: BoxDecoration(color: ChColors.surface, borderRadius: BorderRadius.circular(ChRadii.card)),
+            decoration: BoxDecoration(color: McColors.surface, borderRadius: BorderRadius.circular(McRadii.card)),
             child: Column(
               children: [
                 Container(
@@ -60,9 +60,9 @@ class GuardResultPage extends ConsumerWidget {
                   decoration: BoxDecoration(color: bg, shape: BoxShape.circle),
                   child: Icon(icon, color: Colors.white, size: context.rs(26)),
                 ),
-                Text(title, style: ChTextStyles.heading(fontSize: 17)),
+                Text(title, style: McTextStyles.heading(fontSize: 17)),
                 const SizedBox(height: 4),
-                Text(subtitle, style: ChTextStyles.body(fontSize: 13, color: ChColors.neutralN(500)), textAlign: TextAlign.center),
+                Text(subtitle, style: McTextStyles.body(fontSize: 13, color: McColors.neutralN(500)), textAlign: TextAlign.center),
               ],
             ),
           ),
@@ -80,8 +80,8 @@ class GuardResultPage extends ConsumerWidget {
                   width: double.infinity,
                   padding: const EdgeInsets.symmetric(vertical: 12),
                   alignment: Alignment.center,
-                  decoration: BoxDecoration(color: ChColors.accent2, borderRadius: BorderRadius.circular(ChRadii.button)),
-                  child: Text('Record Entry', style: ChTextStyles.heading(fontSize: 14, color: Colors.white, fontWeight: FontWeight.w600)),
+                  decoration: BoxDecoration(color: McColors.accent2, borderRadius: BorderRadius.circular(McRadii.button)),
+                  child: Text('Record Entry', style: McTextStyles.heading(fontSize: 14, color: Colors.white, fontWeight: FontWeight.w600)),
                 ),
               ),
             ),
@@ -99,14 +99,14 @@ class GuardResultPage extends ConsumerWidget {
                   width: double.infinity,
                   padding: const EdgeInsets.symmetric(vertical: 12),
                   alignment: Alignment.center,
-                  decoration: BoxDecoration(color: ChColors.accent2, borderRadius: BorderRadius.circular(ChRadii.button)),
-                  child: Text('Record Exit', style: ChTextStyles.heading(fontSize: 14, color: Colors.white, fontWeight: FontWeight.w600)),
+                  decoration: BoxDecoration(color: McColors.accent2, borderRadius: BorderRadius.circular(McRadii.button)),
+                  child: Text('Record Exit', style: McTextStyles.heading(fontSize: 14, color: Colors.white, fontWeight: FontWeight.w600)),
                 ),
               ),
             ),
           GestureDetector(
             onTap: backToScanner,
-            child: Text('← Back to scanner', style: ChTextStyles.body(fontSize: 13, color: ChColors.bodyText)),
+            child: Text('← Back to scanner', style: McTextStyles.body(fontSize: 13, color: McColors.bodyText)),
           ),
         ],
       ),

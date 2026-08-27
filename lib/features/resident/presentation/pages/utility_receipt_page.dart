@@ -3,12 +3,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
 import '../../../../core/pdf/utility_receipt_pdf.dart';
-import '../../../../core/theme/ch_colors.dart';
-import '../../../../core/theme/ch_responsive.dart';
-import '../../../../core/theme/ch_spacing.dart';
-import '../../../../core/theme/ch_text_styles.dart';
-import '../../../../core/widgets/ch_button.dart';
-import '../../../../core/widgets/ch_generic_header.dart';
+import '../../../../core/theme/mc_colors.dart';
+import '../../../../core/theme/mc_responsive.dart';
+import '../../../../core/theme/mc_spacing.dart';
+import '../../../../core/theme/mc_text_styles.dart';
+import '../../../../core/widgets/mc_button.dart';
+import '../../../../core/widgets/mc_generic_header.dart';
 import '../../../../data/models/utility_purchase.dart';
 import '../../../../state/app_notifier.dart';
 import '../../../../state/app_state.dart';
@@ -37,11 +37,11 @@ class UtilityReceiptPage extends ConsumerWidget {
     if (purchase == null) {
       return Column(
         children: [
-          const ChGenericHeader(title: 'Receipt'),
+          const McGenericHeader(title: 'Receipt'),
           Expanded(
             child: Center(
               child: Text('Receipt not found.',
-                  style: ChTextStyles.body(fontSize: 13.5)),
+                  style: McTextStyles.body(fontSize: 13.5)),
             ),
           ),
         ],
@@ -50,9 +50,9 @@ class UtilityReceiptPage extends ConsumerWidget {
 
     final isElectricity = purchase.type == 'ELECTRICITY';
     final (statusLabel, statusColor) = switch (purchase.status) {
-      UtilityPurchaseStatus.successful => ('Successful', ChColors.accent2),
-      UtilityPurchaseStatus.failed => ('Failed', ChColors.danger),
-      UtilityPurchaseStatus.pending => ('Pending', ChColors.warning),
+      UtilityPurchaseStatus.successful => ('Successful', McColors.accent2),
+      UtilityPurchaseStatus.failed => ('Failed', McColors.danger),
+      UtilityPurchaseStatus.pending => ('Pending', McColors.warning),
     };
 
     final detailRows = [
@@ -77,7 +77,7 @@ class UtilityReceiptPage extends ConsumerWidget {
 
     return Column(
       children: [
-        const ChGenericHeader(title: 'Receipt'),
+        const McGenericHeader(title: 'Receipt'),
         Expanded(
           child: SingleChildScrollView(
             physics: const AlwaysScrollableScrollPhysics(),
@@ -88,16 +88,16 @@ class UtilityReceiptPage extends ConsumerWidget {
                   width: double.infinity,
                   padding: EdgeInsets.all(context.rs(18)),
                   decoration: BoxDecoration(
-                    color: ChColors.surface,
-                    borderRadius: BorderRadius.circular(ChRadii.card),
-                    boxShadow: ChColors.cardShadow,
+                    color: McColors.surface,
+                    borderRadius: BorderRadius.circular(McRadii.card),
+                    boxShadow: McColors.cardShadow,
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Row(children: [
                         Text('MyCove',
-                            style: ChTextStyles.heading(fontSize: 18)),
+                            style: McTextStyles.heading(fontSize: 18)),
                         const Spacer(),
                         Container(
                           padding: EdgeInsets.symmetric(
@@ -105,10 +105,10 @@ class UtilityReceiptPage extends ConsumerWidget {
                               vertical: context.rs(4)),
                           decoration: BoxDecoration(
                             color: statusColor.withValues(alpha: 0.12),
-                            borderRadius: BorderRadius.circular(ChRadii.pill),
+                            borderRadius: BorderRadius.circular(McRadii.pill),
                           ),
                           child: Text(statusLabel,
-                              style: ChTextStyles.body(
+                              style: McTextStyles.body(
                                   fontSize: 11.5,
                                   fontWeight: FontWeight.w700,
                                   color: statusColor)),
@@ -119,8 +119,8 @@ class UtilityReceiptPage extends ConsumerWidget {
                         isElectricity
                             ? 'Electricity Purchase Receipt'
                             : 'Airtime Purchase Receipt',
-                        style: ChTextStyles.body(
-                            fontSize: 12, color: ChColors.bodyText),
+                        style: McTextStyles.body(
+                            fontSize: 12, color: McColors.bodyText),
                       ),
                       Divider(height: context.rs(22)),
                       receiptRow(context, 'Reference', purchase.id),
@@ -148,7 +148,7 @@ class UtilityReceiptPage extends ConsumerWidget {
                   tokenCard(context, purchase.token!),
                 ],
                 SizedBox(height: context.rs(20)),
-                ChButton(
+                McButton(
                   label: 'Download PDF',
                   onPressed: () async {
                     await shareUtilityReceiptPdf(

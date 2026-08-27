@@ -2,12 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../../core/theme/ch_colors.dart';
-import '../../../../core/theme/ch_responsive.dart';
-import '../../../../core/theme/ch_spacing.dart';
-import '../../../../core/theme/ch_text_styles.dart';
-import '../../../../core/widgets/ch_button.dart';
-import '../../../../core/widgets/ch_generic_header.dart';
+import '../../../../core/theme/mc_colors.dart';
+import '../../../../core/theme/mc_responsive.dart';
+import '../../../../core/theme/mc_spacing.dart';
+import '../../../../core/theme/mc_text_styles.dart';
+import '../../../../core/widgets/mc_button.dart';
+import '../../../../core/widgets/mc_generic_header.dart';
 import '../../../../data/models/utility_meter.dart';
 import '../../../../state/app_notifier.dart';
 import '../../../../state/app_state.dart';
@@ -27,7 +27,7 @@ class ElectricityPaymentPage extends ConsumerWidget {
 
     return Column(
       children: [
-        ChGenericHeader(
+        McGenericHeader(
           title: 'Payment',
           centerTitle: true,
           onBack: () {
@@ -41,7 +41,7 @@ class ElectricityPaymentPage extends ConsumerWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Payment Summary', style: ChTextStyles.heading(fontSize: 16)),
+                Text('Payment Summary', style: McTextStyles.heading(fontSize: 16)),
                 SizedBox(height: context.rs(14)),
                 _SummaryRow(label: 'Provider', value: discoShortCode(s.discos, s.elecDiscoCode)),
                 SizedBox(height: context.rs(10)),
@@ -52,11 +52,11 @@ class ElectricityPaymentPage extends ConsumerWidget {
                 _SummaryRow(label: 'Transaction Fee', value: formatNaira(_transactionFee)),
                 Padding(
                   padding: EdgeInsets.symmetric(vertical: context.rs(10)),
-                  child: Divider(height: 1, color: ChColors.divider),
+                  child: Divider(height: 1, color: McColors.divider),
                 ),
                 _SummaryRow(label: 'Total Payable', value: formatNaira(total), emphasize: true),
                 SizedBox(height: context.rs(24)),
-                Text('Select Payment Method', style: ChTextStyles.heading(fontSize: 16)),
+                Text('Select Payment Method', style: McTextStyles.heading(fontSize: 16)),
                 SizedBox(height: context.rs(14)),
                 _PaymentMethodTile(
                   icon: Icons.account_balance_wallet_rounded,
@@ -81,15 +81,15 @@ class ElectricityPaymentPage extends ConsumerWidget {
                 if (!hasSufficientBalance) ...[
                   Text(
                     'Your wallet balance is too low for this purchase.',
-                    style: ChTextStyles.body(fontSize: 13, color: ChColors.danger),
+                    style: McTextStyles.body(fontSize: 13, color: McColors.danger),
                   ),
                   SizedBox(height: context.rs(12)),
                 ],
                 if (s.utilityError.isNotEmpty) ...[
-                  Text(s.utilityError, style: ChTextStyles.body(fontSize: 13, color: ChColors.danger)),
+                  Text(s.utilityError, style: McTextStyles.body(fontSize: 13, color: McColors.danger)),
                   SizedBox(height: context.rs(12)),
                 ],
-                ChButton(
+                McButton(
                   label: 'Pay ${formatNaira(total)}',
                   isLoading: s.utilityLoading,
                   onPressed: (s.utilityLoading || !hasSufficientBalance)
@@ -119,18 +119,18 @@ class _SummaryRow extends StatelessWidget {
       children: [
         Text(
           label,
-          style: ChTextStyles.body(
+          style: McTextStyles.body(
             fontSize: emphasize ? 14 : 13,
             fontWeight: emphasize ? FontWeight.w700 : FontWeight.w400,
-            color: emphasize ? ChColors.text : ChColors.bodyText,
+            color: emphasize ? McColors.text : McColors.bodyText,
           ),
         ),
         Text(
           value,
-          style: ChTextStyles.body(
+          style: McTextStyles.body(
             fontSize: emphasize ? 14 : 13,
             fontWeight: FontWeight.w700,
-            color: ChColors.text,
+            color: McColors.text,
           ),
         ),
       ],
@@ -157,7 +157,7 @@ class _PaymentMethodTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final accentColor = insufficientBalance ? ChColors.danger : ChColors.accent2;
+    final accentColor = insufficientBalance ? McColors.danger : McColors.accent2;
     return Opacity(
       opacity: comingSoon ? 0.5 : 1,
       child: GestureDetector(
@@ -169,13 +169,13 @@ class _PaymentMethodTile extends StatelessWidget {
         child: Container(
           padding: EdgeInsets.symmetric(horizontal: context.rs(14), vertical: context.rs(12)),
           decoration: BoxDecoration(
-            color: selected ? accentColor.withValues(alpha: 0.08) : ChColors.surface,
-            borderRadius: BorderRadius.circular(ChRadii.md),
-            border: Border.all(color: selected ? accentColor : ChColors.divider),
+            color: selected ? accentColor.withValues(alpha: 0.08) : McColors.surface,
+            borderRadius: BorderRadius.circular(McRadii.md),
+            border: Border.all(color: selected ? accentColor : McColors.divider),
           ),
           child: Row(
             children: [
-              Icon(icon, color: ChColors.bodyText, size: context.rs(20)),
+              Icon(icon, color: McColors.bodyText, size: context.rs(20)),
               SizedBox(width: context.rs(10)),
               Expanded(
                 child: Column(
@@ -185,19 +185,19 @@ class _PaymentMethodTile extends StatelessWidget {
                       children: [
                         Text(
                           label,
-                          style: ChTextStyles.body(fontSize: 14, fontWeight: FontWeight.w600, color: ChColors.text),
+                          style: McTextStyles.body(fontSize: 14, fontWeight: FontWeight.w600, color: McColors.text),
                         ),
                         if (comingSoon) ...[
                           SizedBox(width: context.rs(8)),
                           Container(
                             padding: EdgeInsets.symmetric(horizontal: context.rs(8), vertical: context.rs(3)),
                             decoration: BoxDecoration(
-                              color: ChColors.surfaceSunken,
-                              borderRadius: BorderRadius.circular(ChRadii.pill),
+                              color: McColors.surfaceSunken,
+                              borderRadius: BorderRadius.circular(McRadii.pill),
                             ),
                             child: Text(
                               'Coming soon',
-                              style: ChTextStyles.body(fontSize: 10.5, fontWeight: FontWeight.w600, color: ChColors.bodyText),
+                              style: McTextStyles.body(fontSize: 10.5, fontWeight: FontWeight.w600, color: McColors.bodyText),
                             ),
                           ),
                         ],
@@ -207,9 +207,9 @@ class _PaymentMethodTile extends StatelessWidget {
                       SizedBox(height: context.rs(2)),
                       Text(
                         insufficientBalance ? '$subtitle · Insufficient' : subtitle!,
-                        style: ChTextStyles.body(
+                        style: McTextStyles.body(
                           fontSize: 12,
-                          color: insufficientBalance ? ChColors.danger : ChColors.bodyText,
+                          color: insufficientBalance ? McColors.danger : McColors.bodyText,
                         ),
                       ),
                     ],
@@ -218,7 +218,7 @@ class _PaymentMethodTile extends StatelessWidget {
               ),
               Icon(
                 selected ? Icons.check_circle_rounded : Icons.circle_outlined,
-                color: selected ? accentColor : ChColors.divider,
+                color: selected ? accentColor : McColors.divider,
                 size: context.rs(20),
               ),
             ],

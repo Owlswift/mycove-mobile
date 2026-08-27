@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 
-import '../theme/ch_colors.dart';
-import '../theme/ch_responsive.dart';
-import '../theme/ch_text_styles.dart';
+import '../theme/mc_colors.dart';
+import '../theme/mc_responsive.dart';
+import '../theme/mc_text_styles.dart';
 
-class ChUnderlineTabOption {
-  const ChUnderlineTabOption({required this.label, required this.onSelect, required this.selected});
+class McUnderlineTabOption {
+  const McUnderlineTabOption({required this.label, required this.onSelect, required this.selected});
 
   final String label;
   final VoidCallback onSelect;
@@ -16,10 +16,10 @@ class ChUnderlineTabOption {
 /// bottom border, inactive tabs are muted grey. Used by Visitor Pass
 /// (Active/History), Polls (Active/Completed), Complaints (My Complaints/
 /// All), and Projects (All/In Progress/Completed/Upcoming).
-class ChUnderlineTabs extends StatelessWidget {
-  const ChUnderlineTabs({super.key, required this.options});
+class McUnderlineTabs extends StatelessWidget {
+  const McUnderlineTabs({super.key, required this.options});
 
-  final List<ChUnderlineTabOption> options;
+  final List<McUnderlineTabOption> options;
 
   @override
   Widget build(BuildContext context) {
@@ -34,17 +34,17 @@ class ChUnderlineTabs extends StatelessWidget {
                 padding: EdgeInsets.only(bottom: context.rs(10)),
                 decoration: BoxDecoration(
                   border: Border(
-                    bottom: BorderSide(color: option.selected ? ChColors.accent2 : ChColors.divider, width: 2),
+                    bottom: BorderSide(color: option.selected ? McColors.accent2 : McColors.divider, width: 2),
                   ),
                 ),
                 child: Text(
                   option.label,
                   textAlign: TextAlign.center,
                   overflow: TextOverflow.ellipsis,
-                  style: ChTextStyles.body(
+                  style: McTextStyles.body(
                     fontSize: 13.5,
                     fontWeight: option.selected ? FontWeight.w700 : FontWeight.w500,
-                    color: option.selected ? ChColors.accent2 : ChColors.text,
+                    color: option.selected ? McColors.accent2 : McColors.text,
                   ),
                 ),
               ),

@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../../core/theme/ch_colors.dart';
-import '../../../../core/theme/ch_responsive.dart';
-import '../../../../core/theme/ch_spacing.dart';
-import '../../../../core/theme/ch_text_styles.dart';
-import '../../../../core/widgets/ch_generic_header.dart';
+import '../../../../core/theme/mc_colors.dart';
+import '../../../../core/theme/mc_responsive.dart';
+import '../../../../core/theme/mc_spacing.dart';
+import '../../../../core/theme/mc_text_styles.dart';
+import '../../../../core/widgets/mc_generic_header.dart';
 import '../../../../state/app_notifier.dart';
 
 class NotificationsPage extends ConsumerWidget {
@@ -19,7 +19,7 @@ class NotificationsPage extends ConsumerWidget {
     
     return Column(
       children: [
-        ChGenericHeader(
+        McGenericHeader(
           title: 'Notifications',
           trailing: hasUnread
               ? GestureDetector(
@@ -28,7 +28,7 @@ class NotificationsPage extends ConsumerWidget {
                   },
                   child: Text(
                     'Mark all as read',
-                    style: ChTextStyles.body(fontSize: 13, fontWeight: FontWeight.w600, color: ChColors.accentN(700)),
+                    style: McTextStyles.body(fontSize: 13, fontWeight: FontWeight.w600, color: McColors.accentN(700)),
                   ),
                 )
               : null,
@@ -48,9 +48,9 @@ class NotificationsPage extends ConsumerWidget {
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                   decoration: BoxDecoration(
-                    color: ChColors.surface,
-                    borderRadius: BorderRadius.circular(ChRadii.card),
-                    border: n.read ? null : Border.all(color: ChColors.accentN(300), width: 1),
+                    color: McColors.surface,
+                    borderRadius: BorderRadius.circular(McRadii.card),
+                    border: n.read ? null : Border.all(color: McColors.accentN(300), width: 1),
                   ),
                   child: Row(
                     children: [
@@ -59,13 +59,13 @@ class NotificationsPage extends ConsumerWidget {
                         height: context.rs(36),
                         alignment: Alignment.center,
                         decoration: BoxDecoration(
-                          color: isMoney ? ChColors.accent2N(200) : ChColors.accentN(200),
+                          color: isMoney ? McColors.accent2N(200) : McColors.accentN(200),
                           shape: BoxShape.circle,
                         ),
                         child: Container(
                           width: 8,
                           height: 8,
-                          decoration: BoxDecoration(color: isMoney ? ChColors.accent2 : ChColors.accent, shape: BoxShape.circle),
+                          decoration: BoxDecoration(color: isMoney ? McColors.accent2 : McColors.accent, shape: BoxShape.circle),
                         ),
                       ),
                       SizedBox(width: context.rs(12)),
@@ -75,14 +75,14 @@ class NotificationsPage extends ConsumerWidget {
                           children: [
                             Text(
                               n.title,
-                              style: ChTextStyles.body(
+                              style: McTextStyles.body(
                                 fontSize: 14,
                                 fontWeight: n.read ? FontWeight.w500 : FontWeight.w700,
-                                color: n.read ? ChColors.bodyText : ChColors.text,
+                                color: n.read ? McColors.bodyText : McColors.text,
                               ),
                             ),
                             const SizedBox(height: 3),
-                            Text(n.time, style: ChTextStyles.body(fontSize: 12.5, color: ChColors.bodyText)),
+                            Text(n.time, style: McTextStyles.body(fontSize: 12.5, color: McColors.bodyText)),
                           ],
                         ),
                       ),
@@ -91,7 +91,7 @@ class NotificationsPage extends ConsumerWidget {
                           width: 8,
                           height: 8,
                           margin: const EdgeInsets.only(left: 8),
-                          decoration: const BoxDecoration(color: ChColors.accent, shape: BoxShape.circle),
+                          decoration: const BoxDecoration(color: McColors.accent, shape: BoxShape.circle),
                         ),
                     ],
                   ),

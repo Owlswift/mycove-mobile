@@ -4,12 +4,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
-import '../../../../core/theme/ch_colors.dart';
-import '../../../../core/theme/ch_responsive.dart';
-import '../../../../core/theme/ch_spacing.dart';
-import '../../../../core/theme/ch_text_styles.dart';
-import '../../../../core/widgets/ch_button.dart';
-import '../../../../core/widgets/ch_generic_header.dart';
+import '../../../../core/theme/mc_colors.dart';
+import '../../../../core/theme/mc_responsive.dart';
+import '../../../../core/theme/mc_spacing.dart';
+import '../../../../core/theme/mc_text_styles.dart';
+import '../../../../core/widgets/mc_button.dart';
+import '../../../../core/widgets/mc_generic_header.dart';
 import '../../../../data/models/household_invite.dart';
 import '../../../../data/models/household_member.dart';
 import '../../../../state/app_notifier.dart';
@@ -43,7 +43,7 @@ class HouseholdPage extends ConsumerWidget {
 
     return Column(
       children: [
-        ChGenericHeader(
+        McGenericHeader(
           title: 'My Household',
           centerTitle: true,
           onBack: () => context.pop(),
@@ -64,16 +64,16 @@ class HouseholdPage extends ConsumerWidget {
                       Icon(
                         Icons.group_outlined,
                         size: context.rs(40),
-                        color: ChColors.neutralN(400),
+                        color: McColors.neutralN(400),
                       ),
                       SizedBox(height: context.rs(12)),
                       Text(
                         'No household members yet.',
                         textAlign: TextAlign.center,
-                        style: ChTextStyles.body(
+                        style: McTextStyles.body(
                           fontSize: 14,
                           fontWeight: FontWeight.w600,
-                          color: ChColors.text,
+                          color: McColors.text,
                         ),
                       ),
                       SizedBox(height: context.rs(6)),
@@ -82,9 +82,9 @@ class HouseholdPage extends ConsumerWidget {
                             ? "Only ${s.currentUser?.invitedByName} can invite people into this household."
                             : "Invite someone you live with to get their own login — they won't be charged separate estate dues.",
                         textAlign: TextAlign.center,
-                        style: ChTextStyles.body(
+                        style: McTextStyles.body(
                           fontSize: 13,
-                          color: ChColors.bodyText,
+                          color: McColors.bodyText,
                         ),
                       ),
                     ],
@@ -144,7 +144,7 @@ class HouseholdPage extends ConsumerWidget {
               context.rs(20),
               context.rs(24),
             ),
-            child: ChButton(
+            child: McButton(
               label: 'Invite Resident',
               variant: ChButtonVariant.primary,
               onPressed: () => context.push('/resident/profile/household/invite'),
@@ -164,10 +164,10 @@ class _SectionLabel extends StatelessWidget {
   Widget build(BuildContext context) {
     return Text(
       text.toUpperCase(),
-      style: ChTextStyles.body(
+      style: McTextStyles.body(
         fontSize: 11,
         fontWeight: FontWeight.w700,
-        color: ChColors.bodyText,
+        color: McColors.bodyText,
       ).copyWith(letterSpacing: 1),
     );
   }
@@ -183,9 +183,9 @@ class _MemberTile extends StatelessWidget {
     return Container(
       padding: EdgeInsets.all(context.rs(14)),
       decoration: BoxDecoration(
-        color: ChColors.surface,
-        borderRadius: BorderRadius.circular(ChRadii.md),
-        boxShadow: ChColors.cardShadow,
+        color: McColors.surface,
+        borderRadius: BorderRadius.circular(McRadii.md),
+        boxShadow: McColors.cardShadow,
       ),
       child: Row(
         children: [
@@ -193,12 +193,12 @@ class _MemberTile extends StatelessWidget {
             width: context.rs(36),
             height: context.rs(36),
             decoration: BoxDecoration(
-              color: ChColors.accent2N(100),
+              color: McColors.accent2N(100),
               shape: BoxShape.circle,
             ),
             child: Icon(
               Icons.person_outline_rounded,
-              color: ChColors.accent2,
+              color: McColors.accent2,
               size: context.rs(18),
             ),
           ),
@@ -209,18 +209,18 @@ class _MemberTile extends StatelessWidget {
               children: [
                 Text(
                   member.fullName,
-                  style: ChTextStyles.body(
+                  style: McTextStyles.body(
                     fontSize: 14.5,
                     fontWeight: FontWeight.w700,
-                    color: ChColors.text,
+                    color: McColors.text,
                   ),
                 ),
                 SizedBox(height: context.rs(3)),
                 Text(
                   'Joined ${DateFormat('MMM d, yyyy').format(member.joinedAt)}',
-                  style: ChTextStyles.body(
+                  style: McTextStyles.body(
                     fontSize: 12,
-                    color: ChColors.bodyText,
+                    color: McColors.bodyText,
                   ),
                 ),
               ],
@@ -232,15 +232,15 @@ class _MemberTile extends StatelessWidget {
               vertical: context.rs(3),
             ),
             decoration: BoxDecoration(
-              color: ChColors.accent2N(100),
-              borderRadius: BorderRadius.circular(ChRadii.pill),
+              color: McColors.accent2N(100),
+              borderRadius: BorderRadius.circular(McRadii.pill),
             ),
             child: Text(
               'Linked resident',
-              style: ChTextStyles.body(
+              style: McTextStyles.body(
                 fontSize: 10.5,
                 fontWeight: FontWeight.w700,
-                color: ChColors.accent2N(700),
+                color: McColors.accent2N(700),
               ),
             ),
           ),
@@ -266,18 +266,18 @@ class _InviteTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final color = switch (invite.status) {
-      HouseholdInviteStatus.pendingAdminApproval => ChColors.warning,
-      HouseholdInviteStatus.approved => ChColors.accent2,
-      HouseholdInviteStatus.rejected => ChColors.danger,
-      HouseholdInviteStatus.accepted => ChColors.accent2,
+      HouseholdInviteStatus.pendingAdminApproval => McColors.warning,
+      HouseholdInviteStatus.approved => McColors.accent2,
+      HouseholdInviteStatus.rejected => McColors.danger,
+      HouseholdInviteStatus.accepted => McColors.accent2,
     };
 
     return Container(
       padding: EdgeInsets.all(context.rs(14)),
       decoration: BoxDecoration(
-        color: ChColors.surface,
-        borderRadius: BorderRadius.circular(ChRadii.md),
-        boxShadow: ChColors.cardShadow,
+        color: McColors.surface,
+        borderRadius: BorderRadius.circular(McRadii.md),
+        boxShadow: McColors.cardShadow,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -290,10 +290,10 @@ class _InviteTile extends StatelessWidget {
                   children: [
                     Text(
                       invite.invitedFullName,
-                      style: ChTextStyles.body(
+                      style: McTextStyles.body(
                         fontSize: 14.5,
                         fontWeight: FontWeight.w700,
-                        color: ChColors.text,
+                        color: McColors.text,
                       ),
                     ),
                     SizedBox(height: context.rs(3)),
@@ -304,11 +304,11 @@ class _InviteTile extends StatelessWidget {
                       ),
                       decoration: BoxDecoration(
                         color: color.withValues(alpha: 0.12),
-                        borderRadius: BorderRadius.circular(ChRadii.pill),
+                        borderRadius: BorderRadius.circular(McRadii.pill),
                       ),
                       child: Text(
                         invite.statusLabel,
-                        style: ChTextStyles.body(
+                        style: McTextStyles.body(
                           fontSize: 10.5,
                           fontWeight: FontWeight.w700,
                           color: color,
@@ -321,7 +321,7 @@ class _InviteTile extends StatelessWidget {
               if (onCancel != null)
                 TextButton(
                   onPressed: onCancel,
-                  style: TextButton.styleFrom(foregroundColor: ChColors.danger),
+                  style: TextButton.styleFrom(foregroundColor: McColors.danger),
                   child: const Text('Cancel'),
                 ),
             ],
@@ -331,28 +331,28 @@ class _InviteTile extends StatelessWidget {
             Text(
               "Share this code with ${invite.invitedFullName} — they'll log in with their "
               "phone number and this code, then set their own password.",
-              style: ChTextStyles.body(fontSize: 12, color: ChColors.bodyText, height: 1.4),
+              style: McTextStyles.body(fontSize: 12, color: McColors.bodyText, height: 1.4),
             ),
             SizedBox(height: context.rs(8)),
             InkWell(
-              borderRadius: BorderRadius.circular(ChRadii.sm),
+              borderRadius: BorderRadius.circular(McRadii.sm),
               onTap: () => _copyCode(context, invite.accessCode!),
               child: Container(
                 width: double.infinity,
                 padding: EdgeInsets.symmetric(horizontal: context.rs(14), vertical: context.rs(10)),
                 decoration: BoxDecoration(
-                  color: ChColors.accent2N(100),
-                  borderRadius: BorderRadius.circular(ChRadii.sm),
-                  border: Border.all(color: ChColors.accent2N(300)),
+                  color: McColors.accent2N(100),
+                  borderRadius: BorderRadius.circular(McRadii.sm),
+                  border: Border.all(color: McColors.accent2N(300)),
                 ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
                       invite.accessCode!,
-                      style: ChTextStyles.heading(fontSize: 18).copyWith(letterSpacing: 3),
+                      style: McTextStyles.heading(fontSize: 18).copyWith(letterSpacing: 3),
                     ),
-                    Icon(Icons.copy_rounded, size: context.rs(18), color: ChColors.accent2N(700)),
+                    Icon(Icons.copy_rounded, size: context.rs(18), color: McColors.accent2N(700)),
                   ],
                 ),
               ),

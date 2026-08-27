@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../../core/theme/ch_colors.dart';
-import '../../../../core/theme/ch_responsive.dart';
-import '../../../../core/theme/ch_spacing.dart';
-import '../../../../core/theme/ch_text_styles.dart';
-import '../../../../core/widgets/ch_brand_mark.dart';
+import '../../../../core/theme/mc_colors.dart';
+import '../../../../core/theme/mc_responsive.dart';
+import '../../../../core/theme/mc_spacing.dart';
+import '../../../../core/theme/mc_text_styles.dart';
+import '../../../../core/widgets/mc_brand_mark.dart';
 import '../../../../state/app_notifier.dart';
 
 /// The very first screen a fresh install sees, before any estate has been
@@ -21,24 +21,24 @@ class WelcomePage extends ConsumerWidget {
     final heroHeight = MediaQuery.sizeOf(context).height * 0.32;
 
     return Scaffold(
-      backgroundColor: ChColors.bg,
+      backgroundColor: McColors.bg,
       body: SafeArea(
         child: SingleChildScrollView(
           child: Column(
             children: [
               SizedBox(height: context.rs(8)),
-              const ChBrandMark(),
+              const McBrandMark(),
               SizedBox(height: context.rs(10)),
               RichText(
                 text: TextSpan(
-                  style: ChTextStyles.heading(fontSize: 28),
+                  style: McTextStyles.heading(fontSize: 28),
                   children: [
                     const TextSpan(text: 'My'),
                     TextSpan(
                       text: 'Cove',
-                      style: ChTextStyles.heading(
+                      style: McTextStyles.heading(
                         fontSize: 28,
-                        color: ChColors.accent2,
+                        color: McColors.accent2,
                       ),
                     ),
                   ],
@@ -47,9 +47,9 @@ class WelcomePage extends ConsumerWidget {
               SizedBox(height: context.rs(4)),
               Text(
                 'Your Community. Connected.',
-                style: ChTextStyles.body(
+                style: McTextStyles.body(
                   fontSize: 13,
-                  color: ChColors.bodyText,
+                  color: McColors.bodyText,
                 ),
               ),
               _HeroPhoto(height: heroHeight),
@@ -60,8 +60,8 @@ class WelcomePage extends ConsumerWidget {
                   vertical: context.rs(9),
                 ),
                 decoration: BoxDecoration(
-                  color: ChColors.accent2N(100),
-                  borderRadius: BorderRadius.circular(ChRadii.pill),
+                  color: McColors.accent2N(100),
+                  borderRadius: BorderRadius.circular(McRadii.pill),
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
@@ -69,15 +69,15 @@ class WelcomePage extends ConsumerWidget {
                     Icon(
                       Icons.verified_user_rounded,
                       size: context.rs(15),
-                      color: ChColors.accent2N(700),
+                      color: McColors.accent2N(700),
                     ),
                     SizedBox(width: context.rs(7)),
                     Text(
                       'Secure • Private • Trusted',
-                      style: ChTextStyles.body(
+                      style: McTextStyles.body(
                         fontSize: 13,
                         fontWeight: FontWeight.w600,
-                        color: ChColors.accent2N(800),
+                        color: McColors.accent2N(800),
                       ),
                     ),
                   ],
@@ -86,9 +86,9 @@ class WelcomePage extends ConsumerWidget {
               SizedBox(height: context.rs(20)),
               Text(
                 'Welcome Home',
-                style: ChTextStyles.heroTitle(
+                style: McTextStyles.heroTitle(
                   fontSize: 32,
-                  color: ChColors.accent2,
+                  color: McColors.accent2,
                 ),
               ),
               SizedBox(height: context.rs(12)),
@@ -97,10 +97,10 @@ class WelcomePage extends ConsumerWidget {
                 child: Text(
                   'MyCove brings your whole estate together. Stay informed, make payments, manage visitors and more.',
                   textAlign: TextAlign.center,
-                  style: ChTextStyles.body(
+                  style: McTextStyles.body(
                     fontSize: 14,
                     height: 1.5,
-                    color: ChColors.bodyText,
+                    color: McColors.bodyText,
                     fontWeight: FontWeight.w500,
                   ),
                 ),
@@ -117,13 +117,13 @@ class WelcomePage extends ConsumerWidget {
                       horizontal: context.rs(20),
                     ),
                     decoration: BoxDecoration(
-                      color: ChColors.accent2,
-                      borderRadius: BorderRadius.circular(ChRadii.button),
+                      color: McColors.accent2,
+                      borderRadius: BorderRadius.circular(McRadii.button),
                     ),
                     child: Stack(
                       alignment: Alignment.center,
                       children: [
-                        Text('Get Started', style: ChTextStyles.button()),
+                        Text('Get Started', style: McTextStyles.button()),
                         Align(
                           alignment: Alignment.centerRight,
                           child: Icon(
@@ -142,18 +142,18 @@ class WelcomePage extends ConsumerWidget {
                 padding: EdgeInsets.symmetric(horizontal: context.rs(24)),
                 child: Row(
                   children: [
-                    Expanded(child: Divider(color: ChColors.divider)),
+                    Expanded(child: Divider(color: McColors.divider)),
                     Padding(
                       padding: EdgeInsets.symmetric(horizontal: context.rs(12)),
                       child: Text(
                         'Trusted by communities',
-                        style: ChTextStyles.body(
+                        style: McTextStyles.body(
                           fontSize: 12.5,
-                          color: ChColors.bodyText,
+                          color: McColors.bodyText,
                         ),
                       ),
                     ),
-                    Expanded(child: Divider(color: ChColors.divider)),
+                    Expanded(child: Divider(color: McColors.divider)),
                   ],
                 ),
               ),
@@ -235,19 +235,19 @@ class _TrustItem extends StatelessWidget {
           height: context.rs(48),
           alignment: Alignment.center,
           decoration: BoxDecoration(
-            color: ChColors.accent2N(100),
-            borderRadius: BorderRadius.circular(ChRadii.md),
+            color: McColors.accent2N(100),
+            borderRadius: BorderRadius.circular(McRadii.md),
           ),
-          child: Icon(icon, size: context.rs(28), color: ChColors.accent2N(700)),
+          child: Icon(icon, size: context.rs(28), color: McColors.accent2N(700)),
         ),
         const SizedBox(height: 8),
         Text(
           label,
           textAlign: TextAlign.center,
-          style: ChTextStyles.body(
+          style: McTextStyles.body(
             fontSize: 12,
             fontWeight: FontWeight.w500,
-            color: ChColors.bodyText,
+            color: McColors.bodyText,
           ),
         ),
       ],

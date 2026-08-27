@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../../core/theme/ch_colors.dart';
-import '../../../../core/theme/ch_responsive.dart';
-import '../../../../core/theme/ch_text_styles.dart';
+import '../../../../core/theme/mc_colors.dart';
+import '../../../../core/theme/mc_responsive.dart';
+import '../../../../core/theme/mc_text_styles.dart';
 import '../../../../data/models/utility_meter.dart';
 
 /// Real logo asset if one's been added for this DISCO yet (matched by
@@ -25,7 +25,7 @@ class DiscoLogo extends StatelessWidget {
         discoLogoAsset(disco),
         fit: BoxFit.contain,
         errorBuilder: (_, _, _) =>
-            Icon(Icons.bolt_rounded, color: ChColors.accent2, size: size * 0.7),
+            Icon(Icons.bolt_rounded, color: McColors.accent2, size: size * 0.7),
       ),
     );
   }
@@ -42,7 +42,7 @@ class UtilityHistoryButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () => context.push('/resident/utility-history', extra: type),
-      child: Icon(Icons.history_rounded, color: ChColors.text, size: context.rs(22)),
+      child: Icon(Icons.history_rounded, color: McColors.text, size: context.rs(22)),
     );
   }
 }
@@ -69,7 +69,7 @@ class UtilityWizardStepper extends StatelessWidget {
                 padding: EdgeInsets.only(left: context.rs(6)),
                 child: Text(
                   _stepLabels[step - 1],
-                  style: ChTextStyles.body(fontSize: 12.5, fontWeight: FontWeight.w700, color: ChColors.accent2),
+                  style: McTextStyles.body(fontSize: 12.5, fontWeight: FontWeight.w700, color: McColors.accent2),
                 ),
               ),
             if (step < 4)
@@ -77,7 +77,7 @@ class UtilityWizardStepper extends StatelessWidget {
                 child: Container(
                   height: 1.5,
                   margin: EdgeInsets.symmetric(horizontal: context.rs(6)),
-                  color: step < currentStep ? ChColors.accent2 : ChColors.divider,
+                  color: step < currentStep ? McColors.accent2 : McColors.divider,
                 ),
               ),
           ],
@@ -104,19 +104,19 @@ class _StepCircle extends StatelessWidget {
       decoration: BoxDecoration(
         shape: BoxShape.circle,
         color: active
-            ? ChColors.accent2
+            ? McColors.accent2
             : done
-            ? ChColors.accent2N(100)
-            : ChColors.surfaceSunken,
+            ? McColors.accent2N(100)
+            : McColors.surfaceSunken,
       ),
       child: done
-          ? Icon(Icons.check, color: ChColors.accent2, size: context.rs(14))
+          ? Icon(Icons.check, color: McColors.accent2, size: context.rs(14))
           : Text(
               '$step',
-              style: ChTextStyles.body(
+              style: McTextStyles.body(
                 fontSize: 12,
                 fontWeight: FontWeight.w700,
-                color: active ? Colors.white : ChColors.bodyText,
+                color: active ? Colors.white : McColors.bodyText,
               ),
             ),
     );

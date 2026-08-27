@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../../core/theme/ch_colors.dart';
-import '../../../../core/theme/ch_responsive.dart';
-import '../../../../core/theme/ch_spacing.dart';
-import '../../../../core/theme/ch_text_styles.dart';
-import '../../../../core/widgets/ch_generic_header.dart';
+import '../../../../core/theme/mc_colors.dart';
+import '../../../../core/theme/mc_responsive.dart';
+import '../../../../core/theme/mc_spacing.dart';
+import '../../../../core/theme/mc_text_styles.dart';
+import '../../../../core/widgets/mc_generic_header.dart';
 import '../../../../state/app_notifier.dart';
 
 class ProfilePage extends ConsumerWidget {
@@ -20,7 +20,7 @@ class ProfilePage extends ConsumerWidget {
 
     return Column(
       children: [
-        const ChGenericHeader(title: 'Profile'),
+        const McGenericHeader(title: 'Profile'),
         Expanded(
           child: RefreshIndicator(
             onRefresh: notifier.refreshResident,
@@ -35,12 +35,12 @@ class ProfilePage extends ConsumerWidget {
                     alignment: Alignment.center,
                     margin: const EdgeInsets.only(bottom: 12),
                     decoration: const BoxDecoration(
-                      color: ChColors.accent2,
+                      color: McColors.accent2,
                       shape: BoxShape.circle,
                     ),
                     child: Text(
                       user?.initials ?? '',
-                      style: ChTextStyles.body(
+                      style: McTextStyles.body(
                         fontSize: 24,
                         fontWeight: FontWeight.w700,
                         color: Colors.white,
@@ -49,21 +49,21 @@ class ProfilePage extends ConsumerWidget {
                   ),
                   Text(
                     user?.fullName ?? '',
-                    style: ChTextStyles.heading(fontSize: 18),
+                    style: McTextStyles.heading(fontSize: 18),
                   ),
                   Text(
                     user?.house ?? '',
-                    style: ChTextStyles.body(
+                    style: McTextStyles.body(
                       fontSize: 13,
-                      color: ChColors.bodyText,
+                      color: McColors.bodyText,
                     ),
                   ),
                   const SizedBox(height: 20),
                   Container(
                     width: double.infinity,
                     decoration: BoxDecoration(
-                      color: ChColors.surface,
-                      borderRadius: BorderRadius.circular(ChRadii.card),
+                      color: McColors.surface,
+                      borderRadius: BorderRadius.circular(McRadii.card),
                     ),
                     child: Column(
                       children: [
@@ -88,8 +88,8 @@ class ProfilePage extends ConsumerWidget {
                   Container(
                     width: double.infinity,
                     decoration: BoxDecoration(
-                      color: ChColors.surface,
-                      borderRadius: BorderRadius.circular(ChRadii.card),
+                      color: McColors.surface,
+                      borderRadius: BorderRadius.circular(McRadii.card),
                     ),
                     child: Column(
                       children: [
@@ -169,8 +169,8 @@ class ProfilePage extends ConsumerWidget {
                           context,
                           icon: Icons.shield_outlined,
                           label: 'Emergency SOS',
-                          iconColor: ChColors.danger,
-                          iconBg: ChColors.danger.withValues(alpha: 0.12),
+                          iconColor: McColors.danger,
+                          iconBg: McColors.danger.withValues(alpha: 0.12),
                           onTap: () => context.push('/resident/sos'),
                         ),
                       ],
@@ -185,8 +185,8 @@ class ProfilePage extends ConsumerWidget {
                         vertical: 4,
                       ),
                       decoration: BoxDecoration(
-                        color: ChColors.surface,
-                        borderRadius: BorderRadius.circular(ChRadii.card),
+                        color: McColors.surface,
+                        borderRadius: BorderRadius.circular(McRadii.card),
                       ),
                       child: Row(
                         children: [
@@ -194,13 +194,13 @@ class ProfilePage extends ConsumerWidget {
                             width: context.rs(32),
                             height: context.rs(32),
                             decoration: BoxDecoration(
-                              color: ChColors.accent2N(100),
+                              color: McColors.accent2N(100),
                               shape: BoxShape.circle,
                             ),
                             child: Icon(
                               Icons.fingerprint,
                               size: context.rs(17),
-                              color: ChColors.accent2,
+                              color: McColors.accent2,
                             ),
                           ),
                           SizedBox(width: context.rs(12)),
@@ -210,14 +210,14 @@ class ProfilePage extends ConsumerWidget {
                               children: [
                                 Text(
                                   'Biometric Login',
-                                  style: ChTextStyles.body(fontSize: 14, color: ChColors.text),
+                                  style: McTextStyles.body(fontSize: 14, color: McColors.text),
                                 ),
                                 if (!(s.currentUser?.hasPin ?? false))
                                   Text(
                                     'Also requires a transaction PIN',
-                                    style: ChTextStyles.body(
+                                    style: McTextStyles.body(
                                       fontSize: 11.5,
-                                      color: ChColors.text,
+                                      color: McColors.text,
                                     ),
                                   ),
                               ],
@@ -225,7 +225,7 @@ class ProfilePage extends ConsumerWidget {
                           ),
                           Switch(
                             value: s.biometricEnabled,
-                            activeThumbColor: ChColors.accent2,
+                            activeThumbColor: McColors.accent2,
                             onChanged: (value) async {
                               if (value) {
                                 final ok = await notifier.enableBiometrics();
@@ -257,15 +257,15 @@ class ProfilePage extends ConsumerWidget {
                       padding: const EdgeInsets.symmetric(vertical: 13),
                       alignment: Alignment.center,
                       decoration: BoxDecoration(
-                        color: ChColors.surface,
-                        borderRadius: BorderRadius.circular(ChRadii.button),
+                        color: McColors.surface,
+                        borderRadius: BorderRadius.circular(McRadii.button),
                       ),
                       child: Text(
                         'Log Out',
-                        style: ChTextStyles.body(
+                        style: McTextStyles.body(
                           fontSize: 14,
                           fontWeight: FontWeight.w700,
-                          color: ChColors.danger,
+                          color: McColors.danger,
                         ),
                       ),
                     ),
@@ -318,7 +318,7 @@ class ProfilePage extends ConsumerWidget {
                 (removed
                     ? 'Emergency contact removed.'
                     : 'Emergency contact saved.'),
-            style: ChTextStyles.body(fontSize: 13, color: Colors.white),
+            style: McTextStyles.body(fontSize: 13, color: Colors.white),
           ),
         ),
       );
@@ -329,7 +329,7 @@ class ProfilePage extends ConsumerWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         decoration: const BoxDecoration(
-          border: Border(bottom: BorderSide(color: ChColors.divider)),
+          border: Border(bottom: BorderSide(color: McColors.divider)),
         ),
         child: Row(
           children: [
@@ -339,24 +339,24 @@ class ProfilePage extends ConsumerWidget {
                 children: [
                   Text(
                     'Emergency contact',
-                    style: ChTextStyles.body(
+                    style: McTextStyles.body(
                       fontSize: 14,
-                      color: ChColors.text,
+                      color: McColors.text,
                     ),
                   ),
                   const SizedBox(height: 2),
                   Text(
                     value,
-                    style: ChTextStyles.body(
+                    style: McTextStyles.body(
                       fontSize: 13.5,
                       fontWeight: FontWeight.w600,
-                      color: hasAny ? ChColors.text : ChColors.neutralN(500),
+                      color: hasAny ? McColors.text : McColors.neutralN(500),
                     ),
                   ),
                 ],
               ),
             ),
-            Icon(Icons.edit_outlined, size: context.rs(16), color: ChColors.accent2),
+            Icon(Icons.edit_outlined, size: context.rs(16), color: McColors.accent2),
           ],
         ),
       ),
@@ -368,7 +368,7 @@ class ProfilePage extends ConsumerWidget {
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       decoration: showBorder
           ? const BoxDecoration(
-              border: Border(bottom: BorderSide(color: ChColors.divider)),
+              border: Border(bottom: BorderSide(color: McColors.divider)),
             )
           : null,
       child: Row(
@@ -376,11 +376,11 @@ class ProfilePage extends ConsumerWidget {
         children: [
           Text(
             label,
-            style: ChTextStyles.body(fontSize: 14, color: ChColors.text),
+            style: McTextStyles.body(fontSize: 14, color: McColors.text),
           ),
           Text(
             value,
-            style: ChTextStyles.body(fontSize: 14, color: ChColors.text, fontWeight: FontWeight.w500),
+            style: McTextStyles.body(fontSize: 14, color: McColors.text, fontWeight: FontWeight.w500),
           ),
         ],
       ),
@@ -402,7 +402,7 @@ class ProfilePage extends ConsumerWidget {
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         decoration: showBorder
             ? const BoxDecoration(
-                border: Border(bottom: BorderSide(color: ChColors.divider)),
+                border: Border(bottom: BorderSide(color: McColors.divider)),
               )
             : null,
         child: Row(
@@ -411,22 +411,22 @@ class ProfilePage extends ConsumerWidget {
               width: context.rs(32),
               height: context.rs(32),
               decoration: BoxDecoration(
-                color: iconBg ?? ChColors.accent2N(100),
+                color: iconBg ?? McColors.accent2N(100),
                 shape: BoxShape.circle,
               ),
               child: Icon(
                 icon,
                 size: context.rs(15),
-                color: iconColor ?? ChColors.accent2N(700),
+                color: iconColor ?? McColors.accent2N(700),
               ),
             ),
             SizedBox(width: context.rs(12)),
             Expanded(
-              child: Text(label, style: ChTextStyles.body(fontSize: 14, color: ChColors.text)),
+              child: Text(label, style: McTextStyles.body(fontSize: 14, color: McColors.text)),
             ),
             Text(
               '›',
-              style: ChTextStyles.body(fontSize: 16, color: ChColors.text),
+              style: McTextStyles.body(fontSize: 16, color: McColors.text),
             ),
           ],
         ),
@@ -491,13 +491,13 @@ class _EditEmergencyContactDialogState
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      backgroundColor: ChColors.surface,
+      backgroundColor: McColors.surface,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(ChRadii.card),
+        borderRadius: BorderRadius.circular(McRadii.card),
       ),
       title: Text(
         'Emergency contact',
-        style: ChTextStyles.heading(fontSize: 18),
+        style: McTextStyles.heading(fontSize: 18),
       ),
       content: Column(
         mainAxisSize: MainAxisSize.min,
@@ -506,20 +506,20 @@ class _EditEmergencyContactDialogState
           TextField(
             controller: _nameController,
             textInputAction: TextInputAction.next,
-            style: ChTextStyles.body(fontSize: 14),
+            style: McTextStyles.body(fontSize: 14),
             decoration: InputDecoration(
               labelText: 'Name (optional)',
-              labelStyle: ChTextStyles.body(
+              labelStyle: McTextStyles.body(
                 fontSize: 13,
-                color: ChColors.neutralN(500),
+                color: McColors.neutralN(500),
               ),
               enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(ChRadii.sm),
-                borderSide: const BorderSide(color: ChColors.divider),
+                borderRadius: BorderRadius.circular(McRadii.sm),
+                borderSide: const BorderSide(color: McColors.divider),
               ),
               focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(ChRadii.sm),
-                borderSide: const BorderSide(color: ChColors.accent2),
+                borderRadius: BorderRadius.circular(McRadii.sm),
+                borderSide: const BorderSide(color: McColors.accent2),
               ),
             ),
           ),
@@ -529,20 +529,20 @@ class _EditEmergencyContactDialogState
             keyboardType: TextInputType.phone,
             textInputAction: TextInputAction.done,
             onSubmitted: (_) => _save(),
-            style: ChTextStyles.body(fontSize: 14),
+            style: McTextStyles.body(fontSize: 14),
             decoration: InputDecoration(
               labelText: 'Phone number',
-              labelStyle: ChTextStyles.body(
+              labelStyle: McTextStyles.body(
                 fontSize: 13,
-                color: ChColors.neutralN(500),
+                color: McColors.neutralN(500),
               ),
               enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(ChRadii.sm),
-                borderSide: const BorderSide(color: ChColors.divider),
+                borderRadius: BorderRadius.circular(McRadii.sm),
+                borderSide: const BorderSide(color: McColors.divider),
               ),
               focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(ChRadii.sm),
-                borderSide: const BorderSide(color: ChColors.accent2),
+                borderRadius: BorderRadius.circular(McRadii.sm),
+                borderSide: const BorderSide(color: McColors.accent2),
               ),
             ),
           ),
@@ -550,13 +550,13 @@ class _EditEmergencyContactDialogState
             const SizedBox(height: 10),
             Text(
               _error!,
-              style: ChTextStyles.body(fontSize: 12.5, color: ChColors.danger),
+              style: McTextStyles.body(fontSize: 12.5, color: McColors.danger),
             ),
           ],
           if (_hasExisting)
             TextButton(
               onPressed: () => Navigator.of(context).pop(('', '')),
-              style: TextButton.styleFrom(foregroundColor: ChColors.danger),
+              style: TextButton.styleFrom(foregroundColor: McColors.danger),
               child: const Text('Remove contact'),
             ),
         ],
@@ -564,12 +564,12 @@ class _EditEmergencyContactDialogState
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
-          style: TextButton.styleFrom(foregroundColor: ChColors.text),
+          style: TextButton.styleFrom(foregroundColor: McColors.text),
           child: const Text('Cancel'),
         ),
         TextButton(
           onPressed: _save,
-          style: TextButton.styleFrom(foregroundColor: ChColors.accent2),
+          style: TextButton.styleFrom(foregroundColor: McColors.accent2),
           child: const Text('Save'),
         ),
       ],

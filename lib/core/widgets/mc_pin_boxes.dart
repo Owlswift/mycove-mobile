@@ -1,17 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-import '../theme/ch_colors.dart';
-import '../theme/ch_responsive.dart';
-import '../theme/ch_spacing.dart';
-import '../theme/ch_text_styles.dart';
+import '../theme/mc_colors.dart';
+import '../theme/mc_responsive.dart';
+import '../theme/mc_spacing.dart';
+import '../theme/mc_text_styles.dart';
 
 /// Boxed digit entry with auto-advance/auto-retreat focus, kept in sync
 /// with a single [value] string — same mechanics as the OTP screen's
 /// digit boxes, generalized to any [length] and with an optional
 /// [obscureText] for PIN entry.
-class ChPinBoxes extends StatefulWidget {
-  const ChPinBoxes({
+class McPinBoxes extends StatefulWidget {
+  const McPinBoxes({
     super.key,
     required this.length,
     required this.value,
@@ -25,10 +25,10 @@ class ChPinBoxes extends StatefulWidget {
   final bool obscureText;
 
   @override
-  State<ChPinBoxes> createState() => _ChPinBoxesState();
+  State<McPinBoxes> createState() => _ChPinBoxesState();
 }
 
-class _ChPinBoxesState extends State<ChPinBoxes> {
+class _ChPinBoxesState extends State<McPinBoxes> {
   late final List<TextEditingController> _controllers = List.generate(
     widget.length,
     (i) => TextEditingController(text: i < widget.value.length ? widget.value[i] : ''),
@@ -36,7 +36,7 @@ class _ChPinBoxesState extends State<ChPinBoxes> {
   late final List<FocusNode> _focusNodes = List.generate(widget.length, (_) => FocusNode());
 
   @override
-  void didUpdateWidget(covariant ChPinBoxes oldWidget) {
+  void didUpdateWidget(covariant McPinBoxes oldWidget) {
     super.didUpdateWidget(oldWidget);
     final current = _controllers.map((c) => c.text).join();
     if (widget.value != current) {
@@ -125,9 +125,9 @@ class _PinBox extends StatelessWidget {
             alignment: Alignment.center,
             decoration: BoxDecoration(
               color: const Color(0xfffdfbf9),
-              borderRadius: BorderRadius.circular(ChRadii.button),
+              borderRadius: BorderRadius.circular(McRadii.button),
               border: Border.all(
-                color: focusNode.hasFocus ? ChColors.accent2 : ChColors.neutralN(300),
+                color: focusNode.hasFocus ? McColors.accent2 : McColors.neutralN(300),
                 width: focusNode.hasFocus ? 2 : 1,
               ),
             ),
@@ -141,7 +141,7 @@ class _PinBox extends StatelessWidget {
             textAlign: TextAlign.center,
             maxLength: 1,
             obscureText: obscureText,
-            style: ChTextStyles.heading(fontSize: 20),
+            style: McTextStyles.heading(fontSize: 20),
             inputFormatters: [FilteringTextInputFormatter.digitsOnly],
             decoration: const InputDecoration(
               counterText: '',

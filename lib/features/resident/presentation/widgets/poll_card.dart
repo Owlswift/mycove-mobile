@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 
-import '../../../../core/theme/ch_colors.dart';
-import '../../../../core/theme/ch_responsive.dart';
-import '../../../../core/theme/ch_spacing.dart';
-import '../../../../core/theme/ch_text_styles.dart';
+import '../../../../core/theme/mc_colors.dart';
+import '../../../../core/theme/mc_responsive.dart';
+import '../../../../core/theme/mc_spacing.dart';
+import '../../../../core/theme/mc_text_styles.dart';
 import '../../../../data/models/poll.dart';
 
 /// A poll's question, live results, and (while open) tappable options to
@@ -22,7 +22,7 @@ class PollCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(color: ChColors.surface, borderRadius: BorderRadius.circular(ChRadii.card)),
+      decoration: BoxDecoration(color: McColors.surface, borderRadius: BorderRadius.circular(McRadii.card)),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -30,21 +30,21 @@ class PollCard extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Expanded(
-                child: Text(poll.question, style: ChTextStyles.body(fontSize: 15, fontWeight: FontWeight.w500, color: ChColors.text)),
+                child: Text(poll.question, style: McTextStyles.body(fontSize: 15, fontWeight: FontWeight.w500, color: McColors.text)),
               ),
               const SizedBox(width: 8),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 3),
                 decoration: BoxDecoration(
-                  color: _isClosed ? ChColors.neutralN(200) : ChColors.accent2N(200),
-                  borderRadius: BorderRadius.circular(ChRadii.pill),
+                  color: _isClosed ? McColors.neutralN(200) : McColors.accent2N(200),
+                  borderRadius: BorderRadius.circular(McRadii.pill),
                 ),
                 child: Text(
                   poll.closesIn,
-                  style: ChTextStyles.body(
+                  style: McTextStyles.body(
                     fontSize: 11,
                     fontWeight: FontWeight.w700,
-                    color: _isClosed ? ChColors.text : ChColors.accent2N(800),
+                    color: _isClosed ? McColors.text : McColors.accent2N(800),
                   ),
                 ),
               ),
@@ -61,8 +61,8 @@ class PollCard extends StatelessWidget {
                     Container(
                       height: context.rs(38),
                       decoration: BoxDecoration(
-                        color: ChColors.neutralN(200),
-                        borderRadius: BorderRadius.circular(ChRadii.pill),
+                        color: McColors.neutralN(200),
+                        borderRadius: BorderRadius.circular(McRadii.pill),
                       ),
                     ),
                     if (poll.voted)
@@ -70,7 +70,7 @@ class PollCard extends StatelessWidget {
                         widthFactor: option.pct / 100,
                         child: Container(
                           height: context.rs(38),
-                          decoration: BoxDecoration(color: ChColors.accent2N(200), borderRadius: BorderRadius.circular(ChRadii.pill)),
+                          decoration: BoxDecoration(color: McColors.accent2N(200), borderRadius: BorderRadius.circular(McRadii.pill)),
                         ),
                       ),
                     Positioned.fill(
@@ -79,11 +79,11 @@ class PollCard extends StatelessWidget {
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Text(option.label, style: ChTextStyles.body(fontSize: 12, fontWeight: FontWeight.w500, color: ChColors.text)),
+                            Text(option.label, style: McTextStyles.body(fontSize: 12, fontWeight: FontWeight.w500, color: McColors.text)),
                             if (poll.voted)
                               Text(
                                 '${option.pct}%',
-                                style: ChTextStyles.body(fontSize: 12, fontWeight: FontWeight.w600, color: ChColors.text),
+                                style: McTextStyles.body(fontSize: 12, fontWeight: FontWeight.w600, color: McColors.text),
                               ),
                           ],
                         ),
@@ -94,8 +94,8 @@ class PollCard extends StatelessWidget {
                         child: Container(
                           height: context.rs(38),
                           decoration: BoxDecoration(
-                            border: Border.all(color: ChColors.accent2, width: 2),
-                            borderRadius: BorderRadius.circular(ChRadii.pill),
+                            border: Border.all(color: McColors.accent2, width: 2),
+                            borderRadius: BorderRadius.circular(McRadii.pill),
                           ),
                         ),
                       ),
@@ -105,7 +105,7 @@ class PollCard extends StatelessWidget {
             ),
           Text(
             poll.voteCountLabel,
-            style: ChTextStyles.body(fontSize: 12, color: ChColors.text),
+            style: McTextStyles.body(fontSize: 12, color: McColors.text),
           ),
         ],
       ),

@@ -2,12 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../../core/theme/ch_colors.dart';
-import '../../../../core/theme/ch_responsive.dart';
-import '../../../../core/theme/ch_spacing.dart';
-import '../../../../core/theme/ch_text_styles.dart';
-import '../../../../core/widgets/ch_button.dart';
-import '../../../../core/widgets/ch_generic_header.dart';
+import '../../../../core/theme/mc_colors.dart';
+import '../../../../core/theme/mc_responsive.dart';
+import '../../../../core/theme/mc_spacing.dart';
+import '../../../../core/theme/mc_text_styles.dart';
+import '../../../../core/widgets/mc_button.dart';
+import '../../../../core/widgets/mc_generic_header.dart';
 import '../../../../data/models/utility_meter.dart';
 import '../../../../state/app_notifier.dart';
 import '../widgets/utility_wizard_stepper.dart';
@@ -22,7 +22,7 @@ class ElectricityConfirmMeterPage extends ConsumerWidget {
 
     return Column(
       children: [
-        ChGenericHeader(
+        McGenericHeader(
           title: 'Buy Electricity',
           centerTitle: true,
           onBack: () {
@@ -40,14 +40,14 @@ class ElectricityConfirmMeterPage extends ConsumerWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Confirm Meter Details', style: ChTextStyles.heading(fontSize: 16)),
+                Text('Confirm Meter Details', style: McTextStyles.heading(fontSize: 16)),
                 SizedBox(height: context.rs(16)),
                 Container(
                   width: double.infinity,
                   padding: EdgeInsets.all(context.rs(16)),
                   decoration: BoxDecoration(
-                    color: ChColors.surfaceSunken,
-                    borderRadius: BorderRadius.circular(ChRadii.md),
+                    color: McColors.surfaceSunken,
+                    borderRadius: BorderRadius.circular(McRadii.md),
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -72,16 +72,16 @@ class ElectricityConfirmMeterPage extends ConsumerWidget {
                   width: double.infinity,
                   padding: EdgeInsets.symmetric(horizontal: context.rs(14), vertical: context.rs(12)),
                   decoration: BoxDecoration(
-                    color: ChColors.accent2N(100),
-                    borderRadius: BorderRadius.circular(ChRadii.md),
+                    color: McColors.accent2N(100),
+                    borderRadius: BorderRadius.circular(McRadii.md),
                   ),
                   child: Row(
                     children: [
-                      Icon(Icons.check_circle_rounded, color: ChColors.accent2, size: context.rs(18)),
+                      Icon(Icons.check_circle_rounded, color: McColors.accent2, size: context.rs(18)),
                       SizedBox(width: context.rs(8)),
                       Text(
                         'Meter verified successfully',
-                        style: ChTextStyles.body(fontSize: 13, fontWeight: FontWeight.w600, color: ChColors.accent2),
+                        style: McTextStyles.body(fontSize: 13, fontWeight: FontWeight.w600, color: McColors.accent2),
                       ),
                     ],
                   ),
@@ -103,16 +103,16 @@ class ElectricityConfirmMeterPage extends ConsumerWidget {
                     },
                     child: Text(
                       'Not this meter? Change provider or meter number',
-                      style: ChTextStyles.body(
+                      style: McTextStyles.body(
                         fontSize: 12.5,
                         fontWeight: FontWeight.w600,
-                        color: ChColors.accent2,
+                        color: McColors.accent2,
                       ),
                     ),
                   ),
                 ),
                 SizedBox(height: context.rs(20)),
-                ChButton(
+                McButton(
                   label: 'Proceed',
                   onPressed: () {
                     final amount = int.tryParse(s.elecAmount.trim()) ?? 0;
@@ -146,9 +146,9 @@ class _DetailRow extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(label, style: ChTextStyles.body(fontSize: 12, color: ChColors.bodyText)),
+          Text(label, style: McTextStyles.body(fontSize: 12, color: McColors.bodyText)),
           SizedBox(height: context.rs(2)),
-          Text(value, style: ChTextStyles.body(fontSize: 14, fontWeight: FontWeight.w700, color: ChColors.text)),
+          Text(value, style: McTextStyles.body(fontSize: 14, fontWeight: FontWeight.w700, color: McColors.text)),
         ],
       ),
     );

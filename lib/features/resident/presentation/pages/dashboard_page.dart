@@ -3,11 +3,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/network/spotlight_modal_storage.dart';
-import '../../../../core/theme/ch_colors.dart';
-import '../../../../core/theme/ch_responsive.dart';
-import '../../../../core/theme/ch_spacing.dart';
-import '../../../../core/theme/ch_text_styles.dart';
-import '../../../../core/widgets/ch_data_media.dart';
+import '../../../../core/theme/mc_colors.dart';
+import '../../../../core/theme/mc_responsive.dart';
+import '../../../../core/theme/mc_spacing.dart';
+import '../../../../core/theme/mc_text_styles.dart';
+import '../../../../core/widgets/mc_data_media.dart';
 import '../../../../data/models/meeting.dart';
 import '../../../../data/models/my_pledge.dart';
 import '../../../../data/models/notification_item.dart';
@@ -118,14 +118,14 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
                     children: [
                       Text(
                         '${_greeting()},',
-                        style: ChTextStyles.body(
+                        style: McTextStyles.body(
                           fontSize: 13,
-                          color: ChColors.text,
+                          color: McColors.text,
                         ),
                       ),
                       Text(
                         '${s.currentUser?.first ?? ''} 👋',
-                        style: ChTextStyles.heading(fontSize: 24),
+                        style: McTextStyles.heading(fontSize: 24),
                       ),
                     ],
                   ),
@@ -137,7 +137,7 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
                     height: context.rs(42),
                     margin: EdgeInsets.only(right: context.rs(10)),
                     decoration: const BoxDecoration(
-                      color: ChColors.accent2,
+                      color: McColors.accent2,
                       shape: BoxShape.circle,
                     ),
                     child: Icon(
@@ -154,7 +154,7 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
                     height: context.rs(42),
                     margin: EdgeInsets.only(right: context.rs(10)),
                     decoration: const BoxDecoration(
-                      color: ChColors.surfaceSunken,
+                      color: McColors.surfaceSunken,
                       shape: BoxShape.circle,
                     ),
                     child: Stack(
@@ -164,7 +164,7 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
                           child: Icon(
                             Icons.notifications_outlined,
                             size: context.rs(21),
-                            color: ChColors.text,
+                            color: McColors.text,
                           ),
                         ),
                         if (unreadCount > 0)
@@ -181,7 +181,7 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
                               ),
                               alignment: Alignment.center,
                               decoration: const BoxDecoration(
-                                color: ChColors.danger,
+                                color: McColors.danger,
                                 shape: BoxShape.circle,
                               ),
                               child: Text(
@@ -205,16 +205,16 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
                     height: context.rs(42),
                     alignment: Alignment.center,
                     decoration: BoxDecoration(
-                      color: ChColors.accent2,
+                      color: McColors.accent2,
                       shape: BoxShape.circle,
                       border: Border.all(
-                        color: ChColors.accent2N(200),
+                        color: McColors.accent2N(200),
                         width: context.rs(2),
                       ),
                     ),
                     child: Text(
                       s.currentUser?.initials ?? '',
-                      style: ChTextStyles.body(
+                      style: McTextStyles.body(
                         fontSize: 15,
                         fontWeight: FontWeight.w700,
                         color: Colors.white,
@@ -227,7 +227,7 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
             SizedBox(height: context.rs(10)),
             Text(
               'A safer, cleaner and better community together.',
-              style: ChTextStyles.body(fontSize: 12.5, color: ChColors.text),
+              style: McTextStyles.body(fontSize: 12.5, color: McColors.text),
             ),
             SizedBox(height: context.rs(16)),
 
@@ -241,18 +241,18 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
                     onTap: () => context.go('/resident/dues'),
                     child: Container(
                       decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(ChRadii.card),
-                        boxShadow: ChColors.cardShadow,
+                        borderRadius: BorderRadius.circular(McRadii.card),
+                        boxShadow: McColors.cardShadow,
                       ),
                       child: ClipRRect(
-                        borderRadius: BorderRadius.circular(ChRadii.card),
+                        borderRadius: BorderRadius.circular(McRadii.card),
                         child: Stack(
                           children: [
                             // Estate photo peeking through on the right, behind
                             // a scrim so the text on the left stays readable.
                             Positioned.fill(
                               child: s.estateImage != null
-                                  ? ChDataMedia(dataUrl: s.estateImage!)
+                                  ? McDataMedia(dataUrl: s.estateImage!)
                                   : Image.asset(
                                       'assets/images/welcome_banner.png',
                                       fit: BoxFit.cover,
@@ -263,8 +263,8 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
                                 decoration: BoxDecoration(
                                   gradient: LinearGradient(
                                     colors: [
-                                      ChColors.accent2N(900),
-                                      ChColors.accent2N(
+                                      McColors.accent2N(900),
+                                      McColors.accent2N(
                                         900,
                                       ).withValues(alpha: 0.55),
                                     ],
@@ -283,7 +283,7 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
                                     (s.currentUser?.duesLiable ?? true)
                                         ? 'Outstanding Dues'
                                         : 'Household Outstanding Dues',
-                                    style: ChTextStyles.body(
+                                    style: McTextStyles.body(
                                       fontSize: 13,
                                       color: Colors.white.withValues(
                                         alpha: 0.8,
@@ -293,7 +293,7 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
                                   SizedBox(height: context.rs(6)),
                                   Text(
                                     s.duesBalanceLabel,
-                                    style: ChTextStyles.heading(
+                                    style: McTextStyles.heading(
                                       fontSize: 28,
                                       color: Colors.white,
                                     ),
@@ -314,15 +314,15 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
                                           decoration: BoxDecoration(
                                             color: const Color(0xfff5dfb8),
                                             borderRadius: BorderRadius.circular(
-                                              ChRadii.pill,
+                                              McRadii.pill,
                                             ),
                                           ),
                                           child: Text(
                                             'Pay Now →',
-                                            style: ChTextStyles.body(
+                                            style: McTextStyles.body(
                                               fontSize: 13,
                                               fontWeight: FontWeight.w700,
-                                              color: ChColors.accentN(900),
+                                              color: McColors.accentN(900),
                                             ),
                                           ),
                                         ),
@@ -352,20 +352,20 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text('Utilities', style: ChTextStyles.heading(fontSize: 13)),
+                Text('Utilities', style: McTextStyles.heading(fontSize: 13)),
                 GestureDetector(
                   onTap: () => context.push('/resident/utility-history'),
                   child: Row(
                     children: [
                       Text(
                         'History',
-                        style: ChTextStyles.body(
+                        style: McTextStyles.body(
                           fontSize: 12.5,
                           fontWeight: FontWeight.w600,
-                          color: ChColors.accent2,
+                          color: McColors.accent2,
                         ),
                       ),
-                      Icon(Icons.chevron_right_rounded, size: context.rs(16), color: ChColors.accent2),
+                      Icon(Icons.chevron_right_rounded, size: context.rs(16), color: McColors.accent2),
                     ],
                   ),
                 ),
@@ -379,16 +379,16 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
                   Expanded(
                     child: _UtilityCard(
                       icon: Icons.bolt_rounded,
-                      cardBg: ChColors.accentN(200).withValues(alpha: 0.45),
-                      iconBg: ChColors.accentN(300).withValues(alpha: 0.75),
-                      iconColor: ChColors.accentN(800),
+                      cardBg: McColors.accentN(200).withValues(alpha: 0.45),
+                      iconBg: McColors.accentN(300).withValues(alpha: 0.75),
+                      iconColor: McColors.accentN(800),
                       title: 'Electricity',
                       body: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
                             _lastElectricityUnits(s.utilityPurchases) ?? '0.0 kWh',
-                            style: ChTextStyles.heading(fontSize: 21),
+                            style: McTextStyles.heading(fontSize: 21),
                           ),
                           SizedBox(height: context.rs(4)),
                           Row(
@@ -404,7 +404,7 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
                               SizedBox(width: context.rs(5)),
                               Text(
                                 'Running low?',
-                                style: ChTextStyles.body(
+                                style: McTextStyles.body(
                                   fontSize: 12,
                                   color: Color(0xfffa6617),
                                   fontWeight: FontWeight.w600
@@ -418,9 +418,9 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
                               s.utilityMeters.length > 1
                                   ? '${s.utilityMeters.length} meters saved'
                                   : 'Meter: ${formatMeterNumber(s.utilityMeters.first.meterNumber)}',
-                              style: ChTextStyles.body(
+                              style: McTextStyles.body(
                                 fontSize: 10.5,
-                                color: ChColors.bodyText,
+                                color: McColors.bodyText,
                               ),
                             ),
                           ],
@@ -452,9 +452,9 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
                         'Top up your phone anytime anywhere',
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
-                        style: ChTextStyles.body(
+                        style: McTextStyles.body(
                           fontSize: 11,
-                          color: ChColors.text,
+                          color: McColors.text,
                           fontWeight: FontWeight.w600
                         ),
                       ),
@@ -523,9 +523,9 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
               child: Container(
                 padding: EdgeInsets.all(context.rs(16)),
                 decoration: BoxDecoration(
-                  color: ChColors.accentN(200).withValues(alpha: 0.75),
-                  borderRadius: BorderRadius.circular(ChRadii.card),
-                  boxShadow: ChColors.cardShadow,
+                  color: McColors.accentN(200).withValues(alpha: 0.75),
+                  borderRadius: BorderRadius.circular(McRadii.card),
+                  boxShadow: McColors.cardShadow,
                 ),
                 child: Row(
                   children: [
@@ -533,13 +533,13 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
                       width: context.rs(55),
                       height: context.rs(55),
                       decoration: BoxDecoration(
-                        color: ChColors.accentN(300).withValues(alpha: 0.7),
+                        color: McColors.accentN(300).withValues(alpha: 0.7),
                         shape: BoxShape.circle,
                       ),
                       child: Icon(
                         Icons.campaign_outlined,
                         size: context.rs(30),
-                        color: ChColors.accentN(800),
+                        color: McColors.accentN(800),
                       ),
                     ),
                     SizedBox(width: context.rs(12)),
@@ -549,9 +549,9 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
                         children: [
                           Text(
                             'Latest Announcement',
-                            style: ChTextStyles.body(
+                            style: McTextStyles.body(
                               fontSize: 11,
-                              color: ChColors.text,
+                              color: McColors.text,
                             ),
                           ),
                           SizedBox(height: context.rs(4)),
@@ -559,19 +559,19 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
                             s.announcements.isNotEmpty
                                 ? s.announcements.first.title
                                 : 'No announcements yet',
-                            style: ChTextStyles.body(
+                            style: McTextStyles.body(
                               fontSize: 12.5,
                               fontWeight: FontWeight.w600,
-                              color: ChColors.text,
+                              color: McColors.text,
                             ),
                           ),
                           if (s.announcements.isNotEmpty) ...[
                             SizedBox(height: context.rs(2)),
                             Text(
                               s.announcements.first.date,
-                              style: ChTextStyles.body(
+                              style: McTextStyles.body(
                                 fontSize: 10.5,
-                                color: ChColors.text,
+                                color: McColors.text,
                               ),
                             ),
                           ],
@@ -585,15 +585,15 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
                         vertical: context.rs(6),
                       ),
                       decoration: BoxDecoration(
-                        color: ChColors.accentN(300).withValues(alpha: 0.7),
-                        borderRadius: BorderRadius.circular(ChRadii.pill),
+                        color: McColors.accentN(300).withValues(alpha: 0.7),
+                        borderRadius: BorderRadius.circular(McRadii.pill),
                       ),
                       child: Text(
                         'Read →',
-                        style: ChTextStyles.body(
+                        style: McTextStyles.body(
                           fontSize: 12,
                           fontWeight: FontWeight.w700,
-                          color: ChColors.text,
+                          color: McColors.text,
                         ),
                       ),
                     ),
@@ -609,9 +609,9 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
                 onTap: () => context.go('/resident/projects'),
                 child: Container(
                   decoration: BoxDecoration(
-                    color: ChColors.surface,
-                    borderRadius: BorderRadius.circular(ChRadii.card),
-                    boxShadow: ChColors.cardShadow,
+                    color: McColors.surface,
+                    borderRadius: BorderRadius.circular(McRadii.card),
+                    boxShadow: McColors.cardShadow,
                   ),
                   clipBehavior: Clip.antiAlias,
                   child: Column(
@@ -630,7 +630,7 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
                               width: context.rs(30),
                               height: context.rs(30),
                               decoration: const BoxDecoration(
-                                color: ChColors.accent2,
+                                color: McColors.accent2,
                                 shape: BoxShape.circle,
                               ),
                               child: Icon(
@@ -644,19 +644,19 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
                               child: Text(
                                 'Ongoing Projects',
                                 overflow: TextOverflow.ellipsis,
-                                style: ChTextStyles.body(
+                                style: McTextStyles.body(
                                   fontSize: 12,
-                                  color: ChColors.text,
+                                  color: McColors.text,
                                   fontWeight: FontWeight.w600,
                                 ),
                               ),
                             ),
                             Text(
                               'See all ›',
-                              style: ChTextStyles.body(
+                              style: McTextStyles.body(
                                 fontSize: 12,
                                 fontWeight: FontWeight.w600,
-                                color: ChColors.accent2N(700),
+                                color: McColors.accent2N(700),
                               ),
                             ),
                           ],
@@ -670,7 +670,7 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
                         child: Row(
                           children: [
                             ClipRRect(
-                              borderRadius: BorderRadius.circular(ChRadii.sm),
+                              borderRadius: BorderRadius.circular(McRadii.sm),
                               child: SizedBox(
                                 width: context.rs(86),
                                 height: context.rs(64),
@@ -679,13 +679,13 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
                                 // failing that, a generic asset) rather than
                                 // leaving the thumbnail slot empty.
                                 child: featuredProject.mediaBase64 != null
-                                    ? ChDataMedia(
+                                    ? McDataMedia(
                                         dataUrl: featuredProject.mediaBase64!,
                                         height: context.rs(56),
                                         fit: BoxFit.cover,
                                       )
                                     : s.estateImage != null
-                                    ? ChDataMedia(
+                                    ? McDataMedia(
                                         dataUrl: s.estateImage!,
                                         height: context.rs(56),
                                         fit: BoxFit.cover,
@@ -703,23 +703,23 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
                                 children: [
                                   Text(
                                     featuredProject.title,
-                                    style: ChTextStyles.body(
+                                    style: McTextStyles.body(
                                       fontSize: 13,
                                       fontWeight: FontWeight.w600,
-                                      color: ChColors.text,
+                                      color: McColors.text,
                                     ),
                                   ),
                                   SizedBox(height: context.rs(6)),
                                   ClipRRect(
                                     borderRadius: BorderRadius.circular(
-                                      ChRadii.pill,
+                                      McRadii.pill,
                                     ),
                                     child: LinearProgressIndicator(
                                       value: featuredProject.progress / 100,
                                       minHeight: context.rs(6),
-                                      backgroundColor: ChColors.neutralN(300),
+                                      backgroundColor: McColors.neutralN(300),
                                       valueColor: const AlwaysStoppedAnimation(
-                                        ChColors.accent2,
+                                        McColors.accent2,
                                       ),
                                     ),
                                   ),
@@ -729,10 +729,10 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
                             SizedBox(width: context.rs(10)),
                             Text(
                               '${featuredProject.progress}%',
-                              style: ChTextStyles.body(
+                              style: McTextStyles.body(
                                 fontSize: 13,
                                 fontWeight: FontWeight.w700,
-                                color: ChColors.accent2N(700),
+                                color: McColors.accent2N(700),
                               ),
                             ),
                           ],
@@ -745,7 +745,7 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
               ),
             SizedBox(height: context.rs(18)),
 
-            Text('Quick Actions', style: ChTextStyles.heading(fontSize: 13)),
+            Text('Quick Actions', style: McTextStyles.heading(fontSize: 13)),
             SizedBox(height: context.rs(6)),
             Row(
               children: [
@@ -753,8 +753,8 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
                   child: _QuickAction(
                     icon: Icons.qr_code_2_rounded,
                     label: 'Visitor Pass',
-                    tint: ChColors.accent2N(100),
-                    iconColor: ChColors.accent2N(700),
+                    tint: McColors.accent2N(100),
+                    iconColor: McColors.accent2N(700),
                     onTap: () => context.go('/resident/visitor'),
                   ),
                 ),
@@ -764,8 +764,8 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
                     label: (s.currentUser?.duesLiable ?? true)
                         ? 'Pay Dues'
                         : 'View Dues',
-                    tint: ChColors.accentN(500),
-                    iconColor: ChColors.accentN(800),
+                    tint: McColors.accentN(500),
+                    iconColor: McColors.accentN(800),
                     onTap: () => context.go('/resident/dues'),
                   ),
                 ),
@@ -785,8 +785,8 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
                   child: _QuickAction(
                     icon: Icons.how_to_vote_outlined,
                     label: 'Vote in Poll',
-                    tint: ChColors.accentN(100),
-                    iconColor: ChColors.accentN(800),
+                    tint: McColors.accentN(100),
+                    iconColor: McColors.accentN(800),
                     onTap: () => context.push('/resident/polls'),
                   ),
                 ),
@@ -830,9 +830,9 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
                   vertical: context.rs(10),
                 ),
                 decoration: BoxDecoration(
-                  color: ChColors.surface,
-                  borderRadius: BorderRadius.circular(ChRadii.card),
-                  boxShadow: ChColors.cardShadow,
+                  color: McColors.surface,
+                  borderRadius: BorderRadius.circular(McRadii.card),
+                  boxShadow: McColors.cardShadow,
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -843,7 +843,7 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
                           width: context.rs(30),
                           height: context.rs(30),
                           decoration: const BoxDecoration(
-                            color: ChColors.accent2,
+                            color: McColors.accent2,
                             shape: BoxShape.circle,
                           ),
                           child: Icon(
@@ -857,9 +857,9 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
                           child: Text(
                             'Your pledges',
                             overflow: TextOverflow.ellipsis,
-                            style: ChTextStyles.body(
+                            style: McTextStyles.body(
                               fontSize: 12,
-                              color: ChColors.text,
+                              color: McColors.text,
                               fontWeight: FontWeight.w600,
                             ),
                           ),
@@ -871,10 +871,10 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
                               (sum, p) => sum + p.amount,
                             ),
                           ),
-                          style: ChTextStyles.body(
+                          style: McTextStyles.body(
                             fontSize: 12,
                             fontWeight: FontWeight.w700,
-                            color: ChColors.accent2N(700),
+                            color: McColors.accent2N(700),
                           ),
                         ),
                       ],
@@ -894,14 +894,14 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
             if (recentActivity.isNotEmpty) ...[
               Text(
                 'Recent Activity',
-                style: ChTextStyles.heading(fontSize: 13),
+                style: McTextStyles.heading(fontSize: 13),
               ),
               SizedBox(height: context.rs(10)),
               Container(
                 decoration: BoxDecoration(
-                  color: ChColors.surface,
-                  borderRadius: BorderRadius.circular(ChRadii.card),
-                  boxShadow: ChColors.cardShadow,
+                  color: McColors.surface,
+                  borderRadius: BorderRadius.circular(McRadii.card),
+                  boxShadow: McColors.cardShadow,
                 ),
                 child: Column(children: recentActivity),
               ),
@@ -937,8 +937,8 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
       items.add(
         _ActivityRow(
           icon: Icons.person_outline_rounded,
-          iconColor: ChColors.accent2N(700),
-          iconBg: ChColors.accent2N(100),
+          iconColor: McColors.accent2N(700),
+          iconBg: McColors.accent2N(100),
           title: '${p.name} arrived',
           subtitle: 'via visitor pass',
           time: relativeTime(p.enteredAt!),
@@ -950,8 +950,8 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
       items.add(
         _ActivityRow(
           icon: Icons.receipt_long_outlined,
-          iconColor: ChColors.accentN(800),
-          iconBg: ChColors.accentN(100),
+          iconColor: McColors.accentN(800),
+          iconBg: McColors.accentN(100),
           title: recentPayment.desc,
           subtitle: formatNaira(recentPayment.amount),
           time: relativeTime(recentPayment.createdAt),
@@ -981,8 +981,8 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
           clipBehavior: Clip.none,
           children: [
             ClipRRect(
-              borderRadius: BorderRadius.circular(ChRadii.card),
-              child: ChDataMedia(
+              borderRadius: BorderRadius.circular(McRadii.card),
+              child: McDataMedia(
                 dataUrl: imageDataUrl,
                 height: MediaQuery.sizeOf(context).height * 0.55,
                 fit: BoxFit.contain,
@@ -1001,7 +1001,7 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
                   padding: EdgeInsets.all(context.rs(6)),
                   child: Icon(
                     Icons.close_rounded,
-                    color: ChColors.text,
+                    color: McColors.text,
                     size: context.rs(20),
                   ),
                 ),
@@ -1041,8 +1041,8 @@ class _UtilityCard extends StatelessWidget {
       clipBehavior: Clip.antiAlias,
       decoration: BoxDecoration(
         color: cardBg,
-        borderRadius: BorderRadius.circular(ChRadii.card),
-        boxShadow: ChColors.cardShadow,
+        borderRadius: BorderRadius.circular(McRadii.card),
+        boxShadow: McColors.cardShadow,
       ),
       child: Stack(
         children: [
@@ -1081,10 +1081,10 @@ class _UtilityCard extends StatelessWidget {
                         children: [
                           Text(
                             title,
-                            style: ChTextStyles.body(
+                            style: McTextStyles.body(
                               fontSize: 13.5,
                               fontWeight: FontWeight.w600,
-                              color: ChColors.text
+                              color: McColors.text
                             ),
                           ),
                           SizedBox(height: context.rs(8)),
@@ -1107,12 +1107,12 @@ class _UtilityCard extends StatelessWidget {
                     alignment: Alignment.center,
                     padding: EdgeInsets.symmetric(vertical: context.rs(7)),
                     decoration: BoxDecoration(
-                      color: ChColors.accent2,
-                      borderRadius: BorderRadius.circular(ChRadii.button),
+                      color: McColors.accent2,
+                      borderRadius: BorderRadius.circular(McRadii.button),
                     ),
                     child: Text(
                       buttonLabel,
-                      style: ChTextStyles.body(
+                      style: McTextStyles.body(
                         fontSize: 11,
                         fontWeight: FontWeight.w600,
                         color: Colors.white,
@@ -1152,9 +1152,9 @@ class _StatTile extends StatelessWidget {
           vertical: context.rs(8),
         ),
         decoration: BoxDecoration(
-          color: ChColors.surface,
-          borderRadius: BorderRadius.circular(ChRadii.md),
-          boxShadow: ChColors.cardShadow,
+          color: McColors.surface,
+          borderRadius: BorderRadius.circular(McRadii.md),
+          boxShadow: McColors.cardShadow,
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
@@ -1163,13 +1163,13 @@ class _StatTile extends StatelessWidget {
               width: context.rs(40),
               height: context.rs(40),
               decoration: BoxDecoration(
-                color: ChColors.accent2N(100),
+                color: McColors.accent2N(100),
                 shape: BoxShape.circle,
               ),
               child: Icon(
                 icon,
                 size: context.rs(20),
-                color: ChColors.accent2N(700),
+                color: McColors.accent2N(700),
               ),
             ),
             SizedBox(height: context.rs(4)),
@@ -1178,7 +1178,7 @@ class _StatTile extends StatelessWidget {
               textAlign: TextAlign.center,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: ChTextStyles.body(fontSize: 10, color: ChColors.text),
+              style: McTextStyles.body(fontSize: 10, color: McColors.text),
             ),
             SizedBox(height: context.rs(2)),
             Text(
@@ -1186,10 +1186,10 @@ class _StatTile extends StatelessWidget {
               textAlign: TextAlign.center,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: ChTextStyles.body(
+              style: McTextStyles.body(
                 fontSize: 10.5,
                 fontWeight: FontWeight.w600,
-                color: ChColors.accent2N(700),
+                color: McColors.accent2N(700),
               ),
             ),
           ],
@@ -1225,7 +1225,7 @@ class _QuickAction extends StatelessWidget {
             height: context.rs(54),
             decoration: BoxDecoration(
               color: tint,
-              borderRadius: BorderRadius.circular(ChRadii.md),
+              borderRadius: BorderRadius.circular(McRadii.md),
             ),
             child: Icon(icon, size: context.rs(26), color: iconColor),
           ),
@@ -1235,10 +1235,10 @@ class _QuickAction extends StatelessWidget {
             textAlign: TextAlign.center,
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
-            style: ChTextStyles.body(
+            style: McTextStyles.body(
               fontSize: 10.5,
               fontWeight: FontWeight.w600,
-              color: ChColors.text,
+              color: McColors.text,
             ),
           ),
         ],
@@ -1275,7 +1275,7 @@ class _ActivityRow extends StatelessWidget {
       ),
       decoration: BoxDecoration(
         border: showBorder
-            ? const Border(bottom: BorderSide(color: ChColors.divider))
+            ? const Border(bottom: BorderSide(color: McColors.divider))
             : null,
       ),
       child: Row(
@@ -1293,16 +1293,16 @@ class _ActivityRow extends StatelessWidget {
               children: [
                 Text(
                   title,
-                  style: ChTextStyles.body(
+                  style: McTextStyles.body(
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
-                    color: ChColors.text,
+                    color: McColors.text,
                   ),
                 ),
                 SizedBox(height: context.rs(2)),
                 Text(
                   subtitle,
-                  style: ChTextStyles.body(fontSize: 10, color: ChColors.text),
+                  style: McTextStyles.body(fontSize: 10, color: McColors.text),
                 ),
               ],
             ),
@@ -1310,10 +1310,10 @@ class _ActivityRow extends StatelessWidget {
           SizedBox(width: context.rs(8)),
           Text(
             time,
-            style: ChTextStyles.body(fontSize: 10, color: ChColors.text),
+            style: McTextStyles.body(fontSize: 10, color: McColors.text),
           ),
           SizedBox(width: context.rs(4)),
-          Icon(Icons.chevron_right, size: context.rs(18), color: ChColors.text),
+          Icon(Icons.chevron_right, size: context.rs(18), color: McColors.text),
         ],
       ),
     );
@@ -1328,9 +1328,9 @@ class _SpotlightCard extends StatelessWidget {
   void _showDetails(BuildContext context) {
     showModalBottomSheet<void>(
       context: context,
-      backgroundColor: ChColors.surface,
+      backgroundColor: McColors.surface,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(ChRadii.card)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(McRadii.card)),
       ),
       builder: (sheetContext) => Padding(
         padding: EdgeInsets.fromLTRB(
@@ -1356,16 +1356,16 @@ class _SpotlightCard extends StatelessWidget {
                     children: [
                       Text(
                         spotlight.name,
-                        style: ChTextStyles.heading(fontSize: 17),
+                        style: McTextStyles.heading(fontSize: 17),
                       ),
                       SizedBox(height: sheetContext.rs(2)),
                       Text(
                         spotlight.isBusiness
                             ? 'Local business'
                             : 'Community spotlight',
-                        style: ChTextStyles.body(
+                        style: McTextStyles.body(
                           fontSize: 12,
-                          color: ChColors.text,
+                          color: McColors.text,
                         ),
                       ),
                     ],
@@ -1374,7 +1374,7 @@ class _SpotlightCard extends StatelessWidget {
               ],
             ),
             SizedBox(height: sheetContext.rs(16)),
-            Text(spotlight.description, style: ChTextStyles.body(fontSize: 14)),
+            Text(spotlight.description, style: McTextStyles.body(fontSize: 14)),
             if (spotlight.phone != null) ...[
               SizedBox(height: sheetContext.rs(14)),
               Row(
@@ -1382,15 +1382,15 @@ class _SpotlightCard extends StatelessWidget {
                   Icon(
                     Icons.call_outlined,
                     size: sheetContext.rs(16),
-                    color: ChColors.accent2N(700),
+                    color: McColors.accent2N(700),
                   ),
                   SizedBox(width: sheetContext.rs(8)),
                   Text(
                     spotlight.phone!,
-                    style: ChTextStyles.body(
+                    style: McTextStyles.body(
                       fontSize: 13.5,
                       fontWeight: FontWeight.w600,
-                      color: ChColors.accent2N(700),
+                      color: McColors.accent2N(700),
                     ),
                   ),
                 ],
@@ -1409,9 +1409,9 @@ class _SpotlightCard extends StatelessWidget {
       child: Container(
         padding: EdgeInsets.all(context.rs(14)),
         decoration: BoxDecoration(
-          color: ChColors.surface,
-          borderRadius: BorderRadius.circular(ChRadii.card),
-          boxShadow: ChColors.cardShadow,
+          color: McColors.surface,
+          borderRadius: BorderRadius.circular(McRadii.card),
+          boxShadow: McColors.cardShadow,
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -1422,15 +1422,15 @@ class _SpotlightCard extends StatelessWidget {
                 vertical: context.rs(3),
               ),
               decoration: BoxDecoration(
-                color: ChColors.accent2N(100),
-                borderRadius: BorderRadius.circular(ChRadii.pill),
+                color: McColors.accent2N(100),
+                borderRadius: BorderRadius.circular(McRadii.pill),
               ),
               child: Text(
                 spotlight.isBusiness ? 'BUSINESS' : 'SPOTLIGHT',
-                style: ChTextStyles.body(
+                style: McTextStyles.body(
                   fontSize: 9.5,
                   fontWeight: FontWeight.w700,
-                  color: ChColors.accent2N(800),
+                  color: McColors.accent2N(800),
                 ),
               ),
             ),
@@ -1441,7 +1441,7 @@ class _SpotlightCard extends StatelessWidget {
               spotlight.name,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: ChTextStyles.body(
+              style: McTextStyles.body(
                 fontSize: 13,
                 fontWeight: FontWeight.w700,
               ),
@@ -1451,7 +1451,7 @@ class _SpotlightCard extends StatelessWidget {
               spotlight.description,
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
-              style: ChTextStyles.body(fontSize: 11, color: ChColors.text),
+              style: McTextStyles.body(fontSize: 11, color: McColors.text),
             ),
           ],
         ),
@@ -1474,15 +1474,15 @@ class _SpotlightAvatar extends StatelessWidget {
         width: size,
         height: size,
         child: imageBase64 != null
-            ? ChDataMedia(dataUrl: imageBase64, height: size)
+            ? McDataMedia(dataUrl: imageBase64, height: size)
             : Container(
-                color: ChColors.accent2N(200),
+                color: McColors.accent2N(200),
                 child: Icon(
                   spotlight.isBusiness
                       ? Icons.storefront_rounded
                       : Icons.person_rounded,
                   size: size * 0.5,
-                  color: ChColors.accent2N(800),
+                  color: McColors.accent2N(800),
                 ),
               ),
       ),
@@ -1508,9 +1508,9 @@ class _PledgeRow extends StatelessWidget {
               child: Text(
                 pledge.projectTitle,
                 overflow: TextOverflow.ellipsis,
-                style: ChTextStyles.body(
+                style: McTextStyles.body(
                   fontSize: 12,
-                  color: ChColors.text,
+                  color: McColors.text,
                   fontWeight: FontWeight.w500,
                 ),
               ),
@@ -1518,10 +1518,10 @@ class _PledgeRow extends StatelessWidget {
             SizedBox(width: context.rs(8)),
             Text(
               formatNaira(pledge.amount),
-              style: ChTextStyles.body(
+              style: McTextStyles.body(
                 fontSize: 12,
                 fontWeight: FontWeight.w600,
-                color: ChColors.accent2N(700),
+                color: McColors.accent2N(700),
               ),
             ),
           ],

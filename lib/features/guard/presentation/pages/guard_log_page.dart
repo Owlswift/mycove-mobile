@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
-import '../../../../core/theme/ch_colors.dart';
-import '../../../../core/theme/ch_spacing.dart';
-import '../../../../core/theme/ch_text_styles.dart';
+import '../../../../core/theme/mc_colors.dart';
+import '../../../../core/theme/mc_spacing.dart';
+import '../../../../core/theme/mc_text_styles.dart';
 import '../../../../data/models/access_log_entry.dart';
 import '../../../../state/app_notifier.dart';
 
@@ -37,21 +37,21 @@ class GuardLogPage extends ConsumerWidget {
               padding: const EdgeInsets.only(top: 12, bottom: 8),
               child: Text(
                 _dayLabel(day),
-                style: ChTextStyles.body(fontSize: 12, fontWeight: FontWeight.w700, color: ChColors.bodyText),
+                style: McTextStyles.body(fontSize: 12, fontWeight: FontWeight.w700, color: McColors.bodyText),
               ),
             ),
             for (final log in byDay[day]!)
               Container(
                 margin: const EdgeInsets.only(bottom: 10),
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                decoration: BoxDecoration(color: ChColors.surface, borderRadius: BorderRadius.circular(ChRadii.card)),
+                decoration: BoxDecoration(color: McColors.surface, borderRadius: BorderRadius.circular(McRadii.card)),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(log.visitor, style: ChTextStyles.body(fontSize: 14, fontWeight: FontWeight.w600)),
+                    Text(log.visitor, style: McTextStyles.body(fontSize: 14, fontWeight: FontWeight.w600)),
                     const SizedBox(height: 6),
-                    Text('In: ${log.entry}', style: ChTextStyles.body(fontSize: 12.5, color: ChColors.bodyText)),
-                    Text('Out: ${log.exit ?? 'Still on site'}', style: ChTextStyles.body(fontSize: 12.5, color: ChColors.bodyText)),
+                    Text('In: ${log.entry}', style: McTextStyles.body(fontSize: 12.5, color: McColors.bodyText)),
+                    Text('Out: ${log.exit ?? 'Still on site'}', style: McTextStyles.body(fontSize: 12.5, color: McColors.bodyText)),
                   ],
                 ),
               ),

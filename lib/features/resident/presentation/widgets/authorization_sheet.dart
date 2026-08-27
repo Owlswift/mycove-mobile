@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../../core/theme/ch_colors.dart';
-import '../../../../core/theme/ch_responsive.dart';
-import '../../../../core/theme/ch_spacing.dart';
-import '../../../../core/theme/ch_text_styles.dart';
-import '../../../../core/widgets/ch_button.dart';
-import '../../../../core/widgets/ch_pin_boxes.dart';
+import '../../../../core/theme/mc_colors.dart';
+import '../../../../core/theme/mc_responsive.dart';
+import '../../../../core/theme/mc_spacing.dart';
+import '../../../../core/theme/mc_text_styles.dart';
+import '../../../../core/widgets/mc_button.dart';
+import '../../../../core/widgets/mc_pin_boxes.dart';
 import '../../../../state/app_notifier.dart';
 
 const _pinLength = 4;
@@ -121,8 +121,8 @@ class _AuthorizationSheetState extends ConsumerState<_AuthorizationSheet> {
         margin: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
         padding: EdgeInsets.fromLTRB(context.rs(24), context.rs(24), context.rs(24), context.rs(28)),
         decoration: BoxDecoration(
-          color: ChColors.bg,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(ChRadii.card)),
+          color: McColors.bg,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(McRadii.card)),
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -130,49 +130,49 @@ class _AuthorizationSheetState extends ConsumerState<_AuthorizationSheet> {
             Container(
               width: 40,
               height: 4,
-              decoration: BoxDecoration(color: ChColors.divider, borderRadius: BorderRadius.circular(2)),
+              decoration: BoxDecoration(color: McColors.divider, borderRadius: BorderRadius.circular(2)),
             ),
             SizedBox(height: context.rs(20)),
             Icon(
               hasBiometric ? Icons.fingerprint : Icons.pin_outlined,
               size: context.rs(40),
-              color: ChColors.accent2,
+              color: McColors.accent2,
             ),
             SizedBox(height: context.rs(12)),
             Text(
               settingUpPin ? 'Set up a transaction PIN' : 'Confirm this purchase',
-              style: ChTextStyles.heading(fontSize: 18),
+              style: McTextStyles.heading(fontSize: 18),
               textAlign: TextAlign.center,
             ),
             SizedBox(height: context.rs(6)),
             Text(
               _subtitle(hasBiometric: hasBiometric, hasPin: hasPin, settingUpPin: settingUpPin),
-              style: ChTextStyles.body(fontSize: 13, color: ChColors.bodyText),
+              style: McTextStyles.body(fontSize: 13, color: McColors.bodyText),
               textAlign: TextAlign.center,
             ),
             if (hasBiometric) ...[
               SizedBox(height: context.rs(20)),
-              ChButton(label: 'Try Again', onPressed: _busy ? null : _authenticateBiometric, isLoading: _busy),
+              McButton(label: 'Try Again', onPressed: _busy ? null : _authenticateBiometric, isLoading: _busy),
             ],
             if (hasPin) ...[
               if (hasBiometric) ...[
                 SizedBox(height: context.rs(20)),
                 Row(
                   children: [
-                    Expanded(child: Divider(color: ChColors.divider)),
+                    Expanded(child: Divider(color: McColors.divider)),
                     Padding(
                       padding: EdgeInsets.symmetric(horizontal: context.rs(10)),
                       child: Text(
                         'or enter your PIN',
-                        style: ChTextStyles.body(fontSize: 12, color: ChColors.bodyText),
+                        style: McTextStyles.body(fontSize: 12, color: McColors.bodyText),
                       ),
                     ),
-                    Expanded(child: Divider(color: ChColors.divider)),
+                    Expanded(child: Divider(color: McColors.divider)),
                   ],
                 ),
               ],
               SizedBox(height: context.rs(16)),
-              ChPinBoxes(
+              McPinBoxes(
                 length: _pinLength,
                 value: _pin,
                 obscureText: true,
@@ -184,18 +184,18 @@ class _AuthorizationSheetState extends ConsumerState<_AuthorizationSheet> {
             ],
             if (settingUpPin) ...[
               SizedBox(height: context.rs(20)),
-              Text('Enter PIN', style: ChTextStyles.body(fontSize: 12, color: ChColors.bodyText)),
+              Text('Enter PIN', style: McTextStyles.body(fontSize: 12, color: McColors.bodyText)),
               SizedBox(height: context.rs(8)),
-              ChPinBoxes(
+              McPinBoxes(
                 length: _pinLength,
                 value: _pin,
                 obscureText: true,
                 onChanged: (v) => setState(() => _pin = v),
               ),
               SizedBox(height: context.rs(16)),
-              Text('Confirm PIN', style: ChTextStyles.body(fontSize: 12, color: ChColors.bodyText)),
+              Text('Confirm PIN', style: McTextStyles.body(fontSize: 12, color: McColors.bodyText)),
               SizedBox(height: context.rs(8)),
-              ChPinBoxes(
+              McPinBoxes(
                 length: _pinLength,
                 value: _confirmPin,
                 obscureText: true,
@@ -207,12 +207,12 @@ class _AuthorizationSheetState extends ConsumerState<_AuthorizationSheet> {
             ],
             if (_error != null) ...[
               SizedBox(height: context.rs(14)),
-              Text(_error!, style: ChTextStyles.body(fontSize: 13, color: ChColors.danger), textAlign: TextAlign.center),
+              Text(_error!, style: McTextStyles.body(fontSize: 13, color: McColors.danger), textAlign: TextAlign.center),
             ],
             SizedBox(height: context.rs(16)),
             TextButton(
               onPressed: _busy ? null : () => Navigator.pop(context, false),
-              child: Text('Cancel', style: ChTextStyles.body(fontSize: 14, color: ChColors.bodyText)),
+              child: Text('Cancel', style: McTextStyles.body(fontSize: 14, color: McColors.bodyText)),
             ),
           ],
         ),

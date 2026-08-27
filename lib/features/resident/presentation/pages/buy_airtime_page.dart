@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../../core/theme/ch_colors.dart';
-import '../../../../core/theme/ch_responsive.dart';
-import '../../../../core/theme/ch_spacing.dart';
-import '../../../../core/theme/ch_text_styles.dart';
-import '../../../../core/widgets/ch_button.dart';
-import '../../../../core/widgets/ch_generic_header.dart';
+import '../../../../core/theme/mc_colors.dart';
+import '../../../../core/theme/mc_responsive.dart';
+import '../../../../core/theme/mc_spacing.dart';
+import '../../../../core/theme/mc_text_styles.dart';
+import '../../../../core/widgets/mc_button.dart';
+import '../../../../core/widgets/mc_generic_header.dart';
 import '../../../../state/app_notifier.dart';
 
 const _networks = [
@@ -58,7 +58,7 @@ class _BuyAirtimePageState extends ConsumerState<BuyAirtimePage> {
 
     return Column(
       children: [
-        const ChGenericHeader(title: 'Buy Airtime'),
+        const McGenericHeader(title: 'Buy Airtime'),
         Expanded(
           child: SingleChildScrollView(
             padding: EdgeInsets.fromLTRB(
@@ -72,7 +72,7 @@ class _BuyAirtimePageState extends ConsumerState<BuyAirtimePage> {
               children: [
                 Text(
                   'Network',
-                  style: ChTextStyles.body(fontSize: 12, color: ChColors.bodyText),
+                  style: McTextStyles.body(fontSize: 12, color: McColors.bodyText),
                 ),
                 SizedBox(height: context.rs(8)),
                 Wrap(
@@ -90,7 +90,7 @@ class _BuyAirtimePageState extends ConsumerState<BuyAirtimePage> {
                 SizedBox(height: context.rs(16)),
                 Text(
                   'Phone Number',
-                  style: ChTextStyles.body(fontSize: 12, color: ChColors.bodyText),
+                  style: McTextStyles.body(fontSize: 12, color: McColors.bodyText),
                 ),
                 SizedBox(height: context.rs(5)),
                 TextField(
@@ -102,7 +102,7 @@ class _BuyAirtimePageState extends ConsumerState<BuyAirtimePage> {
                 SizedBox(height: context.rs(16)),
                 Text(
                   'Amount',
-                  style: ChTextStyles.body(fontSize: 12, color: ChColors.bodyText),
+                  style: McTextStyles.body(fontSize: 12, color: McColors.bodyText),
                 ),
                 SizedBox(height: context.rs(5)),
                 TextField(
@@ -128,11 +128,11 @@ class _BuyAirtimePageState extends ConsumerState<BuyAirtimePage> {
                 if (s.utilityError.isNotEmpty) ...[
                   Text(
                     s.utilityError,
-                    style: ChTextStyles.body(fontSize: 13, color: ChColors.danger),
+                    style: McTextStyles.body(fontSize: 13, color: McColors.danger),
                   ),
                   SizedBox(height: context.rs(12)),
                 ],
-                ChButton(
+                McButton(
                   label: 'Buy Airtime',
                   isLoading: s.utilityLoading,
                   onPressed: s.utilityLoading
@@ -165,16 +165,16 @@ class _Chip extends StatelessWidget {
           vertical: context.rs(8),
         ),
         decoration: BoxDecoration(
-          color: selected ? ChColors.accent2 : null,
-          border: selected ? null : Border.all(color: ChColors.divider),
-          borderRadius: BorderRadius.circular(ChRadii.pill),
+          color: selected ? McColors.accent2 : null,
+          border: selected ? null : Border.all(color: McColors.divider),
+          borderRadius: BorderRadius.circular(McRadii.pill),
         ),
         child: Text(
           label,
-          style: ChTextStyles.body(
+          style: McTextStyles.body(
             fontSize: 13,
             fontWeight: FontWeight.w600,
-            color: selected ? Colors.white : ChColors.text,
+            color: selected ? Colors.white : McColors.text,
           ),
         ),
       ),

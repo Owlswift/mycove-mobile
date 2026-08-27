@@ -3,12 +3,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:share_plus/share_plus.dart';
 
-import '../../../../core/theme/ch_colors.dart';
-import '../../../../core/theme/ch_responsive.dart';
-import '../../../../core/theme/ch_spacing.dart';
-import '../../../../core/theme/ch_text_styles.dart';
-import '../../../../core/widgets/ch_button.dart';
-import '../../../../core/widgets/ch_generic_header.dart';
+import '../../../../core/theme/mc_colors.dart';
+import '../../../../core/theme/mc_responsive.dart';
+import '../../../../core/theme/mc_spacing.dart';
+import '../../../../core/theme/mc_text_styles.dart';
+import '../../../../core/widgets/mc_button.dart';
+import '../../../../core/widgets/mc_generic_header.dart';
 import '../../../../data/models/tts_voice_option.dart';
 import '../../../../state/app_notifier.dart';
 
@@ -40,7 +40,7 @@ class _VoiceSettingsPageState extends ConsumerState<VoiceSettingsPage> {
 
     return Column(
       children: [
-        ChGenericHeader(
+        McGenericHeader(
           title: 'Assistant Voice',
           centerTitle: true,
           onBack: () => context.pop(),
@@ -56,7 +56,7 @@ class _VoiceSettingsPageState extends ConsumerState<VoiceSettingsPage> {
             alignment: Alignment.centerLeft,
             child: Text(
               'Tap a voice to hear it and use it for the assistant.',
-              style: ChTextStyles.body(fontSize: 13, color: ChColors.bodyText),
+              style: McTextStyles.body(fontSize: 13, color: McColors.bodyText),
             ),
           ),
         ),
@@ -79,9 +79,9 @@ class _VoiceSettingsPageState extends ConsumerState<VoiceSettingsPage> {
                               child: Text(
                                 "Couldn't find any voices on this device.",
                                 textAlign: TextAlign.center,
-                                style: ChTextStyles.body(
+                                style: McTextStyles.body(
                                   fontSize: 13.5,
-                                  color: ChColors.bodyText,
+                                  color: McColors.bodyText,
                                 ),
                               ),
                             ),
@@ -134,25 +134,25 @@ class _VoiceLogsSection extends ConsumerWidget {
     return Container(
       padding: EdgeInsets.all(context.rs(14)),
       decoration: BoxDecoration(
-        color: ChColors.surfaceSunken,
-        borderRadius: BorderRadius.circular(ChRadii.md),
+        color: McColors.surfaceSunken,
+        borderRadius: BorderRadius.circular(McRadii.md),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             'VOICE LOGS (DIAGNOSTICS)',
-            style: ChTextStyles.body(
+            style: McTextStyles.body(
               fontSize: 11,
               fontWeight: FontWeight.w700,
-              color: ChColors.bodyText,
+              color: McColors.bodyText,
             ).copyWith(letterSpacing: 1),
           ),
           SizedBox(height: context.rs(10)),
           Row(
             children: [
               Expanded(
-                child: ChButton(
+                child: McButton(
                   label: 'Share',
                   expand: false,
                   variant: ChButtonVariant.secondary,
@@ -174,7 +174,7 @@ class _VoiceLogsSection extends ConsumerWidget {
               ),
               SizedBox(width: context.rs(10)),
               Expanded(
-                child: ChButton(
+                child: McButton(
                   label: 'Upload',
                   expand: false,
                   onPressed: () async {
@@ -219,17 +219,17 @@ class _VoiceTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return InkWell(
-      borderRadius: BorderRadius.circular(ChRadii.md),
+      borderRadius: BorderRadius.circular(McRadii.md),
       onTap: onTap,
       child: Container(
         padding: EdgeInsets.all(context.rs(14)),
         decoration: BoxDecoration(
-          color: selected ? ChColors.accent2N(100) : ChColors.surface,
-          borderRadius: BorderRadius.circular(ChRadii.md),
+          color: selected ? McColors.accent2N(100) : McColors.surface,
+          borderRadius: BorderRadius.circular(McRadii.md),
           border: Border.all(
-            color: selected ? ChColors.accent2 : Colors.transparent,
+            color: selected ? McColors.accent2 : Colors.transparent,
           ),
-          boxShadow: selected ? null : ChColors.cardShadow,
+          boxShadow: selected ? null : McColors.cardShadow,
         ),
         child: Row(
           children: [
@@ -239,18 +239,18 @@ class _VoiceTile extends StatelessWidget {
                 children: [
                   Text(
                     voice.name,
-                    style: ChTextStyles.body(
+                    style: McTextStyles.body(
                       fontSize: 14,
                       fontWeight: FontWeight.w700,
-                      color: ChColors.text,
+                      color: McColors.text,
                     ),
                   ),
                   SizedBox(height: context.rs(2)),
                   Text(
                     voice.locale,
-                    style: ChTextStyles.body(
+                    style: McTextStyles.body(
                       fontSize: 12,
-                      color: ChColors.bodyText,
+                      color: McColors.bodyText,
                     ),
                   ),
                 ],
@@ -259,7 +259,7 @@ class _VoiceTile extends StatelessWidget {
             if (selected)
               Icon(
                 Icons.check_circle_rounded,
-                color: ChColors.accent2,
+                color: McColors.accent2,
                 size: context.rs(20),
               ),
           ],

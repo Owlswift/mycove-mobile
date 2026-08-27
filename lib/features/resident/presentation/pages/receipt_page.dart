@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../../core/theme/ch_colors.dart';
-import '../../../../core/theme/ch_spacing.dart';
-import '../../../../core/theme/ch_text_styles.dart';
-import '../../../../core/widgets/ch_generic_header.dart';
+import '../../../../core/theme/mc_colors.dart';
+import '../../../../core/theme/mc_spacing.dart';
+import '../../../../core/theme/mc_text_styles.dart';
+import '../../../../core/widgets/mc_generic_header.dart';
 import '../../../../state/app_notifier.dart';
 
 class ReceiptPage extends ConsumerWidget {
@@ -16,17 +16,17 @@ class ReceiptPage extends ConsumerWidget {
 
     return Column(
       children: [
-        const ChGenericHeader(title: 'Receipt'),
+        const McGenericHeader(title: 'Receipt'),
         Expanded(
           child: Padding(
             padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
             child: Container(
               padding: const EdgeInsets.all(22),
-              decoration: BoxDecoration(color: ChColors.surface, borderRadius: BorderRadius.circular(ChRadii.card)),
+              decoration: BoxDecoration(color: McColors.surface, borderRadius: BorderRadius.circular(McRadii.card)),
               child: Column(
                 children: [
-                  Text('Payment Receipt', style: ChTextStyles.heading(fontSize: 17)),
-                  Text('Ref: ${s.receiptRef}', style: ChTextStyles.body(fontSize: 12, color: ChColors.bodyText)),
+                  Text('Payment Receipt', style: McTextStyles.heading(fontSize: 17)),
+                  Text('Ref: ${s.receiptRef}', style: McTextStyles.body(fontSize: 12, color: McColors.bodyText)),
                   const SizedBox(height: 18),
                   _row('Resident', s.currentUser?.fullName ?? ''),
                   _row('House', s.currentUser?.house ?? ''),
@@ -51,18 +51,18 @@ class ReceiptPage extends ConsumerWidget {
         children: [
           Text(
             label,
-            style: ChTextStyles.body(
+            style: McTextStyles.body(
               fontSize: bold ? 15 : 13,
               fontWeight: bold ? FontWeight.w700 : FontWeight.w400,
-              color: bold ? ChColors.text : ChColors.bodyText,
+              color: bold ? McColors.text : McColors.bodyText,
             ),
           ),
           Text(
             value,
-            style: ChTextStyles.body(
+            style: McTextStyles.body(
               fontSize: bold ? 15 : 13,
               fontWeight: FontWeight.w700,
-              color: bold ? ChColors.accent2N(700) : ChColors.text,
+              color: bold ? McColors.accent2N(700) : McColors.text,
             ),
           ),
         ],

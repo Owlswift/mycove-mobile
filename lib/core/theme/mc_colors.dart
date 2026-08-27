@@ -8,8 +8,8 @@ import 'package:flutter/material.dart';
 /// `primary`/`gold` everywhere) since they're referenced pervasively across
 /// the app — `accent2` now carries the green brand role, `accent` the gold
 /// role.
-class ChColors {
-  ChColors._();
+class McColors {
+  McColors._();
 
   static const Color bg = Color(0xfffaf7f3);
   static const Color surface = Color(0xffffffff);
@@ -35,7 +35,7 @@ class ChColors {
   ); // headings — lighter than [text], reads less harshly at large/bold sizes
   static const Color bodyText = Color(
     0xff767b83,
-  ); // default color for non-heading text — see ChTextStyles.body
+  ); // default color for non-heading text — see McTextStyles.body
   static const Color accent = Color(0xffcc9c3e); // gold
   static const Color accent2 = Color(0xff0e4a2a); // deep green (brand primary)
   static const Color divider = Color(0xffe8e3d6);

@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 
-import '../theme/ch_colors.dart';
-import '../theme/ch_text_styles.dart';
+import '../theme/mc_colors.dart';
+import '../theme/mc_text_styles.dart';
 
-class ChTextField extends StatefulWidget {
-  const ChTextField({
+class McTextField extends StatefulWidget {
+  const McTextField({
     super.key,
     this.label,
     required this.value,
@@ -30,14 +30,14 @@ class ChTextField extends StatefulWidget {
   final double fontSize;
 
   @override
-  State<ChTextField> createState() => _ChTextFieldState();
+  State<McTextField> createState() => _ChTextFieldState();
 }
 
-class _ChTextFieldState extends State<ChTextField> {
+class _ChTextFieldState extends State<McTextField> {
   late final TextEditingController _controller = TextEditingController(text: widget.value);
 
   @override
-  void didUpdateWidget(covariant ChTextField oldWidget) {
+  void didUpdateWidget(covariant McTextField oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (widget.value != _controller.text) {
       _controller.value = TextEditingValue(
@@ -61,7 +61,7 @@ class _ChTextFieldState extends State<ChTextField> {
         if (widget.label != null) ...[
           Text(
             widget.label!,
-            style: ChTextStyles.body(fontSize: 12, color: ChColors.text.withValues(alpha: 0.7)),
+            style: McTextStyles.body(fontSize: 12, color: McColors.text.withValues(alpha: 0.7)),
           ),
           const SizedBox(height: 5),
         ],
@@ -72,7 +72,7 @@ class _ChTextFieldState extends State<ChTextField> {
           keyboardType: widget.keyboardType,
           maxLength: widget.maxLength,
           textAlign: widget.textAlign,
-          style: ChTextStyles.body(fontSize: widget.fontSize).copyWith(letterSpacing: widget.letterSpacing),
+          style: McTextStyles.body(fontSize: widget.fontSize).copyWith(letterSpacing: widget.letterSpacing),
           decoration: InputDecoration(hintText: widget.placeholder, counterText: ''),
         ),
       ],

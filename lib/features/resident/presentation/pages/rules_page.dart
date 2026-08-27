@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../../core/theme/ch_colors.dart';
-import '../../../../core/theme/ch_text_styles.dart';
-import '../../../../core/widgets/ch_generic_header.dart';
+import '../../../../core/theme/mc_colors.dart';
+import '../../../../core/theme/mc_text_styles.dart';
+import '../../../../core/widgets/mc_generic_header.dart';
 import '../../../../state/app_notifier.dart';
 
 class RulesPage extends ConsumerWidget {
@@ -14,7 +14,7 @@ class RulesPage extends ConsumerWidget {
     final s = ref.watch(appStateProvider);
     return Column(
       children: [
-        const ChGenericHeader(title: 'Rules & Regulations'),
+        const McGenericHeader(title: 'Rules & Regulations'),
         Expanded(
           child: RefreshIndicator(
             onRefresh: ref.read(appStateProvider.notifier).refreshResident,
@@ -34,9 +34,9 @@ class RulesPage extends ConsumerWidget {
                             width: 8,
                             height: 8,
                             margin: const EdgeInsets.only(right: 10),
-                            decoration: const BoxDecoration(color: ChColors.accent2, shape: BoxShape.circle),
+                            decoration: const BoxDecoration(color: McColors.accent2, shape: BoxShape.circle),
                           ),
-                          Text(section.title, style: ChTextStyles.heading(fontSize: 17)),
+                          Text(section.title, style: McTextStyles.heading(fontSize: 17)),
                         ],
                       ),
                       const SizedBox(height: 8),
@@ -50,9 +50,9 @@ class RulesPage extends ConsumerWidget {
                                 width: 5,
                                 height: 5,
                                 margin: const EdgeInsets.only(top: 8, right: 8),
-                                decoration: const BoxDecoration(color: ChColors.accent2, shape: BoxShape.circle),
+                                decoration: const BoxDecoration(color: McColors.accent2, shape: BoxShape.circle),
                               ),
-                              Expanded(child: Text(item, style: ChTextStyles.body(fontSize: 13.5))),
+                              Expanded(child: Text(item, style: McTextStyles.body(fontSize: 13.5))),
                             ],
                           ),
                         ),

@@ -3,26 +3,26 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-import '../theme/ch_colors.dart';
-import '../theme/ch_responsive.dart';
-import '../theme/ch_spacing.dart';
-import '../theme/ch_text_styles.dart';
+import '../theme/mc_colors.dart';
+import '../theme/mc_responsive.dart';
+import '../theme/mc_spacing.dart';
+import '../theme/mc_text_styles.dart';
 
 /// Six single-digit boxes with auto-advance/auto-retreat focus, kept in
 /// sync with a single [value] string — shared by every "enter the 6-digit
 /// code we just sent you" screen (forgot-password OTP, household-invite
 /// acceptance) rather than each keeping its own copy.
-class ChOtpBoxes extends StatefulWidget {
-  const ChOtpBoxes({super.key, required this.value, required this.onChanged});
+class McOtpBoxes extends StatefulWidget {
+  const McOtpBoxes({super.key, required this.value, required this.onChanged});
 
   final String value;
   final ValueChanged<String> onChanged;
 
   @override
-  State<ChOtpBoxes> createState() => _ChOtpBoxesState();
+  State<McOtpBoxes> createState() => _ChOtpBoxesState();
 }
 
-class _ChOtpBoxesState extends State<ChOtpBoxes> {
+class _ChOtpBoxesState extends State<McOtpBoxes> {
   static const _length = 6;
   late final List<TextEditingController> _controllers = List.generate(
     _length,
@@ -31,7 +31,7 @@ class _ChOtpBoxesState extends State<ChOtpBoxes> {
   late final List<FocusNode> _focusNodes = List.generate(_length, (_) => FocusNode());
 
   @override
-  void didUpdateWidget(covariant ChOtpBoxes oldWidget) {
+  void didUpdateWidget(covariant McOtpBoxes oldWidget) {
     super.didUpdateWidget(oldWidget);
     final current = _controllers.map((c) => c.text).join();
     if (widget.value != current) {
@@ -123,9 +123,9 @@ class _OtpBox extends StatelessWidget {
             alignment: Alignment.center,
             decoration: BoxDecoration(
               color: const Color(0xfffdfbf9),
-              borderRadius: BorderRadius.circular(ChRadii.button),
+              borderRadius: BorderRadius.circular(McRadii.button),
               border: Border.all(
-                color: focusNode.hasFocus ? ChColors.accent2 : ChColors.neutralN(300),
+                color: focusNode.hasFocus ? McColors.accent2 : McColors.neutralN(300),
                 width: focusNode.hasFocus ? 2 : 1,
               ),
             ),
@@ -138,12 +138,12 @@ class _OtpBox extends StatelessWidget {
             keyboardType: TextInputType.number,
             textAlign: TextAlign.center,
             maxLength: 1,
-            style: ChTextStyles.heading(fontSize: 20),
+            style: McTextStyles.heading(fontSize: 20),
             inputFormatters: [FilteringTextInputFormatter.digitsOnly],
             decoration: const InputDecoration(
               counterText: '',
               // The global InputDecorationTheme sets a visible focusedBorder
-              // (see ch_theme.dart) — that takes precedence over the generic
+              // (see mc_theme.dart) — that takes precedence over the generic
               // `border` below once a box is focused, unless every specific
               // border state is also nulled out here. Left as just `border`,
               // each box grew a second green outline hugging the digit,
@@ -164,17 +164,17 @@ class _OtpBox extends StatelessWidget {
 }
 
 /// "Didn't receive the code? Resend in 00:45" — shared 45-second cooldown
-/// countdown between the same set of OTP screens as [ChOtpBoxes].
-class ChResendRow extends StatefulWidget {
-  const ChResendRow({super.key, required this.onResend});
+/// countdown between the same set of OTP screens as [McOtpBoxes].
+class McResendRow extends StatefulWidget {
+  const McResendRow({super.key, required this.onResend});
 
   final VoidCallback onResend;
 
   @override
-  State<ChResendRow> createState() => _ChResendRowState();
+  State<McResendRow> createState() => _ChResendRowState();
 }
 
-class _ChResendRowState extends State<ChResendRow> {
+class _ChResendRowState extends State<McResendRow> {
   static const _cooldown = 45;
   int _secondsLeft = _cooldown;
   Timer? _timer;
@@ -215,19 +215,19 @@ class _ChResendRowState extends State<ChResendRow> {
       final label = _secondsLeft.toString().padLeft(2, '0');
       return Text(
         "Didn't receive the code? Resend in 00:$label",
-        style: ChTextStyles.body(fontSize: 13, color: ChColors.text),
+        style: McTextStyles.body(fontSize: 13, color: McColors.text),
       );
     }
     return GestureDetector(
       onTap: _resend,
       child: RichText(
         text: TextSpan(
-          style: ChTextStyles.body(fontSize: 13, color: ChColors.text),
+          style: McTextStyles.body(fontSize: 13, color: McColors.text),
           children: [
             const TextSpan(text: "Didn't receive the code? "),
             TextSpan(
               text: 'Resend',
-              style: ChTextStyles.body(fontSize: 13, fontWeight: FontWeight.w700, color: ChColors.accent2),
+              style: McTextStyles.body(fontSize: 13, fontWeight: FontWeight.w700, color: McColors.accent2),
             ),
           ],
         ),

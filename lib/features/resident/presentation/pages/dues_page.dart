@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../../core/theme/ch_colors.dart';
-import '../../../../core/theme/ch_responsive.dart';
-import '../../../../core/theme/ch_spacing.dart';
-import '../../../../core/theme/ch_text_styles.dart';
-import '../../../../core/widgets/ch_generic_header.dart';
+import '../../../../core/theme/mc_colors.dart';
+import '../../../../core/theme/mc_responsive.dart';
+import '../../../../core/theme/mc_spacing.dart';
+import '../../../../core/theme/mc_text_styles.dart';
+import '../../../../core/widgets/mc_generic_header.dart';
 import '../../../../data/models/dues_entry.dart';
 import '../../../../data/models/levy.dart';
 import '../../../../state/app_notifier.dart';
@@ -25,13 +25,13 @@ class DuesPage extends ConsumerWidget {
     Future<void> pay(String levyId) async {
       final error = await notifier.payLevy(levyId);
       if (error != null && context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(error, style: TextStyle(color: ChColors.text))));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(error, style: TextStyle(color: McColors.text))));
       }
     }
 
     return Column(
       children: [
-        const ChGenericHeader(title: 'Dues & Payments', showBack: false),
+        const McGenericHeader(title: 'Dues & Payments', showBack: false),
         Expanded(
           child: RefreshIndicator(
             onRefresh: notifier.refreshResident,
@@ -47,9 +47,9 @@ class DuesPage extends ConsumerWidget {
                 width: double.infinity,
                 padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(ChRadii.card),
+                  borderRadius: BorderRadius.circular(McRadii.card),
                   gradient: LinearGradient(
-                    colors: [ChColors.accent2, ChColors.accent2N(900)],
+                    colors: [McColors.accent2, McColors.accent2N(900)],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                   ),
@@ -58,10 +58,10 @@ class DuesPage extends ConsumerWidget {
                   children: [
                     Text(
                       duesLiable ? 'Outstanding balance' : 'Household outstanding balance',
-                      style: ChTextStyles.body(fontSize: 13, color: Colors.white.withValues(alpha: 0.8)),
+                      style: McTextStyles.body(fontSize: 13, color: Colors.white.withValues(alpha: 0.8)),
                     ),
                     const SizedBox(height: 6),
-                    Text(s.duesBalanceLabel, style: ChTextStyles.heading(fontSize: 30, color: Colors.white)),
+                    Text(s.duesBalanceLabel, style: McTextStyles.heading(fontSize: 30, color: Colors.white)),
                     const SizedBox(height: 16),
                     if (hasBalance && duesLiable)
                       GestureDetector(
@@ -71,17 +71,17 @@ class DuesPage extends ConsumerWidget {
                         },
                         child: Container(
                           padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 12),
-                          decoration: BoxDecoration(color: ChColors.accent, borderRadius: BorderRadius.circular(ChRadii.button)),
+                          decoration: BoxDecoration(color: McColors.accent, borderRadius: BorderRadius.circular(McRadii.button)),
                           child: Text(
                             'Pay Now',
-                            style: ChTextStyles.body(fontSize: 14, fontWeight: FontWeight.w700, color: ChColors.accentN(900)),
+                            style: McTextStyles.body(fontSize: 14, fontWeight: FontWeight.w700, color: McColors.accentN(900)),
                           ),
                         ),
                       )
                     else if (!hasBalance)
                       Text(
                         '✓ Fully paid up',
-                        style: ChTextStyles.body(fontSize: 14, fontWeight: FontWeight.w600, color: Colors.white),
+                        style: McTextStyles.body(fontSize: 14, fontWeight: FontWeight.w600, color: Colors.white),
                       ),
                   ],
                 ),
@@ -89,14 +89,14 @@ class DuesPage extends ConsumerWidget {
               const SizedBox(height: 18),
               Text(
                 'PAYMENT HISTORY',
-                style: ChTextStyles.body(fontSize: 11, fontWeight: FontWeight.w700, color: ChColors.bodyText)
+                style: McTextStyles.body(fontSize: 11, fontWeight: FontWeight.w700, color: McColors.bodyText)
                     .copyWith(letterSpacing: 1),
               ),
               const SizedBox(height: 10),
               for (final h in s.duesHistory)
                 Container(
                   padding: const EdgeInsets.symmetric(vertical: 12),
-                  decoration: const BoxDecoration(border: Border(bottom: BorderSide(color: ChColors.divider))),
+                  decoration: const BoxDecoration(border: Border(bottom: BorderSide(color: McColors.divider))),
                   child: Row(
                     children: [
                       Expanded(
@@ -106,19 +106,19 @@ class DuesPage extends ConsumerWidget {
                                                         Text(
                               h.desc,
                               overflow: TextOverflow.ellipsis,
-                              style: ChTextStyles.body(fontSize: 14, fontWeight: FontWeight.w600, color: ChColors.text),
+                              style: McTextStyles.body(fontSize: 14, fontWeight: FontWeight.w600, color: McColors.text),
                             ),
-                            Text(h.date, style: ChTextStyles.body(fontSize: 12, color: ChColors.bodyText)),
+                            Text(h.date, style: McTextStyles.body(fontSize: 12, color: McColors.bodyText)),
                           ],
                         ),
                       ),
                       const SizedBox(width: 8),
                       Text(
                         '${h.type == DuesEntryType.payment ? '+ ' : '- '}${formatNaira(h.amount)}',
-                        style: ChTextStyles.body(
+                        style: McTextStyles.body(
                           fontSize: 14,
                           fontWeight: FontWeight.w700,
-                          color: h.type == DuesEntryType.payment ? ChColors.accent2N(700) : ChColors.text,
+                          color: h.type == DuesEntryType.payment ? McColors.accent2N(700) : McColors.text,
                         ),
                       ),
                     ],
@@ -127,7 +127,7 @@ class DuesPage extends ConsumerWidget {
               const SizedBox(height: 18),
               Text(
                 'LEVIES',
-                style: ChTextStyles.body(fontSize: 11, fontWeight: FontWeight.w700, color: ChColors.bodyText)
+                style: McTextStyles.body(fontSize: 11, fontWeight: FontWeight.w700, color: McColors.bodyText)
                     .copyWith(letterSpacing: 1),
               ),
               const SizedBox(height: 10),
@@ -135,24 +135,24 @@ class DuesPage extends ConsumerWidget {
                 Container(
                   margin: const EdgeInsets.only(bottom: 10),
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                  decoration: BoxDecoration(color: ChColors.surface, borderRadius: BorderRadius.circular(ChRadii.card)),
+                  decoration: BoxDecoration(color: McColors.surface, borderRadius: BorderRadius.circular(McRadii.card)),
                   child: Row(
                     children: [
                       Container(
                         width: context.rs(32),
                         height: context.rs(32),
-                        decoration: const BoxDecoration(color: ChColors.surfaceSunken, shape: BoxShape.circle),
-                        child: Icon(Icons.payments_outlined, size: context.rs(15), color: ChColors.text),
+                        decoration: const BoxDecoration(color: McColors.surfaceSunken, shape: BoxShape.circle),
+                        child: Icon(Icons.payments_outlined, size: context.rs(15), color: McColors.text),
                       ),
                       SizedBox(width: context.rs(12)),
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(lv.label, style: ChTextStyles.body(fontSize: 13, fontWeight: FontWeight.w600, color: ChColors.text)),
+                            Text(lv.label, style: McTextStyles.body(fontSize: 13, fontWeight: FontWeight.w600, color: McColors.text)),
                             Text(
                               'Due ${lv.dueDate} · ${formatNaira(lv.amount)}',
-                              style: ChTextStyles.body(fontSize: 12, color: ChColors.text),
+                              style: McTextStyles.body(fontSize: 12, color: McColors.text),
                             ),
                           ],
                         ),
@@ -163,22 +163,22 @@ class DuesPage extends ConsumerWidget {
                             onTap: () => pay(lv.id),
                             child: Container(
                               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                              decoration: BoxDecoration(color: ChColors.accent2, borderRadius: BorderRadius.circular(ChRadii.pill)),
+                              decoration: BoxDecoration(color: McColors.accent2, borderRadius: BorderRadius.circular(McRadii.pill)),
                               child: Text(
                                 'Pay',
-                                style: ChTextStyles.body(fontSize: 12.5, fontWeight: FontWeight.w600, color: Colors.white),
+                                style: McTextStyles.body(fontSize: 12.5, fontWeight: FontWeight.w600, color: Colors.white),
                               ),
                             ),
                           )
                         else
                           Text(
                             'Owed',
-                            style: ChTextStyles.body(fontSize: 12, fontWeight: FontWeight.w700, color: ChColors.danger),
+                            style: McTextStyles.body(fontSize: 12, fontWeight: FontWeight.w700, color: McColors.danger),
                           )
                       else
                         Text(
                           'Paid',
-                          style: ChTextStyles.body(fontSize: 12, fontWeight: FontWeight.w700, color: ChColors.accent2N(700)),
+                          style: McTextStyles.body(fontSize: 12, fontWeight: FontWeight.w700, color: McColors.accent2N(700)),
                         ),
                     ],
                   ),
@@ -207,19 +207,19 @@ class _NotLiableBanner extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
-        color: ChColors.surface,
-        borderRadius: BorderRadius.circular(ChRadii.card),
+        color: McColors.surface,
+        borderRadius: BorderRadius.circular(McRadii.card),
       ),
       child: Row(
         children: [
-          Icon(Icons.info_outline, size: 18, color: ChColors.accent2),
+          Icon(Icons.info_outline, size: 18, color: McColors.accent2),
           const SizedBox(width: 10),
           Expanded(
             child: Text(
               invitedByName != null
                   ? "You're not billed for dues or levies — this is $invitedByName's household standing, for your information."
                   : "You're not billed for dues or levies — this is your household's standing, for your information.",
-              style: ChTextStyles.body(fontSize: 12.5, color: ChColors.bodyText, height: 1.4),
+              style: McTextStyles.body(fontSize: 12.5, color: McColors.bodyText, height: 1.4),
             ),
           ),
         ],

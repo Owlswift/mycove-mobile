@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 
-import '../theme/ch_colors.dart';
-import '../theme/ch_responsive.dart';
-import '../theme/ch_spacing.dart';
-import '../theme/ch_text_styles.dart';
+import '../theme/mc_colors.dart';
+import '../theme/mc_responsive.dart';
+import '../theme/mc_spacing.dart';
+import '../theme/mc_text_styles.dart';
 
-class ChPillTabOption {
-  const ChPillTabOption({required this.label, required this.onSelect, required this.selected});
+class McPillTabOption {
+  const McPillTabOption({required this.label, required this.onSelect, required this.selected});
 
   final String label;
   final VoidCallback onSelect;
@@ -15,17 +15,17 @@ class ChPillTabOption {
 
 /// The segmented pill toggle reused for Resident/Guard login, visitor-pass
 /// validity, and complaint category selection.
-class ChPillTabs extends StatelessWidget {
-  const ChPillTabs({super.key, required this.options});
+class McPillTabs extends StatelessWidget {
+  const McPillTabs({super.key, required this.options});
 
-  final List<ChPillTabOption> options;
+  final List<McPillTabOption> options;
 
   @override
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        border: Border.all(color: ChColors.divider),
-        borderRadius: BorderRadius.circular(ChRadii.pill),
+        border: Border.all(color: McColors.divider),
+        borderRadius: BorderRadius.circular(McRadii.pill),
       ),
       clipBehavior: Clip.antiAlias,
       child: IntrinsicHeight(
@@ -36,8 +36,8 @@ class ChPillTabs extends StatelessWidget {
               Flexible(
                 child: Container(
                   decoration: BoxDecoration(
-                    border: i > 0 ? Border(left: BorderSide(color: ChColors.divider)) : null,
-                    color: options[i].selected ? ChColors.accent2 : null,
+                    border: i > 0 ? Border(left: BorderSide(color: McColors.divider)) : null,
+                    color: options[i].selected ? McColors.accent2 : null,
                   ),
                   child: GestureDetector(
                     onTap: options[i].onSelect,
@@ -50,10 +50,10 @@ class ChPillTabs extends StatelessWidget {
                         options[i].label,
                         textAlign: TextAlign.center,
                         overflow: TextOverflow.ellipsis,
-                        style: ChTextStyles.body(
+                        style: McTextStyles.body(
                           fontSize: 13,
                           fontWeight: options[i].selected ? FontWeight.w600 : FontWeight.w400,
-                          color: options[i].selected ? Colors.white : ChColors.bodyText,
+                          color: options[i].selected ? Colors.white : McColors.bodyText,
                         ),
                       ),
                     ),

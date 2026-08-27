@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../../core/theme/ch_colors.dart';
-import '../../../../core/theme/ch_responsive.dart';
-import '../../../../core/theme/ch_spacing.dart';
-import '../../../../core/theme/ch_text_styles.dart';
+import '../../../../core/theme/mc_colors.dart';
+import '../../../../core/theme/mc_responsive.dart';
+import '../../../../core/theme/mc_spacing.dart';
+import '../../../../core/theme/mc_text_styles.dart';
 import '../../../../state/app_notifier.dart';
 import '../../../../state/app_state.dart';
 
@@ -38,9 +38,9 @@ class VoiceOverlay extends ConsumerWidget {
         width: double.infinity,
         padding: EdgeInsets.all(context.rs(16)),
         decoration: BoxDecoration(
-          color: ChColors.surface,
-          borderRadius: BorderRadius.circular(ChRadii.card),
-          boxShadow: ChColors.cardShadow,
+          color: McColors.surface,
+          borderRadius: BorderRadius.circular(McRadii.card),
+          boxShadow: McColors.cardShadow,
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -50,27 +50,27 @@ class VoiceOverlay extends ConsumerWidget {
                 Icon(
                   s.voiceStage == VoiceStage.error ? Icons.error_outline : Icons.graphic_eq_rounded,
                   size: context.rs(16),
-                  color: s.voiceStage == VoiceStage.error ? ChColors.danger : ChColors.accent2,
+                  color: s.voiceStage == VoiceStage.error ? McColors.danger : McColors.accent2,
                 ),
                 SizedBox(width: context.rs(6)),
                 Text(
                   _statusLabel(s.voiceStage),
-                  style: ChTextStyles.body(
+                  style: McTextStyles.body(
                     fontSize: 11,
                     fontWeight: FontWeight.w700,
-                    color: s.voiceStage == VoiceStage.error ? ChColors.danger : ChColors.accent2,
+                    color: s.voiceStage == VoiceStage.error ? McColors.danger : McColors.accent2,
                   ).copyWith(letterSpacing: 0.5),
                 ),
                 const Spacer(),
                 if (isListening)
                   GestureDetector(
                     onTap: notifier.stopVoiceListening,
-                    child: Icon(Icons.stop_circle_outlined, size: context.rs(20), color: ChColors.bodyText),
+                    child: Icon(Icons.stop_circle_outlined, size: context.rs(20), color: McColors.bodyText),
                   ),
                 SizedBox(width: context.rs(12)),
                 GestureDetector(
                   onTap: notifier.dismissVoice,
-                  child: Icon(Icons.close_rounded, size: context.rs(20), color: ChColors.bodyText),
+                  child: Icon(Icons.close_rounded, size: context.rs(20), color: McColors.bodyText),
                 ),
               ],
             ),
@@ -80,7 +80,7 @@ class VoiceOverlay extends ConsumerWidget {
               // however many lines that takes, not clipped to one.
               Text(
                 text,
-                style: ChTextStyles.body(fontSize: 12.5, color: ChColors.text, height: 1.45),
+                style: McTextStyles.body(fontSize: 12.5, color: McColors.text, height: 1.45),
               ),
             ],
           ],

@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../../core/theme/ch_colors.dart';
-import '../../../../core/theme/ch_responsive.dart';
-import '../../../../core/theme/ch_text_styles.dart';
-import '../../../../core/widgets/ch_button.dart';
+import '../../../../core/theme/mc_colors.dart';
+import '../../../../core/theme/mc_responsive.dart';
+import '../../../../core/theme/mc_text_styles.dart';
+import '../../../../core/widgets/mc_button.dart';
 import '../../../../state/app_notifier.dart';
 
 /// Terminal step of the forgot-password flow, shown once
@@ -18,7 +18,7 @@ class PasswordResetSuccessPage extends ConsumerWidget {
     final notifier = ref.read(appStateProvider.notifier);
 
     return Scaffold(
-      backgroundColor: ChColors.bg,
+      backgroundColor: McColors.bg,
       body: SafeArea(
         child: Padding(
           padding: EdgeInsets.symmetric(horizontal: context.rs(28)),
@@ -29,7 +29,7 @@ class PasswordResetSuccessPage extends ConsumerWidget {
               Text(
                 'Password Reset Successful!',
                 textAlign: TextAlign.center,
-                style: ChTextStyles.heading(fontSize: 24, color: ChColors.accent2),
+                style: McTextStyles.heading(fontSize: 24, color: McColors.accent2),
               ),
               SizedBox(height: context.rs(8)),
               Padding(
@@ -37,11 +37,11 @@ class PasswordResetSuccessPage extends ConsumerWidget {
                 child: Text(
                   'Your password has been updated successfully.',
                   textAlign: TextAlign.center,
-                  style: ChTextStyles.body(fontSize: 14, color: ChColors.text),
+                  style: McTextStyles.body(fontSize: 14, color: McColors.text),
                 ),
               ),
               SizedBox(height: context.rs(32)),
-              ChButton(label: 'Back to Login', onPressed: notifier.backToLogin),
+              McButton(label: 'Back to Login', onPressed: notifier.backToLogin),
             ],
           ),
         ),

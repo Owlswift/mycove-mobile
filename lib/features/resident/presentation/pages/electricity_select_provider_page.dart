@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../../core/theme/ch_colors.dart';
-import '../../../../core/theme/ch_responsive.dart';
-import '../../../../core/theme/ch_spacing.dart';
-import '../../../../core/theme/ch_text_styles.dart';
-import '../../../../core/widgets/ch_generic_header.dart';
+import '../../../../core/theme/mc_colors.dart';
+import '../../../../core/theme/mc_responsive.dart';
+import '../../../../core/theme/mc_spacing.dart';
+import '../../../../core/theme/mc_text_styles.dart';
+import '../../../../core/widgets/mc_generic_header.dart';
 import '../../../../data/models/utility_meter.dart';
 import '../../../../state/app_notifier.dart';
 import '../widgets/utility_wizard_stepper.dart';
@@ -38,7 +38,7 @@ class _ElectricitySelectProviderPageState extends ConsumerState<ElectricitySelec
 
     return Column(
       children: [
-        ChGenericHeader(
+        McGenericHeader(
           title: 'Buy Electricity',
           centerTitle: true,
           onBack: () {
@@ -54,7 +54,7 @@ class _ElectricitySelectProviderPageState extends ConsumerState<ElectricitySelec
           padding: EdgeInsets.fromLTRB(context.rs(20), 0, context.rs(20), context.rs(14)),
           child: Align(
             alignment: Alignment.centerLeft,
-            child: Text('Select Electricity Provider', style: ChTextStyles.heading(fontSize: 16)),
+            child: Text('Select Electricity Provider', style: McTextStyles.heading(fontSize: 16)),
           ),
         ),
         Padding(
@@ -63,10 +63,10 @@ class _ElectricitySelectProviderPageState extends ConsumerState<ElectricitySelec
             onChanged: (v) => setState(() => _query = v),
             decoration: InputDecoration(
               hintText: 'Search provider',
-              hintStyle: ChTextStyles.body(color: ChColors.bodyText, fontWeight: FontWeight.w600),
+              hintStyle: McTextStyles.body(color: McColors.bodyText, fontWeight: FontWeight.w600),
               prefixIcon: Icon(
                 Icons.search,
-                color: ChColors.bodyText,
+                color: McColors.bodyText,
                 size: context.rs(22),
                 weight: 700,
               ),
@@ -78,13 +78,13 @@ class _ElectricitySelectProviderPageState extends ConsumerState<ElectricitySelec
               ? Center(
                   child: Text(
                     'No providers available right now.',
-                    style: ChTextStyles.body(fontSize: 13.5, color: ChColors.bodyText),
+                    style: McTextStyles.body(fontSize: 13.5, color: McColors.bodyText),
                   ),
                 )
               : ListView.separated(
                   padding: EdgeInsets.fromLTRB(context.rs(20), 0, context.rs(20), context.rs(24)),
                   itemCount: discos.length,
-                  separatorBuilder: (_, _) => Divider(height: 1, color: ChColors.divider),
+                  separatorBuilder: (_, _) => Divider(height: 1, color: McColors.divider),
                   itemBuilder: (_, i) {
                     final disco = discos[i];
                     return _DiscoTile(
@@ -112,7 +112,7 @@ class _DiscoTile extends StatelessWidget {
   Widget build(BuildContext context) {
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(ChRadii.md),
+      borderRadius: BorderRadius.circular(McRadii.md),
       child: Padding(
         padding: EdgeInsets.symmetric(vertical: context.rs(10)),
         child: Row(
@@ -125,14 +125,14 @@ class _DiscoTile extends StatelessWidget {
                 children: [
                   Text(
                     disco.shortCode,
-                    style: ChTextStyles.body(fontSize: 14.5, fontWeight: FontWeight.w700, color: ChColors.text),
+                    style: McTextStyles.body(fontSize: 14.5, fontWeight: FontWeight.w700, color: McColors.text),
                   ),
                   SizedBox(height: context.rs(2)),
-                  Text(disco.name, style: ChTextStyles.body(fontSize: 12.5, color: ChColors.bodyText, fontWeight: FontWeight.w500)),
+                  Text(disco.name, style: McTextStyles.body(fontSize: 12.5, color: McColors.bodyText, fontWeight: FontWeight.w500)),
                 ],
               ),
             ),
-            Icon(Icons.chevron_right, color: ChColors.bodyText, size: context.rs(20)),
+            Icon(Icons.chevron_right, color: McColors.bodyText, size: context.rs(20)),
           ],
         ),
       ),

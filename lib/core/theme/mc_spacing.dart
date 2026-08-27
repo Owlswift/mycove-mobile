@@ -1,5 +1,5 @@
-class ChSpacing {
-  ChSpacing._();
+class McSpacing {
+  McSpacing._();
 
   static const double s1 = 4.4;
   static const double s2 = 8.8;
@@ -9,8 +9,8 @@ class ChSpacing {
   static const double s8 = 35.2;
 }
 
-class ChRadii {
-  ChRadii._();
+class McRadii {
+  McRadii._();
 
   static const double sm = 8;
   static const double md = 16;

@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-import '../../../../core/theme/ch_colors.dart';
-import '../../../../core/theme/ch_responsive.dart';
-import '../../../../core/theme/ch_spacing.dart';
-import '../../../../core/theme/ch_text_styles.dart';
+import '../../../../core/theme/mc_colors.dart';
+import '../../../../core/theme/mc_responsive.dart';
+import '../../../../core/theme/mc_spacing.dart';
+import '../../../../core/theme/mc_text_styles.dart';
 
 /// Shared building blocks for utility purchase receipts (on-screen + used
 /// alongside the PDF variant in core/pdf).
@@ -18,19 +18,19 @@ Widget receiptSection(
     width: double.infinity,
     padding: EdgeInsets.all(context.rs(16)),
     decoration: BoxDecoration(
-      color: ChColors.surface,
-      borderRadius: BorderRadius.circular(ChRadii.card),
-      boxShadow: ChColors.cardShadow,
+      color: McColors.surface,
+      borderRadius: BorderRadius.circular(McRadii.card),
+      boxShadow: McColors.cardShadow,
     ),
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           title,
-          style: ChTextStyles.body(
+          style: McTextStyles.body(
             fontSize: 10.5,
             fontWeight: FontWeight.w700,
-            color: ChColors.bodyText,
+            color: McColors.bodyText,
           ).copyWith(letterSpacing: 1),
         ),
         Divider(height: context.rs(18)),
@@ -45,9 +45,9 @@ Widget tokenCard(BuildContext context, String token) {
     width: double.infinity,
     padding: EdgeInsets.all(context.rs(16)),
     decoration: BoxDecoration(
-      color: ChColors.surfaceSunken,
-      borderRadius: BorderRadius.circular(ChRadii.md),
-      border: Border.all(color: ChColors.accent2N(300)),
+      color: McColors.surfaceSunken,
+      borderRadius: BorderRadius.circular(McRadii.md),
+      border: Border.all(color: McColors.accent2N(300)),
     ),
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -57,10 +57,10 @@ Widget tokenCard(BuildContext context, String token) {
           children: [
             Text(
               'PREPAID TOKEN',
-              style: ChTextStyles.body(
+              style: McTextStyles.body(
                 fontSize: 10.5,
                 fontWeight: FontWeight.w700,
-                color: ChColors.bodyText,
+                color: McColors.bodyText,
               ).copyWith(letterSpacing: 1),
             ),
             GestureDetector(
@@ -69,20 +69,20 @@ Widget tokenCard(BuildContext context, String token) {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
                     content: Text('Token copied.',
-                        style: ChTextStyles.body(
+                        style: McTextStyles.body(
                             fontSize: 13, color: Colors.white)),
                   ),
                 );
               },
               child: Icon(Icons.copy_rounded,
-                  size: context.rs(18), color: ChColors.accent2),
+                  size: context.rs(18), color: McColors.accent2),
             ),
           ],
         ),
         SizedBox(height: context.rs(6)),
         SelectableText(
           token,
-          style: ChTextStyles.heading(fontSize: 19, color: ChColors.accent2),
+          style: McTextStyles.heading(fontSize: 19, color: McColors.accent2),
         ),
       ],
     ),
@@ -104,16 +104,16 @@ Widget receiptRow(
           width: context.rs(110),
           child: Text(
             label,
-            style: ChTextStyles.body(fontSize: 12.5, color: ChColors.bodyText),
+            style: McTextStyles.body(fontSize: 12.5, color: McColors.bodyText),
           ),
         ),
         Expanded(
           child: SelectableText(
             value,
-            style: ChTextStyles.body(
+            style: McTextStyles.body(
               fontSize: 12.5,
               fontWeight: bold ? FontWeight.w700 : FontWeight.w600,
-              color: bold ? ChColors.accent2N(700) : ChColors.text,
+              color: bold ? McColors.accent2N(700) : McColors.text,
             ),
           ),
         ),

@@ -205,7 +205,7 @@ class AppState {
   /// SOS screen — same lifecycle.
   final String? estateAdminPhone;
 
-  /// Base64 data URL of this estate's own photo (see [ChDataMedia]) —
+  /// Base64 data URL of this estate's own photo (see [McDataMedia]) —
   /// fetched once via [pendingEstateImage] when the estate code resolves,
   /// then persisted to EstateStorage on confirm so it's available offline
   /// and doesn't need to be refetched on every launch. Null for estates

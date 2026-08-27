@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../../core/theme/ch_colors.dart';
-import '../../../../core/theme/ch_text_styles.dart';
-import '../../../../core/widgets/ch_button.dart';
-import '../../../../core/widgets/ch_generic_header.dart';
-import '../../../../core/widgets/ch_text_field.dart';
+import '../../../../core/theme/mc_colors.dart';
+import '../../../../core/theme/mc_text_styles.dart';
+import '../../../../core/widgets/mc_button.dart';
+import '../../../../core/widgets/mc_generic_header.dart';
+import '../../../../core/widgets/mc_text_field.dart';
 import '../../../../state/app_notifier.dart';
 
 class VisitorCreatePage extends ConsumerWidget {
@@ -19,16 +19,16 @@ class VisitorCreatePage extends ConsumerWidget {
 
     return Column(
       children: [
-        const ChGenericHeader(title: 'New Visitor Pass'),
+        const McGenericHeader(title: 'New Visitor Pass'),
         Expanded(
           child: SingleChildScrollView(
             padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                ChTextField(label: 'Visitor name', value: s.vfName, onChanged: notifier.onVfName, placeholder: 'Full name'),
+                McTextField(label: 'Visitor name', value: s.vfName, onChanged: notifier.onVfName, placeholder: 'Full name'),
                 const SizedBox(height: 14),
-                ChTextField(
+                McTextField(
                   label: 'Phone number',
                   value: s.vfPhone,
                   onChanged: notifier.onVfPhone,
@@ -36,7 +36,7 @@ class VisitorCreatePage extends ConsumerWidget {
                   keyboardType: TextInputType.phone,
                 ),
                 const SizedBox(height: 14),
-                ChTextField(
+                McTextField(
                   label: 'Vehicle plate (optional)',
                   value: s.vfPlate,
                   onChanged: notifier.onVfPlate,
@@ -44,10 +44,10 @@ class VisitorCreatePage extends ConsumerWidget {
                 ),
                 const SizedBox(height: 20),
                 if (s.vfError.isNotEmpty) ...[
-                  Text(s.vfError, style: ChTextStyles.body(fontSize: 13, color: ChColors.danger)),
+                  Text(s.vfError, style: McTextStyles.body(fontSize: 13, color: McColors.danger)),
                   const SizedBox(height: 12),
                 ],
-                ChButton(
+                McButton(
                   label: 'Generate Pass',
                   onPressed: () async {
                     final id = await notifier.createVisitorPass();

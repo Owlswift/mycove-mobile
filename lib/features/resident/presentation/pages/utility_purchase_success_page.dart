@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../../core/theme/ch_colors.dart';
-import '../../../../core/theme/ch_responsive.dart';
-import '../../../../core/theme/ch_spacing.dart';
-import '../../../../core/theme/ch_text_styles.dart';
-import '../../../../core/widgets/ch_button.dart';
+import '../../../../core/theme/mc_colors.dart';
+import '../../../../core/theme/mc_responsive.dart';
+import '../../../../core/theme/mc_spacing.dart';
+import '../../../../core/theme/mc_text_styles.dart';
+import '../../../../core/widgets/mc_button.dart';
 import '../../../../state/app_notifier.dart';
 import '../../../../state/app_state.dart';
 
@@ -33,18 +33,18 @@ class UtilityPurchaseSuccessPage extends ConsumerWidget {
           Container(
             width: context.rs(64),
             height: context.rs(64),
-            decoration: const BoxDecoration(color: ChColors.accent2, shape: BoxShape.circle),
+            decoration: const BoxDecoration(color: McColors.accent2, shape: BoxShape.circle),
             child: Icon(Icons.check, color: Colors.white, size: context.rs(30)),
           ),
           SizedBox(height: context.rs(18)),
           Text(
             isElectricity ? 'Electricity purchased' : 'Airtime purchased',
-            style: ChTextStyles.heading(fontSize: 18),
+            style: McTextStyles.heading(fontSize: 18),
           ),
           SizedBox(height: context.rs(6)),
           Text(
             '${formatNaira(purchase?.amount ?? 0)} paid successfully',
-            style: ChTextStyles.body(fontSize: 13, color: ChColors.bodyText),
+            style: McTextStyles.body(fontSize: 13, color: McColors.bodyText),
           ),
           if (isElectricity && purchase?.token != null) ...[
             SizedBox(height: context.rs(22)),
@@ -52,27 +52,27 @@ class UtilityPurchaseSuccessPage extends ConsumerWidget {
               width: double.infinity,
               padding: EdgeInsets.all(context.rs(16)),
               decoration: BoxDecoration(
-                color: ChColors.surfaceSunken,
-                borderRadius: BorderRadius.circular(ChRadii.md),
+                color: McColors.surfaceSunken,
+                borderRadius: BorderRadius.circular(McRadii.md),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     'TOKEN',
-                    style: ChTextStyles.body(fontSize: 11, fontWeight: FontWeight.w700, color: ChColors.bodyText)
+                    style: McTextStyles.body(fontSize: 11, fontWeight: FontWeight.w700, color: McColors.bodyText)
                         .copyWith(letterSpacing: 1),
                   ),
                   SizedBox(height: context.rs(6)),
                   SelectableText(
                     purchase!.token!,
-                    style: ChTextStyles.heading(fontSize: 20, color: ChColors.accent2),
+                    style: McTextStyles.heading(fontSize: 20, color: McColors.accent2),
                   ),
                   if (purchase.units != null) ...[
                     SizedBox(height: context.rs(10)),
                     Text(
                       '${purchase.units} · ${purchase.tariff ?? ''}',
-                      style: ChTextStyles.body(fontSize: 12.5, color: ChColors.bodyText),
+                      style: McTextStyles.body(fontSize: 12.5, color: McColors.bodyText),
                     ),
                   ],
                 ],
@@ -80,7 +80,7 @@ class UtilityPurchaseSuccessPage extends ConsumerWidget {
             ),
           ],
           SizedBox(height: context.rs(28)),
-          ChButton(
+          McButton(
             label: 'View receipt',
             onPressed: purchase == null
                 ? null
@@ -88,7 +88,7 @@ class UtilityPurchaseSuccessPage extends ConsumerWidget {
                       context.push('/resident/utility-history/${purchase.id}/receipt'),
           ),
           SizedBox(height: context.rs(10)),
-          ChButton(
+          McButton(
             label: 'Done',
             onPressed: () => context.go('/resident'),
           ),

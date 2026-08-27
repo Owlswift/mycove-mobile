@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../../core/theme/ch_colors.dart';
-import '../../../../core/theme/ch_responsive.dart';
-import '../../../../core/theme/ch_text_styles.dart';
-import '../../../../core/widgets/ch_button.dart';
-import '../../../../core/widgets/ch_password_field.dart';
-import '../../../../core/widgets/ch_square_icon_button.dart';
+import '../../../../core/theme/mc_colors.dart';
+import '../../../../core/theme/mc_responsive.dart';
+import '../../../../core/theme/mc_text_styles.dart';
+import '../../../../core/widgets/mc_button.dart';
+import '../../../../core/widgets/mc_password_field.dart';
+import '../../../../core/widgets/mc_square_icon_button.dart';
 import '../../../../state/app_notifier.dart';
 
 class NewPasswordPage extends ConsumerWidget {
@@ -26,21 +26,21 @@ class NewPasswordPage extends ConsumerWidget {
     final notifier = ref.read(appStateProvider.notifier);
 
     return Scaffold(
-      backgroundColor: ChColors.bg,
+      backgroundColor: McColors.bg,
       body: SafeArea(
         child: SingleChildScrollView(
           padding: EdgeInsets.fromLTRB(context.rs(20), context.rs(12), context.rs(20), context.rs(28)),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              ChSquareIconButton(icon: Icons.arrow_back, onTap: notifier.backToOtp),
+              McSquareIconButton(icon: Icons.arrow_back, onTap: notifier.backToOtp),
               const _PadlockIllustration(),
               SizedBox(height: context.rs(12)),
               Center(
                 child: Text(
                   'Create New Password',
                   textAlign: TextAlign.center,
-                  style: ChTextStyles.heading(fontSize: 24, color: ChColors.accent2),
+                  style: McTextStyles.heading(fontSize: 24, color: McColors.accent2),
                 ),
               ),
               SizedBox(height: context.rs(8)),
@@ -49,16 +49,16 @@ class NewPasswordPage extends ConsumerWidget {
                 child: Text(
                   'Your new password must be different from previous passwords.',
                   textAlign: TextAlign.center,
-                  style: ChTextStyles.body(fontSize: 13.5, color: ChColors.text, height: 1.4),
+                  style: McTextStyles.body(fontSize: 13.5, color: McColors.text, height: 1.4),
                 ),
               ),
               SizedBox(height: context.rs(24)),
               Text(
                 'New Password',
-                style: ChTextStyles.body(fontSize: 13, fontWeight: FontWeight.w500, color: ChColors.text),
+                style: McTextStyles.body(fontSize: 13, fontWeight: FontWeight.w500, color: McColors.text),
               ),
               SizedBox(height: context.rs(6)),
-              ChPasswordField(
+              McPasswordField(
                 value: s.newPass1,
                 onChanged: notifier.onNewPass1,
                 hintText: 'Enter new password',
@@ -68,20 +68,20 @@ class NewPasswordPage extends ConsumerWidget {
               SizedBox(height: context.rs(16)),
               Text(
                 'Confirm New Password',
-                style: ChTextStyles.body(fontSize: 13, fontWeight: FontWeight.w500, color: ChColors.text),
+                style: McTextStyles.body(fontSize: 13, fontWeight: FontWeight.w500, color: McColors.text),
               ),
               SizedBox(height: context.rs(6)),
-              ChPasswordField(
+              McPasswordField(
                 value: s.newPass2,
                 onChanged: notifier.onNewPass2,
                 hintText: 'Confirm new password',
               ),
               if (s.resetMsg.isNotEmpty) ...[
                 SizedBox(height: context.rs(12)),
-                Text(s.resetMsg, style: ChTextStyles.body(fontSize: 13, color: ChColors.danger)),
+                Text(s.resetMsg, style: McTextStyles.body(fontSize: 13, color: McColors.danger)),
               ],
               SizedBox(height: context.rs(24)),
-              ChButton(
+              McButton(
                 label: 'Reset Password',
                 onPressed: s.isLoading ? null : notifier.submitNewPassword,
                 isLoading: s.isLoading,
@@ -139,14 +139,14 @@ class _RuleCheckList extends StatelessWidget {
                 Icon(
                   met[i] ? Icons.check_circle_rounded : Icons.check_circle_outline_rounded,
                   size: context.rs(18),
-                  color: met[i] ? ChColors.accent2 : ChColors.neutralN(400),
+                  color: met[i] ? McColors.accent2 : McColors.neutralN(400),
                 ),
                 SizedBox(width: context.rs(12)),
                 Text(
                   labels[i],
-                  style: ChTextStyles.body(
+                  style: McTextStyles.body(
                     fontSize: 12,
-                    color: met[i] ? ChColors.accent2 : ChColors.bodyText,
+                    color: met[i] ? McColors.accent2 : McColors.bodyText,
                   ),
                 ),
               ],

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
-import '../theme/ch_colors.dart';
-import '../theme/ch_responsive.dart';
-import '../theme/ch_text_styles.dart';
+import '../theme/mc_colors.dart';
+import '../theme/mc_responsive.dart';
+import '../theme/mc_text_styles.dart';
 
 /// Back-chevron + title + optional trailing action, used by every
 /// non-dashboard resident screen and the guard screens.
@@ -14,8 +14,8 @@ import '../theme/ch_text_styles.dart';
 ///  - [centerTitle]: bare back chevron (like default) but the title is
 ///    centered on the row via symmetric left/right spacers, matching the
 ///    trailing icon's width — used by the electricity purchase wizard
-class ChGenericHeader extends StatelessWidget {
-  const ChGenericHeader({
+class McGenericHeader extends StatelessWidget {
+  const McGenericHeader({
     super.key,
     required this.title,
     this.showBack = true,
@@ -44,7 +44,7 @@ class ChGenericHeader extends StatelessWidget {
             else
               SizedBox(width: context.rs(40)),
             Expanded(
-              child: Text(title, textAlign: TextAlign.center, style: ChTextStyles.heading(fontSize: 17)),
+              child: Text(title, textAlign: TextAlign.center, style: McTextStyles.heading(fontSize: 17)),
             ),
             trailing ?? SizedBox(width: context.rs(40)),
           ],
@@ -62,12 +62,12 @@ class ChGenericHeader extends StatelessWidget {
               child: showBack
                   ? GestureDetector(
                       onTap: onBack ?? () => Navigator.of(context).maybePop(),
-                      child: Icon(Icons.arrow_back, size: context.rs(20), color: ChColors.text),
+                      child: Icon(Icons.arrow_back, size: context.rs(20), color: McColors.text),
                     )
                   : null,
             ),
             Expanded(
-              child: Text(title, textAlign: TextAlign.center, style: ChTextStyles.heading(fontSize: 19)),
+              child: Text(title, textAlign: TextAlign.center, style: McTextStyles.heading(fontSize: 19)),
             ),
             SizedBox(width: context.rs(40), child: trailing),
           ],
@@ -84,10 +84,10 @@ class ChGenericHeader extends StatelessWidget {
               onTap: onBack ?? () => Navigator.of(context).maybePop(),
               child: SizedBox(
                 width: context.rs(24),
-                child: Icon(Icons.arrow_back, size: context.rs(20), color: ChColors.text),
+                child: Icon(Icons.arrow_back, size: context.rs(20), color: McColors.text),
               ),
             ),
-          Expanded(child: Text(title, style: ChTextStyles.heading(fontSize: 19))),
+          Expanded(child: Text(title, style: McTextStyles.heading(fontSize: 19))),
           ?trailing,
         ],
       ),
@@ -110,11 +110,11 @@ class _HeaderChip extends StatelessWidget {
         height: context.rs(40),
         alignment: Alignment.center,
         decoration: BoxDecoration(
-          color: ChColors.surface,
+          color: McColors.surface,
           shape: BoxShape.circle,
-          border: Border.all(color: ChColors.divider),
+          border: Border.all(color: McColors.divider),
         ),
-        child: IconTheme(data: const IconThemeData(color: ChColors.text), child: child),
+        child: IconTheme(data: const IconThemeData(color: McColors.text), child: child),
       ),
     );
   }

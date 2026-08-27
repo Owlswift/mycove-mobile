@@ -2,13 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../../core/theme/ch_colors.dart';
-import '../../../../core/theme/ch_responsive.dart';
-import '../../../../core/theme/ch_spacing.dart';
-import '../../../../core/theme/ch_text_styles.dart';
-import '../../../../core/widgets/ch_data_media.dart';
-import '../../../../core/widgets/ch_generic_header.dart';
-import '../../../../core/widgets/ch_underline_tabs.dart';
+import '../../../../core/theme/mc_colors.dart';
+import '../../../../core/theme/mc_responsive.dart';
+import '../../../../core/theme/mc_spacing.dart';
+import '../../../../core/theme/mc_text_styles.dart';
+import '../../../../core/widgets/mc_data_media.dart';
+import '../../../../core/widgets/mc_generic_header.dart';
+import '../../../../core/widgets/mc_underline_tabs.dart';
 import '../../../../state/app_notifier.dart';
 
 enum _ProjectFilter { all, inProgress, completed }
@@ -34,14 +34,14 @@ class _ProjectsPageState extends ConsumerState<ProjectsPage> {
 
     return Column(
       children: [
-        const ChGenericHeader(title: 'Projects'),
+        const McGenericHeader(title: 'Projects'),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 20),
-          child: ChUnderlineTabs(
+          child: McUnderlineTabs(
             options: [
-              ChUnderlineTabOption(label: 'All', selected: _filter == _ProjectFilter.all, onSelect: () => setState(() => _filter = _ProjectFilter.all)),
-              ChUnderlineTabOption(label: 'In Progress', selected: _filter == _ProjectFilter.inProgress, onSelect: () => setState(() => _filter = _ProjectFilter.inProgress)),
-              ChUnderlineTabOption(label: 'Completed', selected: _filter == _ProjectFilter.completed, onSelect: () => setState(() => _filter = _ProjectFilter.completed)),
+              McUnderlineTabOption(label: 'All', selected: _filter == _ProjectFilter.all, onSelect: () => setState(() => _filter = _ProjectFilter.all)),
+              McUnderlineTabOption(label: 'In Progress', selected: _filter == _ProjectFilter.inProgress, onSelect: () => setState(() => _filter = _ProjectFilter.inProgress)),
+              McUnderlineTabOption(label: 'Completed', selected: _filter == _ProjectFilter.completed, onSelect: () => setState(() => _filter = _ProjectFilter.completed)),
             ],
           ),
         ),
@@ -60,17 +60,17 @@ class _ProjectsPageState extends ConsumerState<ProjectsPage> {
                     onTap: () => context.push('/resident/projects/${p.id}'),
                     child: Container(
                       padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(color: ChColors.surface, borderRadius: BorderRadius.circular(ChRadii.card)),
+                      decoration: BoxDecoration(color: McColors.surface, borderRadius: BorderRadius.circular(McRadii.card)),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           if (p.mediaBase64 != null)
                             Padding(
                               padding: const EdgeInsets.only(bottom: 12),
-                              child: ChDataMedia(
+                              child: McDataMedia(
                                 dataUrl: p.mediaBase64!,
                                 height: context.rs(100),
-                                borderRadius: BorderRadius.circular(ChRadii.md),
+                                borderRadius: BorderRadius.circular(McRadii.md),
                               ),
                             ),
                           Row(
@@ -79,20 +79,20 @@ class _ProjectsPageState extends ConsumerState<ProjectsPage> {
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Text(p.title, style: ChTextStyles.body(fontSize: 13, fontWeight: FontWeight.w700, color: ChColors.text)),
+                                    Text(p.title, style: McTextStyles.body(fontSize: 13, fontWeight: FontWeight.w700, color: McColors.text)),
                                     const SizedBox(height: 6),
                                     Container(
                                       padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 3),
                                       decoration: BoxDecoration(
-                                        color: p.isCompleted ? ChColors.accent2N(100) : ChColors.warning.withValues(alpha: 0.14),
-                                        borderRadius: BorderRadius.circular(ChRadii.pill),
+                                        color: p.isCompleted ? McColors.accent2N(100) : McColors.warning.withValues(alpha: 0.14),
+                                        borderRadius: BorderRadius.circular(McRadii.pill),
                                       ),
                                       child: Text(
                                         p.status,
-                                        style: ChTextStyles.body(
+                                        style: McTextStyles.body(
                                           fontSize: 10.5,
                                           fontWeight: FontWeight.w700,
-                                          color: p.isCompleted ? ChColors.accent2N(700) : ChColors.warning,
+                                          color: p.isCompleted ? McColors.accent2N(700) : McColors.warning,
                                         ),
                                       ),
                                     ),
@@ -125,7 +125,7 @@ class _ProgressRing extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = completed ? ChColors.accent2 : ChColors.accent2N(600);
+    final color = completed ? McColors.accent2 : McColors.accent2N(600);
     return SizedBox(
       width: context.rs(46),
       height: context.rs(46),
@@ -138,13 +138,13 @@ class _ProgressRing extends StatelessWidget {
             child: CircularProgressIndicator(
               value: progress / 100,
               strokeWidth: 4,
-              backgroundColor: ChColors.neutralN(200),
+              backgroundColor: McColors.neutralN(200),
               valueColor: AlwaysStoppedAnimation(color),
             ),
           ),
           completed
               ? Icon(Icons.check_rounded, size: context.rs(18), color: color)
-              : Text('$progress%', style: ChTextStyles.body(fontSize: 11, fontWeight: FontWeight.w700, color: color)),
+              : Text('$progress%', style: McTextStyles.body(fontSize: 11, fontWeight: FontWeight.w700, color: color)),
         ],
       ),
     );
