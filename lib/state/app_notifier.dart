@@ -3,6 +3,7 @@ import 'dart:io';
 import 'dart:math';
 
 import 'package:device_info_plus/device_info_plus.dart';
+import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 import 'package:local_auth/local_auth.dart';
@@ -19,6 +20,7 @@ import '../core/network/jwt_decode.dart';
 import '../core/network/token_storage.dart';
 import '../core/network/voice_settings_storage.dart';
 import '../core/push/push_service.dart';
+import '../core/storage/app_state_cache.dart';
 import '../core/voice/voice_intent_parser.dart';
 import '../core/voice/voice_log_storage.dart';
 import '../data/my_cove_api.dart';
@@ -88,6 +90,7 @@ class AppNotifier extends StateNotifier<AppState> {
   final EstateStorage _estateStorage;
   final BiometricStorage _biometricStorage;
   final VoiceSettingsStorage _voiceSettingsStorage = const VoiceSettingsStorage();
+  final AppStateCache _stateCache = AppStateCache();
   final Ref _ref;
   final _random = Random();
   final _localAuth = LocalAuthentication();
@@ -327,8 +330,44 @@ class AppNotifier extends StateNotifier<AppState> {
       state = state.copyWith(authStage: AuthStage.login);
       return;
     }
+
+    Map<String, dynamic> meJson;
     try {
-      final user = CurrentUser.fromJson(await _api.me());
+      meJson = await _api.me();
+    } on DioException catch (e) {
+      // No response at all (offline/unreachable/timeout) is not proof the
+      // token itself is invalid — an actual rejection (expired/revoked)
+      // comes back as a real HTTP response, e.response != null, and falls
+      // through to the catch-all below unchanged. With cached data on
+      // hand, enter the app off it instead of forcing a login the device
+      // can't even attempt right now; _enterApp's identityUnconfirmed
+      // fail-safes the biometric-lock decision since currentUser can't be
+      // confirmed this way.
+      if (e.response == null) {
+        final cached = await _stateCache.read();
+        if (cached != null) {
+          await _hydrateFromCache();
+          await _enterApp(identityUnconfirmed: true);
+          unawaited(
+            _bootstrapResidentDeduped().catchError((_) {
+              // Swallow — will retry on the next refresh trigger (resume,
+              // pull-to-refresh, push) once connectivity returns.
+            }),
+          );
+          return;
+        }
+      }
+      await _tokenStorage.clear();
+      state = state.copyWith(authStage: AuthStage.login);
+      return;
+    } catch (_) {
+      await _tokenStorage.clear();
+      state = state.copyWith(authStage: AuthStage.login);
+      return;
+    }
+
+    try {
+      final user = CurrentUser.fromJson(meJson);
       final role = _roleFromApi(user.role);
       state = state.copyWith(
         currentUser: user,
@@ -337,11 +376,34 @@ class AppNotifier extends StateNotifier<AppState> {
         estateAddress: user.estateAddress ?? state.estateAddress,
       );
       if (user.role == 'GUARD') {
-        await _bootstrapGuard();
+        // Guard-role offline caching isn't built yet — unchanged: block on
+        // a real fetch before entering the app, same as before this cache
+        // existed.
+        await _bootstrapGuardDeduped();
+        await _enterApp();
       } else {
-        await _bootstrapResident();
+        // Show last-known data immediately instead of sitting on
+        // AuthStage.bootstrapping for the full ~17-request fetch — hydrate
+        // from cache (if any), enter the app right away, then let the real
+        // bootstrap run in the background and overwrite the cached data
+        // with fresh data once it lands (see _bootstrapResident's own
+        // _persistCache() call, which refreshes this cache for next time).
+        await _hydrateFromCache();
+        await _enterApp();
+        // Deliberately not awaited (see above) — but also deliberately not
+        // left to fail into this method's own try/catch, since that catch
+        // means "auto-login failed, log out." A resident already looking
+        // at valid cached data from a dead connection must stay logged in;
+        // a real auth failure (expired/revoked token) is handled
+        // independently by ApiClient's onAccountDeactivated interceptor,
+        // not by this call site.
+        unawaited(
+          _bootstrapResidentDeduped().catchError((_) {
+            // Swallow — see comment above. Next successful refresh trigger
+            // (resume, pull-to-refresh, push) will retry.
+          }),
+        );
       }
-      await _enterApp();
       _identifyAnalytics();
       unawaited(_registerPushToken());
     } catch (_) {
@@ -353,9 +415,19 @@ class AppNotifier extends StateNotifier<AppState> {
   /// Data is already loaded by the time this runs (called after bootstrap)
   /// — biometric lock, when enabled, sits in front of an already-ready app
   /// rather than blocking the data fetch behind it.
-  Future<void> _enterApp() async {
+  ///
+  /// [identityUnconfirmed] is set when entering the app off a cached
+  /// snapshot because the identity check ([_api.me]) couldn't reach the
+  /// server at all — [state.currentUser] is whatever it was before (often
+  /// null), so its `hasPin` can't be trusted either way. Fail safe in that
+  /// case: if biometric unlock is enabled at all, lock regardless of
+  /// `hasPin`, rather than risk skipping a lock screen the resident
+  /// actually has configured just because we couldn't confirm it.
+  Future<void> _enterApp({bool identityUnconfirmed = false}) async {
     final biometricEnabled = await _biometricStorage.readEnabled();
-    final hasPin = state.currentUser?.hasPin ?? false;
+    final hasPin = identityUnconfirmed
+        ? biometricEnabled
+        : (state.currentUser?.hasPin ?? false);
     state = state.copyWith(
       authStage: biometricEnabled && hasPin ? AuthStage.locked : AuthStage.app,
       biometricEnabled: biometricEnabled,
@@ -456,9 +528,9 @@ class AppNotifier extends StateNotifier<AppState> {
         return;
       }
       if (user.role == 'GUARD') {
-        await _bootstrapGuard();
+        await _bootstrapGuardDeduped();
       } else {
-        await _bootstrapResident();
+        await _bootstrapResidentDeduped();
       }
       // Straight to `app`, not through the biometric lock — typing the
       // password just now already was the authentication event. The lock
@@ -648,9 +720,9 @@ class AppNotifier extends StateNotifier<AppState> {
           ? Role.guard
           : Role.resident;
       if (role == Role.guard) {
-        await _bootstrapGuard();
+        await _bootstrapGuardDeduped();
       } else {
-        await _bootstrapResident();
+        await _bootstrapResidentDeduped();
       }
       // Data's already loaded (bootstrap just ran above) — the success
       // screen sits in front of an app that's ready to go the moment
@@ -706,7 +778,7 @@ class AppNotifier extends StateNotifier<AppState> {
   /// Pull-to-refresh for any resident list screen — re-runs the same
   /// batched fetch bootstrap used at login, so every screen it feeds stays
   /// in sync with whatever it refetches.
-  Future<void> refreshResident() => _bootstrapResident();
+  Future<void> refreshResident() => _bootstrapResidentDeduped();
 
   /// Persists an emergency-contact edit from the profile page and swaps in
   /// the fresh [CurrentUser] the API echoes back. Returns null on success,
@@ -744,7 +816,7 @@ class AppNotifier extends StateNotifier<AppState> {
   /// Pull-to-refresh for the guard access-log screen — re-runs the same
   /// fetch bootstrap used at guard login, so the log stays in sync with
   /// whatever it refetches.
-  Future<void> refreshGuard() => _bootstrapGuard();
+  Future<void> refreshGuard() => _bootstrapGuardDeduped();
 
   /// Re-fetches whenever the app comes back to the foreground (opened from
   /// the app switcher, or from tapping a push notification) — otherwise the
@@ -765,9 +837,9 @@ class AppNotifier extends StateNotifier<AppState> {
       return;
     }
     if (state.role == Role.guard) {
-      await _bootstrapGuard();
+      await _bootstrapGuardDeduped();
     } else {
-      await _bootstrapResident();
+      await _bootstrapResidentDeduped();
     }
   }
 
@@ -825,9 +897,9 @@ class AppNotifier extends StateNotifier<AppState> {
   Future<void> _resumeAppAfterUnlock() async {
     state = state.copyWith(authStage: AuthStage.app);
     if (state.role == Role.guard) {
-      await _bootstrapGuard();
+      await _bootstrapGuardDeduped();
     } else {
-      await _bootstrapResident();
+      await _bootstrapResidentDeduped();
     }
   }
 
@@ -910,6 +982,105 @@ class AppNotifier extends StateNotifier<AppState> {
   }
 
   // ── Bootstrap ─────────────────────────────────────────────────────────
+  // `_bootstrapResident`/`_bootstrapGuard` are called from six independent
+  // triggers (login, auto-login, force-reset, resume-refresh, and every
+  // pull-to-refresh site) that can legitimately overlap — e.g. the app
+  // resuming while a manual pull-to-refresh is already in flight. Routing
+  // every call through these deduped wrappers means a second call while
+  // one's already running just awaits the same Future instead of firing a
+  // duplicate 17-request burst.
+  Future<void>? _residentBootstrapInFlight;
+  Future<void> _bootstrapResidentDeduped() {
+    return _residentBootstrapInFlight ??= _bootstrapResident().whenComplete(
+      () => _residentBootstrapInFlight = null,
+    );
+  }
+
+  Future<void>? _guardBootstrapInFlight;
+  Future<void> _bootstrapGuardDeduped() {
+    return _guardBootstrapInFlight ??= _bootstrapGuard().whenComplete(
+      () => _guardBootstrapInFlight = null,
+    );
+  }
+
+  // ── Offline cache ────────────────────────────────────────────────────
+  // Resident data only — guard-role caching (accessLog/duesOwing from
+  // _bootstrapGuard) is a separate, not-yet-built decision. Deliberately
+  // excludes authStage, form-input fields, and currentUser/tokens — this
+  // file is unencrypted-at-rest JSON, not secure storage.
+  Map<String, dynamic> _cacheSnapshot() => {
+    'cachedAt': DateTime.now().toIso8601String(),
+    'announcements': state.announcements.map((e) => e.toJson()).toList(),
+    'meetings': state.meetings.map((e) => e.toJson()).toList(),
+    'duesBalance': state.duesBalance,
+    'duesMonthsPaid': state.duesMonthsPaid,
+    'duesHistory': state.duesHistory.map((e) => e.toJson()).toList(),
+    'levies': state.levies.map((e) => e.toJson()).toList(),
+    'visitorPasses': state.visitorPasses.map((e) => e.toJson()).toList(),
+    'projects': state.projects.map((e) => e.toJson()).toList(),
+    'polls': state.polls.map((e) => e.toJson()).toList(),
+    'notifications': state.notifications.map((e) => e.toJson()).toList(),
+    'allNotifsRead': state.allNotifsRead,
+    'rulesSections': state.rulesSections.map((e) => e.toJson()).toList(),
+    'spotlight': state.spotlight?.toJson(),
+    'myPledges': state.myPledges.map((e) => e.toJson()).toList(),
+    'utilityMeters': state.utilityMeters.map((e) => e.toJson()).toList(),
+    'discos': state.discos.map((e) => e.toJson()).toList(),
+    'walletBalance': state.walletBalance,
+    'utilityPurchases': state.utilityPurchases.map((e) => e.toJson()).toList(),
+    'householdMembers': state.householdMembers.map((e) => e.toJson()).toList(),
+    'householdInvites': state.householdInvites.map((e) => e.toJson()).toList(),
+    'securityGuardPhone': state.securityGuardPhone,
+    'estateAdminPhone': state.estateAdminPhone,
+  };
+
+  /// Best-effort, fire-and-forget — a failed cache write must never block
+  /// or fail whatever just finished fetching.
+  void _persistCache() {
+    unawaited(_stateCache.write(_cacheSnapshot()));
+  }
+
+  /// Applies a cached snapshot (if one exists) to `state` — called from
+  /// `_tryAutoLogin` right after a real `currentUser` is confirmed but
+  /// before the (slow) full bootstrap, so the UI has last-known data to
+  /// show the instant `authStage` leaves `bootstrapping`, instead of
+  /// sitting on a blank/loading screen for the full ~17-request fetch.
+  Future<void> _hydrateFromCache() async {
+    final json = await _stateCache.read();
+    if (json == null) return;
+    List<T> parseList<T>(String key, T Function(Map<String, dynamic>) fromJson) {
+      final raw = json[key] as List<dynamic>?;
+      if (raw == null) return <T>[];
+      return raw.map((e) => fromJson(e as Map<String, dynamic>)).toList();
+    }
+
+    final spotlightJson = json['spotlight'] as Map<String, dynamic>?;
+    state = state.copyWith(
+      announcements: parseList('announcements', Announcement.fromJson),
+      meetings: parseList('meetings', Meeting.fromJson),
+      duesBalance: json['duesBalance'] as int? ?? 0,
+      duesMonthsPaid: json['duesMonthsPaid'] as int? ?? 0,
+      duesHistory: parseList('duesHistory', DuesEntry.fromJson),
+      levies: parseList('levies', Levy.fromJson),
+      visitorPasses: parseList('visitorPasses', VisitorPass.fromJson),
+      projects: parseList('projects', Project.fromJson),
+      polls: parseList('polls', Poll.fromJson),
+      notifications: parseList('notifications', NotificationItem.fromJson),
+      allNotifsRead: json['allNotifsRead'] as bool? ?? true,
+      rulesSections: parseList('rulesSections', RulesSection.fromJson),
+      spotlight: spotlightJson == null ? null : Spotlight.fromJson(spotlightJson),
+      myPledges: parseList('myPledges', MyPledge.fromJson),
+      utilityMeters: parseList('utilityMeters', UtilityMeter.fromJson),
+      discos: parseList('discos', Disco.fromJson),
+      walletBalance: json['walletBalance'] as int? ?? 0,
+      utilityPurchases: parseList('utilityPurchases', UtilityPurchase.fromJson),
+      householdMembers: parseList('householdMembers', HouseholdMember.fromJson),
+      householdInvites: parseList('householdInvites', HouseholdInvite.fromJson),
+      securityGuardPhone: json['securityGuardPhone'] as String?,
+      estateAdminPhone: json['estateAdminPhone'] as String?,
+    );
+  }
+
   Future<void> _bootstrapResident() async {
     final results = await Future.wait([
       _api.announcements(),
@@ -1023,6 +1194,7 @@ class AppNotifier extends StateNotifier<AppState> {
       householdMembers: householdMembers,
       householdInvites: householdInvites,
     );
+    _persistCache();
   }
 
   // ── Household ────────────────────────────────────────────────────────
@@ -1287,7 +1459,7 @@ class AppNotifier extends StateNotifier<AppState> {
     } catch (_) {
       // Fall through — still refresh the log below.
     }
-    await _bootstrapGuard();
+    await _bootstrapGuardDeduped();
   }
 
   /// See `recordEntry` — same reasoning for leaving `guardResult` untouched.
@@ -1300,7 +1472,7 @@ class AppNotifier extends StateNotifier<AppState> {
     } catch (_) {
       // Fall through — still refresh the log below.
     }
-    await _bootstrapGuard();
+    await _bootstrapGuardDeduped();
   }
 
   // ── Notifications / polls / rules / complaints ──────────────────────

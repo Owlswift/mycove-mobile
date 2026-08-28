@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
@@ -6,6 +7,7 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../state/app_notifier.dart';
 import '../router/app_router.dart';
 
 const _channel = AndroidNotificationChannel(
@@ -92,9 +94,23 @@ class PushService {
     }
   }
 
+  /// A push means something changed server-side — refresh the cached data
+  /// it's about, rather than leaving the resident to notice on their next
+  /// pull-to-refresh. Best-effort: a refresh failure here must never affect
+  /// notification delivery or navigation, so every caller wraps it in its
+  /// own try/catch and ignores the outcome.
+  void _refreshInBackground() {
+    try {
+      unawaited(_ref.read(appStateProvider.notifier).refreshResident());
+    } catch (_) {
+      // Best-effort.
+    }
+  }
+
   Future<void> _showForegroundNotification(RemoteMessage message) async {
     final notification = message.notification;
     debugPrint('PushService: onMessage fired, notification=${notification?.title}');
+    _refreshInBackground();
     if (notification == null) return;
     try {
       await _localNotifications.show(
@@ -113,6 +129,9 @@ class PushService {
   }
 
   void _handleMessageTap(RemoteMessage message) {
+    // Refresh before navigating so the destination screen (e.g. the dues
+    // page for a 'payment' push) isn't showing stale cached data.
+    _refreshInBackground();
     final type = message.data['type'] as String?;
     if (type != null) _navigateForType(type);
   }

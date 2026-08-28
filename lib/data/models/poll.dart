@@ -8,6 +8,8 @@ class PollOption {
   final String id;
   final String label;
   final int pct;
+
+  Map<String, dynamic> toJson() => {'id': id, 'label': label, 'pct': pct};
 }
 
 class Poll {
@@ -40,4 +42,14 @@ class Poll {
   final String? selectedOptionId;
   final String voteCountLabel;
   final List<PollOption> options;
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'question': question,
+        'closesIn': closesIn,
+        'voted': voted,
+        'selectedOptionId': selectedOptionId,
+        'voteCountLabel': voteCountLabel,
+        'options': options.map((o) => o.toJson()).toList(),
+      };
 }

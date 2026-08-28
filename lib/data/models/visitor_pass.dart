@@ -66,4 +66,23 @@ class VisitorPass {
 
   /// When this visitor actually entered — null until [hasEntered] is true.
   final DateTime? enteredAt;
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'name': name,
+        'phone': phone,
+        'plate': plate,
+        'code': code,
+        'status': status.name.toUpperCase(),
+        'checkedIn': checkedIn,
+        'hasEntered': hasEntered,
+        'isInside': isInside,
+        'visitLabel': visitLabel,
+        'createdAt': createdAt.toIso8601String(),
+        // Mirrors fromJson's nested accessLogEntries[0].entryAt shape.
+        if (enteredAt != null)
+          'accessLogEntries': [
+            {'entryAt': enteredAt!.toIso8601String()},
+          ],
+      };
 }

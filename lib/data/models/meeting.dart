@@ -46,4 +46,14 @@ class Meeting {
   final String countdown;
   final String location;
   final DateTime scheduledAt;
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'title': title,
+        'date': date,
+        'time': time,
+        'countdown': countdown,
+        'location': location,
+        'scheduledAt': scheduledAt.toIso8601String(),
+      };
 }

@@ -27,4 +27,13 @@ class Spotlight {
   final String? phone;
 
   bool get isBusiness => category == 'BUSINESS';
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'name': name,
+        'category': category,
+        'description': description,
+        'imageBase64': imageBase64,
+        'phone': phone,
+      };
 }

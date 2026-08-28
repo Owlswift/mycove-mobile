@@ -10,4 +10,6 @@ class RulesSection {
 
   final String title;
   final List<String> items;
+
+  Map<String, dynamic> toJson() => {'title': title, 'items': items};
 }

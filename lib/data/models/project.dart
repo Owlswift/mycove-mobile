@@ -39,4 +39,12 @@ class Project {
   final String? mediaBase64;
 
   bool get isCompleted => status == 'Completed';
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'title': title,
+        'status': isCompleted ? 'COMPLETED' : 'IN_PROGRESS',
+        'progress': progress,
+        'mediaBase64': mediaBase64,
+      };
 }

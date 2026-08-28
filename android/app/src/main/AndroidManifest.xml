@@ -3,6 +3,24 @@
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
     <!-- Required by speech_to_text for voice commands. -->
     <uses-permission android:name="android.permission.RECORD_AUDIO"/>
+    <!-- UI was designed and verified only against phone-sized screens —
+         opting out of large/xlarge (7"/10" tablet) screens rather than
+         shipping an unadapted, oversized-looking layout on them. Also
+         exclude tablet form factors in Play Console's Device Catalog
+         (App content), since Play primarily filters by that now, not
+         this legacy tag. -->
+    <supports-screens
+        android:smallScreens="true"
+        android:normalScreens="true"
+        android:largeScreens="false"
+        android:xlargeScreens="false"
+        android:anyDensity="true" />
+    <!-- Requiring a touchscreen is what actually excludes Android TV
+         (remote-controlled, reports no touchscreen) and Android
+         Automotive/Auto head units from the Play Store listing — this is
+         a real capability requirement (the whole UI is tap-driven), not
+         just a targeting hint like <supports-screens> above. -->
+    <uses-feature android:name="android.hardware.touchscreen" android:required="true" />
     <application
         android:label="mycove"
         android:name="${applicationName}"

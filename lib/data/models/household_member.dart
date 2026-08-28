@@ -21,4 +21,11 @@ class HouseholdMember {
   final String fullName;
   final String phone;
   final DateTime joinedAt;
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'fullName': fullName,
+        'phone': phone,
+        'joinedAt': joinedAt.toIso8601String(),
+      };
 }

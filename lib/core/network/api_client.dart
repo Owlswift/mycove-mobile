@@ -3,19 +3,24 @@ import 'api_exception.dart';
 import 'estate_storage.dart';
 import 'token_storage.dart';
 
-/// Defaults to the dev Mac's LAN IP so the app on a simulator or a phone on
-/// the same Wi-Fi hits the local API (`npm run start:dev` in mycove-api,
-/// which listens on 0.0.0.0:3000). Update the IP here when the Mac's DHCP
-/// lease changes (`ipconfig getifaddr en0`).
-/// For remote testers, override with a Cloudflare quick tunnel instead:
+/// Defaults to the real production API (Oracle Cloud) so a release build
+/// only ever talks to it by accident-proof default — a build/run
+/// forgetting to pass an override must never end up shipping a binary
+/// wired to a developer's laptop. For LOCAL DEV, override with your Mac's
+/// LAN IP instead (update it when the Mac's DHCP lease changes —
+/// `ipconfig getifaddr en0` — `npm run start:dev` in mycove-api listens
+/// on 0.0.0.0:3000):
+/// flutter run --dart-define=API_BASE_URL=http://192.168.100.175:3000/api
+/// For remote testers without LAN access, use a Cloudflare quick tunnel
+/// instead:
 /// cloudflared tunnel --url http://localhost:3000
 /// flutter run --dart-define=API_BASE_URL=https://`<tunnel-host>`/api
 const _baseUrlOverride = String.fromEnvironment('API_BASE_URL');
-const _lanUrl = 'http://192.168.100.175:3000/api';
+const _productionUrl = 'https://api.mycove.ng/api';
 
 String get _baseUrl {
   if (_baseUrlOverride.isNotEmpty) return _baseUrlOverride;
-  return _lanUrl;
+  return _productionUrl;
 }
 
 class ApiClient {

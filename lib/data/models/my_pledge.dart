@@ -14,4 +14,11 @@ class MyPledge {
   final int amount;
   final String projectId;
   final String projectTitle;
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'amount': amount,
+        'projectId': projectId,
+        'projectTitle': projectTitle,
+      };
 }

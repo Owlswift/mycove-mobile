@@ -32,4 +32,13 @@ class DuesEntry {
   /// Activity card), since [date] itself is a pre-formatted label, not a
   /// parseable one.
   final DateTime createdAt;
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'date': date,
+        'desc': desc,
+        'type': type == DuesEntryType.payment ? 'PAYMENT' : 'CHARGE',
+        'amount': amount,
+        'createdAt': createdAt.toIso8601String(),
+      };
 }

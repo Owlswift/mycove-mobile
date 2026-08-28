@@ -32,6 +32,13 @@ class UtilityPurchaseMeter {
   final String discoName;
   final String discoCode;
   final String meterType;
+
+  Map<String, dynamic> toJson() => {
+        'meterNumber': meterNumber,
+        'discoName': discoName,
+        'discoCode': discoCode,
+        'meterType': meterType,
+      };
 }
 
 class UtilityPurchase {
@@ -91,4 +98,20 @@ class UtilityPurchase {
 
   /// AIRTIME recipient, or electricity contact phone.
   final String? phone;
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'type': type,
+        'amount': amount,
+        'status': status.name.toUpperCase(),
+        'createdAt': createdAt.toIso8601String(),
+        'provider': provider,
+        'token': token,
+        'units': units,
+        'tariff': tariff,
+        'failureReason': failureReason,
+        'meter': meter?.toJson(),
+        'network': network,
+        'phone': phone,
+      };
 }

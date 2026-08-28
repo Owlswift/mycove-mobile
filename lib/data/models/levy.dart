@@ -24,4 +24,12 @@ class Levy {
   final int amount;
   final String dueDate;
   final LevyStatus status;
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'label': label,
+        'amount': amount,
+        'dueDate': dueDate,
+        'paid': status == LevyStatus.paid,
+      };
 }

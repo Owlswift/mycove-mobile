@@ -49,4 +49,15 @@ class HouseholdInvite {
     HouseholdInviteStatus.rejected => 'Rejected',
     HouseholdInviteStatus.accepted => 'Joined',
   };
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'invitedFullName': invitedFullName,
+        'invitedPhone': invitedPhone,
+        'status': status.name == 'pendingAdminApproval'
+            ? 'PENDING_ADMIN_APPROVAL'
+            : status.name.toUpperCase(),
+        'createdAt': createdAt.toIso8601String(),
+        'accessCode': accessCode,
+      };
 }

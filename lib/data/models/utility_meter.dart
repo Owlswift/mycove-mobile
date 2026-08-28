@@ -36,6 +36,16 @@ class UtilityMeter {
   final MeterType meterType;
   final String? customerName;
   final String? address;
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'discoCode': discoCode,
+        'discoName': discoName,
+        'meterNumber': meterNumber,
+        'meterType': meterTypeToJson(meterType),
+        'customerName': customerName,
+        'address': address,
+      };
 }
 
 /// A DISCO entry for the picker, fetched from `GET /utilities/discos` (see
@@ -56,6 +66,12 @@ class Disco {
   final String code;
   final String shortCode;
   final String name;
+
+  Map<String, dynamic> toJson() => {
+        'code': code,
+        'shortCode': shortCode,
+        'name': name,
+      };
 }
 
 /// Falls back to the raw code if somehow not found — keeps display code
