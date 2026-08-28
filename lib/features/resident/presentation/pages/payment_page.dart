@@ -26,10 +26,17 @@ class PaymentPage extends ConsumerWidget {
           child: Padding(
             padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
             child: switch (s.paymentStep) {
-              PaymentStep.idle => _Idle(balanceLabel: s.duesBalanceLabel, onConfirm: notifier.confirmPayment),
-              PaymentStep.processing => const _Processing(),
+              PaymentStep.idle => _Idle(
+                  balanceLabel: s.pendingPaymentAmountLabel,
+                  onConfirm: () => notifier.requestAuthorization(
+                    s.pendingPaymentPurpose == 'LEVY' ? 'levy' : 'dues',
+                  ),
+                ),
+              PaymentStep.processing => _Processing(
+                  onCheckStatus: notifier.checkPendingPaymentStatus,
+                ),
               PaymentStep.success => _Success(
-                  amountLabel: s.duesBalanceLabelPre,
+                  amountLabel: s.pendingPaymentAmountLabel,
                   onViewReceipt: () => context.pushReplacement('/resident/receipt'),
                 ),
             },
@@ -95,7 +102,9 @@ class _Idle extends StatelessWidget {
 }
 
 class _Processing extends StatelessWidget {
-  const _Processing();
+  const _Processing({required this.onCheckStatus});
+
+  final VoidCallback onCheckStatus;
 
   @override
   Widget build(BuildContext context) {
@@ -110,6 +119,14 @@ class _Processing extends StatelessWidget {
         ),
         const SizedBox(height: 18),
         Text('Processing with Paystack…', style: McTextStyles.body(fontSize: 14, color: McColors.bodyText)),
+        const SizedBox(height: 6),
+        Text(
+          'Complete the payment in your browser, then return here.',
+          textAlign: TextAlign.center,
+          style: McTextStyles.body(fontSize: 12.5, color: McColors.bodyText),
+        ),
+        const SizedBox(height: 20),
+        McButton(label: 'Check status', variant: ChButtonVariant.secondary, onPressed: onCheckStatus),
       ],
     );
   }

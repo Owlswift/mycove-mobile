@@ -121,7 +121,6 @@ class MyCoveApi {
   // ── Dues & levies ─────────────────────────────────────────────────────
   Future<Map<String, dynamic>> dues() async => _map(await _dio.get('/dues'));
   Future<Map<String, dynamic>> levies() async => _map(await _dio.get('/levies'));
-  Future<void> payLevy(String id) => _dio.post('/levies/$id/pay');
 
   Future<int> walletBalance() async =>
       (_map(await _dio.get('/wallet/balance'))['balance'] as num).toInt();

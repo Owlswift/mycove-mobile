@@ -51,6 +51,12 @@ class ResidentShell extends ConsumerWidget {
         final authorized = await showAuthorizationSheet(context, ref);
         if (!context.mounted) return;
         if (!authorized) return;
+        if (kind == 'dues' || kind == 'levy') {
+          // PaymentPage already reactively re-renders off `paymentStep` —
+          // no navigation needed here, unlike the utility purchases below.
+          await notifier.confirmPayment();
+          return;
+        }
         final ok = kind == 'electricity' ? await notifier.buyElectricity() : await notifier.buyAirtime();
         if (ok && context.mounted) context.go('/resident/$kind/success');
       }

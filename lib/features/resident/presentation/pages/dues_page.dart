@@ -22,13 +22,6 @@ class DuesPage extends ConsumerWidget {
     final hasBalance = s.duesBalance > 0;
     final duesLiable = s.currentUser?.duesLiable ?? true;
 
-    Future<void> pay(String levyId) async {
-      final error = await notifier.payLevy(levyId);
-      if (error != null && context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(error, style: TextStyle(color: McColors.text))));
-      }
-    }
-
     return Column(
       children: [
         const McGenericHeader(title: 'Dues & Payments', showBack: false),
@@ -160,7 +153,10 @@ class DuesPage extends ConsumerWidget {
                       if (lv.status == LevyStatus.unpaid)
                         if (duesLiable)
                           GestureDetector(
-                            onTap: () => pay(lv.id),
+                            onTap: () {
+                              notifier.startLevyPayment(lv);
+                              context.push('/resident/payment');
+                            },
                             child: Container(
                               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                               decoration: BoxDecoration(color: McColors.accent2, borderRadius: BorderRadius.circular(McRadii.pill)),

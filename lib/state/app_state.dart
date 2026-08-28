@@ -106,6 +106,9 @@ class AppState {
     List<VisitorPass>? visitorPasses,
     this.paymentStep = PaymentStep.idle,
     this.paymentReference,
+    this.pendingPaymentAmount = 0,
+    this.pendingPaymentPurpose = 'DUES',
+    this.pendingPaymentLevyId,
     this.duesBalance = 0,
     this.duesMonthsPaid = 0,
     this.walletBalance = 0,
@@ -266,6 +269,14 @@ class AppState {
 
   final PaymentStep paymentStep;
   final String? paymentReference;
+
+  /// What `PaymentPage`'s "Confirm Payment" button is actually paying for
+  /// — set by whichever screen navigates there (dues' "Pay Now", or a
+  /// levy row's "Pay") before the push, read by `confirmPayment()` instead
+  /// of that method hardcoding dues' own balance/purpose.
+  final int pendingPaymentAmount;
+  final String pendingPaymentPurpose; // 'DUES' | 'LEVY'
+  final String? pendingPaymentLevyId;
   final int duesBalance;
 
   /// How many months of dues have been paid so far in the current dues
@@ -372,6 +383,7 @@ class AppState {
   String get walletBalanceLabel => formatNaira(walletBalance);
   String get duesBalanceLabelPre =>
       formatNaira(lastPayment?.amount ?? duesBalance);
+  String get pendingPaymentAmountLabel => formatNaira(pendingPaymentAmount);
   String get receiptAmountLabel => formatNaira(lastPayment?.amount ?? 0);
   String get receiptRef => 'PSK-${lastPayment?.id.toUpperCase() ?? 'N/A'}';
   int get activePassCount => visitorPasses.where((p) => p.isInside).length;
@@ -422,6 +434,9 @@ class AppState {
     List<VisitorPass>? visitorPasses,
     PaymentStep? paymentStep,
     Object? paymentReference = _sentinel,
+    int? pendingPaymentAmount,
+    String? pendingPaymentPurpose,
+    Object? pendingPaymentLevyId = _sentinel,
     int? duesBalance,
     int? duesMonthsPaid,
     int? walletBalance,
@@ -555,6 +570,12 @@ class AppState {
       paymentReference: identical(paymentReference, _sentinel)
           ? this.paymentReference
           : paymentReference as String?,
+      pendingPaymentAmount: pendingPaymentAmount ?? this.pendingPaymentAmount,
+      pendingPaymentPurpose:
+          pendingPaymentPurpose ?? this.pendingPaymentPurpose,
+      pendingPaymentLevyId: identical(pendingPaymentLevyId, _sentinel)
+          ? this.pendingPaymentLevyId
+          : pendingPaymentLevyId as String?,
       duesBalance: duesBalance ?? this.duesBalance,
       duesMonthsPaid: duesMonthsPaid ?? this.duesMonthsPaid,
       walletBalance: walletBalance ?? this.walletBalance,

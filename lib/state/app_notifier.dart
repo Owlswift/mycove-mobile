@@ -836,6 +836,7 @@ class AppNotifier extends StateNotifier<AppState> {
       state = state.copyWith(authStage: AuthStage.locked);
       return;
     }
+    unawaited(checkPendingPaymentStatus());
     if (state.role == Role.guard) {
       await _bootstrapGuardDeduped();
     } else {
@@ -1262,30 +1263,63 @@ class AppNotifier extends StateNotifier<AppState> {
   }
 
   // ── Dues / payment ───────────────────────────────────────────────────
+  /// Prepares the payment screen for the resident's own dues balance —
+  /// called from the dues "Pay Now" button before pushing `/resident/payment`.
   void resetPayment() => state = state.copyWith(
     paymentStep: PaymentStep.idle,
     paymentReference: null,
+    pendingPaymentAmount: state.duesBalance,
+    pendingPaymentPurpose: 'DUES',
+    pendingPaymentLevyId: null,
+  );
+
+  /// Same as [resetPayment] but for a single levy — called from a levy
+  /// row's "Pay" button before pushing `/resident/payment`.
+  void startLevyPayment(Levy levy) => state = state.copyWith(
+    paymentStep: PaymentStep.idle,
+    paymentReference: null,
+    pendingPaymentAmount: levy.amount,
+    pendingPaymentPurpose: 'LEVY',
+    pendingPaymentLevyId: levy.id,
   );
 
   Future<void> confirmPayment() async {
     state = state.copyWith(paymentStep: PaymentStep.processing);
-    final amount = state.duesBalance;
+    final amount = state.pendingPaymentAmount;
+    final purpose = state.pendingPaymentPurpose;
+    final levyId = state.pendingPaymentLevyId;
+    final analyticsType = purpose == 'LEVY' ? 'levy' : 'monthly_dues';
     final paymentStart = DateTime.now();
     _analytics.track('dues_payment_started', {
       'amount': amount,
       'payment_method': 'paystack',
-      'payment_type': 'monthly_dues',
+      'payment_type': analyticsType,
     });
     try {
       final initiated = await _api.initiatePayment(
         amount: amount,
-        purpose: 'DUES',
+        purpose: purpose,
+        levyId: levyId,
       );
       final reference = initiated['reference'] as String;
+      final authorizationUrl = initiated['authorizationUrl'] as String?;
+      state = state.copyWith(paymentReference: reference);
+
+      if (authorizationUrl != null) {
+        try {
+          await launchUrl(
+            Uri.parse(authorizationUrl),
+            mode: LaunchMode.externalApplication,
+          );
+        } catch (_) {
+          // No browser available to hand off to — the poll loop below still
+          // runs, it just has nothing to eventually report success.
+        }
+      }
 
       var status = 'PENDING';
-      for (var attempt = 0; attempt < 5 && status == 'PENDING'; attempt++) {
-        await Future<void>.delayed(const Duration(milliseconds: 500));
+      for (var attempt = 0; attempt < 40 && status == 'PENDING'; attempt++) {
+        await Future<void>.delayed(const Duration(seconds: 3));
         status = (await _api.verifyPayment(reference))['status'] as String;
       }
 
@@ -1293,23 +1327,24 @@ class AppNotifier extends StateNotifier<AppState> {
         _analytics.track('dues_payment_success', {
           'amount': amount,
           'payment_method': 'paystack',
-          'payment_type': 'monthly_dues',
+          'payment_type': analyticsType,
           'duration_ms': DateTime.now().difference(paymentStart).inMilliseconds,
         });
-        final dues = await _api.dues();
+        await _refreshAfterPaymentSuccess(purpose);
         state = state.copyWith(
           paymentStep: PaymentStep.success,
           paymentReference: reference,
-          duesBalance: dues['balance'] as int,
-          duesHistory: (dues['history'] as List)
-              .map((j) => DuesEntry.fromJson(j as Map<String, dynamic>))
-              .toList(),
         );
+      } else if (status == 'PENDING') {
+        // Still unresolved after the poll bound — leave it in `processing`;
+        // [refreshOnResume]'s pending-payment check or the "Check status"
+        // affordance on that screen can pick it back up later, and the
+        // webhook remains the actual source of truth server-side either way.
       } else {
         _analytics.track('dues_payment_failed', {
           'amount': amount,
           'payment_method': 'paystack',
-          'payment_type': 'monthly_dues',
+          'payment_type': analyticsType,
           'failure_reason': 'payment_not_successful',
         });
         state = state.copyWith(paymentStep: PaymentStep.idle);
@@ -1318,28 +1353,50 @@ class AppNotifier extends StateNotifier<AppState> {
       _analytics.track('dues_payment_failed', {
         'amount': amount,
         'payment_method': 'paystack',
-        'payment_type': 'monthly_dues',
+        'payment_type': analyticsType,
         'failure_reason': 'exception',
       });
       state = state.copyWith(paymentStep: PaymentStep.idle);
     }
   }
 
-  Future<String?> payLevy(String id) async {
+  /// Re-checks a payment left in `processing` — called automatically on
+  /// app-resume (the resident may have completed, or abandoned, the
+  /// checkout while the app was backgrounded and the poll loop in
+  /// [confirmPayment] was suspended by the OS) and from the "Check status"
+  /// affordance on the processing screen itself.
+  Future<void> checkPendingPaymentStatus() async {
+    if (state.paymentStep != PaymentStep.processing) return;
+    final reference = state.paymentReference;
+    if (reference == null) return;
     try {
-      await _api.payLevy(id);
+      final status = (await _api.verifyPayment(reference))['status'] as String;
+      if (status == 'SUCCESS') {
+        await _refreshAfterPaymentSuccess(state.pendingPaymentPurpose);
+        state = state.copyWith(paymentStep: PaymentStep.success);
+      } else if (status != 'PENDING') {
+        state = state.copyWith(paymentStep: PaymentStep.idle);
+      }
+    } catch (_) {
+      // Leave it in `processing` — the poll loop or a manual re-check can
+      // try again later.
+    }
+  }
+
+  Future<void> _refreshAfterPaymentSuccess(String purpose) async {
+    if (purpose == 'LEVY') {
       final levies = ((await _api.levies())['levies'] as List)
           .map((j) => Levy.fromJson(j as Map<String, dynamic>))
           .toList();
       state = state.copyWith(levies: levies);
-      final levy = levies.where((l) => l.id == id).firstOrNull;
-      _analytics.track('levy_payment_success', {
-        'levy_label': levy?.label,
-        'amount': levy?.amount,
-      });
-      return null;
-    } catch (e) {
-      return extractMessage(e);
+    } else {
+      final dues = await _api.dues();
+      state = state.copyWith(
+        duesBalance: dues['balance'] as int,
+        duesHistory: (dues['history'] as List)
+            .map((j) => DuesEntry.fromJson(j as Map<String, dynamic>))
+            .toList(),
+      );
     }
   }
 
