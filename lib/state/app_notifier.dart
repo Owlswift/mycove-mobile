@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:developer' as developer;
 import 'dart:io';
 import 'dart:math';
 
@@ -478,6 +479,7 @@ class AppNotifier extends StateNotifier<AppState> {
     state = state.copyWith(isLoading: true, loginError: '');
     final loginStart = DateTime.now();
     _analytics.track('login_started', {'login_method': 'password'});
+    developer.log('doLogin: starting, role=${state.role}', name: 'AppNotifier');
     try {
       final (platform, deviceName) = await _deviceInfo();
       final result = await _api.login(
@@ -486,6 +488,10 @@ class AppNotifier extends StateNotifier<AppState> {
         role: _roleToApi(state.role),
         platform: platform,
         deviceName: deviceName,
+      );
+      developer.log(
+        'doLogin: /auth/login succeeded, mustResetPassword=${result['mustResetPassword']}',
+        name: 'AppNotifier',
       );
       await _tokenStorage.save(result['accessToken'] as String);
       // Always needed for this session's own requests (see ApiClient's
@@ -516,6 +522,7 @@ class AppNotifier extends StateNotifier<AppState> {
       // password is set directly by an admin and they go straight in, even
       // if an older account still has the resident-oriented flag set.
       if (result['mustResetPassword'] == true && user.role != 'GUARD') {
+        developer.log('doLogin: routing to forceReset', name: 'AppNotifier');
         state = state.copyWith(
           authStage: AuthStage.forceReset,
           setupFullName: user.fullName,
@@ -545,7 +552,15 @@ class AppNotifier extends StateNotifier<AppState> {
         'duration_ms': DateTime.now().difference(loginStart).inMilliseconds,
       });
       unawaited(_registerPushToken());
-    } catch (e) {
+      developer.log('doLogin: complete, authStage=app', name: 'AppNotifier');
+    } catch (e, st) {
+      developer.log(
+        'doLogin: FAILED — ${e.runtimeType}: $e',
+        name: 'AppNotifier',
+        error: e,
+        stackTrace: st,
+        level: 1000,
+      );
       _analytics.track('login_failed', {
         'login_method': 'password',
         'failure_reason': extractMessage(e),
@@ -693,6 +708,7 @@ class AppNotifier extends StateNotifier<AppState> {
       return;
     }
     state = state.copyWith(isLoading: true, resetMsg: '');
+    developer.log('completeForceReset: starting', name: 'AppNotifier');
     try {
       final plates = state.setupVehiclePlates
           .split(',')
@@ -712,6 +728,10 @@ class AppNotifier extends StateNotifier<AppState> {
             : state.setupEmergencyContactPhone.trim(),
         vehiclePlates: plates,
       );
+      developer.log(
+        'completeForceReset: /auth/complete-force-reset succeeded, running bootstrap',
+        name: 'AppNotifier',
+      );
 
       // The role driving which bootstrap runs is whatever the admin set
       // this account up as — not assumed to always be a resident, since
@@ -724,6 +744,7 @@ class AppNotifier extends StateNotifier<AppState> {
       } else {
         await _bootstrapResidentDeduped();
       }
+      developer.log('completeForceReset: bootstrap succeeded', name: 'AppNotifier');
       // Data's already loaded (bootstrap just ran above) — the success
       // screen sits in front of an app that's ready to go the moment
       // finishOnboarding flips authStage to app, same as the biometric
@@ -737,7 +758,14 @@ class AppNotifier extends StateNotifier<AppState> {
         resetMsg: '',
         isLoading: false,
       );
-    } catch (e) {
+    } catch (e, st) {
+      developer.log(
+        'completeForceReset: FAILED — ${e.runtimeType}: $e',
+        name: 'AppNotifier',
+        error: e,
+        stackTrace: st,
+        level: 1000,
+      );
       state = state.copyWith(isLoading: false, resetMsg: extractMessage(e));
     }
   }

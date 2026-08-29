@@ -1183,7 +1183,7 @@ class _ProfileFieldState extends State<_ProfileField> {
                     hintText: widget.hint,
                     hintStyle: McTextStyles.body(
                       fontSize: 13.5,
-                      color: McColors.neutralN(500),
+                      // color: McColors.neutralN(500),
                     ),
                   ),
                 ),

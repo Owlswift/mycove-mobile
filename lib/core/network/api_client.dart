@@ -1,26 +1,115 @@
+import 'dart:convert';
+import 'dart:developer' as developer;
+import 'dart:io' show Platform;
+
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart' show kReleaseMode;
 import 'api_exception.dart';
 import 'estate_storage.dart';
 import 'token_storage.dart';
 
-/// Defaults to the real production API (Oracle Cloud) so a release build
-/// only ever talks to it by accident-proof default — a build/run
-/// forgetting to pass an override must never end up shipping a binary
-/// wired to a developer's laptop. For LOCAL DEV, override with your Mac's
-/// LAN IP instead (update it when the Mac's DHCP lease changes —
-/// `ipconfig getifaddr en0` — `npm run start:dev` in mycove-api listens
-/// on 0.0.0.0:3000):
-/// flutter run --dart-define=API_BASE_URL=http://192.168.100.175:3000/api
-/// For remote testers without LAN access, use a Cloudflare quick tunnel
-/// instead:
-/// cloudflared tunnel --url http://localhost:3000
-/// flutter run --dart-define=API_BASE_URL=https://`<tunnel-host>`/api
+const _redactedKeys = {
+  'password',
+  'newPassword',
+  'pin',
+  'accessToken',
+  'refreshToken',
+  'resetToken',
+};
+
+Object? _redact(Object? data) {
+  if (data is Map) {
+    return data.map(
+      (k, v) => MapEntry(k, _redactedKeys.contains(k) ? '[redacted]' : v),
+    );
+  }
+  return data;
+}
+
+bool _isMutating(String method) => method == 'POST' || method == 'PUT';
+
+/// Logs every mutating request/response/error (POST/PUT only — the
+/// actions that actually change something; GETs are excluded on purpose,
+/// they're too frequent — the resident/guard bootstrap alone fires ~17 of
+/// them — to be useful noise here) to the console (`flutter logs` / Xcode
+/// console / `adb logcat`). Headers' Authorization value is redacted,
+/// request/response bodies have password-shaped fields redacted. Left
+/// permanently on: this is a native mobile app console, not something an
+/// end user (or a browser devtools tab) ever sees.
+class _VerboseLogInterceptor extends Interceptor {
+  @override
+  void onRequest(RequestOptions options, RequestInterceptorHandler handler) {
+    if (_isMutating(options.method)) {
+      developer.log(
+        '--> ${options.method} ${options.uri}\n'
+        '    headers: ${options.headers.map((k, v) => MapEntry(k, k.toLowerCase() == 'authorization' ? '[redacted]' : v))}\n'
+        '    body: ${jsonEncode(_redact(options.data))}',
+        name: 'ApiClient',
+      );
+    }
+    handler.next(options);
+  }
+
+  @override
+  void onResponse(Response response, ResponseInterceptorHandler handler) {
+    if (_isMutating(response.requestOptions.method)) {
+      developer.log(
+        '<-- ${response.statusCode} ${response.requestOptions.method} ${response.requestOptions.uri}\n'
+        '    body: ${jsonEncode(_redact(response.data))}',
+        name: 'ApiClient',
+      );
+    }
+    handler.next(response);
+  }
+
+  @override
+  void onError(DioException err, ErrorInterceptorHandler handler) {
+    if (_isMutating(err.requestOptions.method)) {
+      developer.log(
+        '<-- ERROR ${err.type} ${err.requestOptions.method} ${err.requestOptions.uri}\n'
+        '    message: ${err.message}\n'
+        '    response status: ${err.response?.statusCode}\n'
+        '    response body: ${err.response?.data}',
+        name: 'ApiClient',
+        level: 1000,
+      );
+    }
+    handler.next(err);
+  }
+}
+
+/// A release build (`flutter build`/`flutter run --release`, i.e. the only
+/// way a binary reaches a real user's device) ALWAYS talks to production,
+/// no matter what — this is unconditional, deliberately ignoring even an
+/// `API_BASE_URL` override, so there is no way to accidentally ship a
+/// binary wired to a developer's laptop.
+///
+/// A debug/profile run (a simulator, or `flutter run` during local
+/// development) instead defaults to the LOCAL backend — `npm run
+/// start:dev` in mycove-api, listening on 0.0.0.0:3000 — since that's what
+/// you're almost always testing against day to day. On the iOS Simulator
+/// `localhost` reaches the Mac directly; the Android emulator needs
+/// `10.0.2.2` instead (its alias for the host machine), handled below.
+///
+/// Override either default with `--dart-define` when you need to:
+/// - A physical device in debug mode can't reach `localhost` — point it at
+///   your Mac's LAN IP instead (`ipconfig getifaddr en0`):
+///   flutter run --dart-define=API_BASE_URL=http://192.168.100.175:3000/api
+/// - To debug-test against production instead of local:
+///   flutter run --dart-define=API_BASE_URL=https://api.mycove.ng/api
+/// - For remote testers without LAN access, a Cloudflare quick tunnel:
+///   cloudflared tunnel --url http://localhost:3000
+///   flutter run --dart-define=API_BASE_URL=https://`<tunnel-host>`/api
 const _baseUrlOverride = String.fromEnvironment('API_BASE_URL');
 const _productionUrl = 'https://api.mycove.ng/api';
 
+String get _localDefaultUrl =>
+    Platform.isAndroid ? 'http://10.0.2.2:3000/api' : 'http://localhost:3000/api';
+
 String get _baseUrl {
+  if (kReleaseMode) return _productionUrl;
   if (_baseUrlOverride.isNotEmpty) return _baseUrlOverride;
-  return _productionUrl;
+  return _localDefaultUrl;
 }
 
 class ApiClient {
@@ -32,6 +121,8 @@ class ApiClient {
         receiveTimeout: const Duration(seconds: 10),
       ),
     );
+
+    dio.interceptors.add(_VerboseLogInterceptor());
 
     dio.interceptors.add(
       InterceptorsWrapper(
