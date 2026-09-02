@@ -48,6 +48,7 @@ class NotificationsPage extends ConsumerWidget {
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                   decoration: BoxDecoration(
+                    boxShadow: McColors.cardShadow,
                     color: McColors.surface,
                     borderRadius: BorderRadius.circular(McRadii.card),
                     border: n.read ? null : Border.all(color: McColors.accentN(300), width: 1),

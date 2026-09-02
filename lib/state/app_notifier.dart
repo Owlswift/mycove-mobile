@@ -33,6 +33,7 @@ import '../data/models/dues_entry.dart';
 import '../data/models/household_invite.dart';
 import '../data/models/household_member.dart';
 import '../data/models/levy.dart';
+import '../data/models/wallet_transaction.dart';
 import '../data/models/meeting.dart';
 import '../data/models/my_pledge.dart';
 import '../data/models/notification_item.dart';
@@ -766,6 +767,24 @@ class AppNotifier extends StateNotifier<AppState> {
         stackTrace: st,
         level: 1000,
       );
+      // A 401 here — even after the interceptor's own silent
+      // refresh-and-retry (see ApiClient) — means there's no way left to
+      // recover this session (no refresh token stored, or it's also
+      // expired/revoked). Rather than strand the resident on this screen
+      // staring at a raw "Invalid token" with no way forward, send them
+      // back to a fresh login — most likely explanation is this device
+      // already completed its reset in an earlier session and is holding
+      // a stale token, so logging in again should just work.
+      if (e is DioException && e.response?.statusCode == 401) {
+        await _tokenStorage.clear();
+        state = state.copyWith(
+          isLoading: false,
+          authStage: AuthStage.login,
+          resetMsg: '',
+          loginError: 'Your session expired. Please log in again.',
+        );
+        return;
+      }
       state = state.copyWith(isLoading: false, resetMsg: extractMessage(e));
     }
   }
@@ -1299,6 +1318,7 @@ class AppNotifier extends StateNotifier<AppState> {
     pendingPaymentAmount: state.duesBalance,
     pendingPaymentPurpose: 'DUES',
     pendingPaymentLevyId: null,
+    paymentMethod: 'PAYSTACK',
   );
 
   /// Same as [resetPayment] but for a single levy — called from a levy
@@ -1309,18 +1329,26 @@ class AppNotifier extends StateNotifier<AppState> {
     pendingPaymentAmount: levy.amount,
     pendingPaymentPurpose: 'LEVY',
     pendingPaymentLevyId: levy.id,
+    paymentMethod: 'PAYSTACK',
   );
+
+  /// Switches between the two options on the payment method screen —
+  /// 'PAYSTACK' or 'WALLET'.
+  void selectPaymentMethod(String method) =>
+      state = state.copyWith(paymentMethod: method);
 
   Future<void> confirmPayment() async {
     state = state.copyWith(paymentStep: PaymentStep.processing);
     final amount = state.pendingPaymentAmount;
     final purpose = state.pendingPaymentPurpose;
     final levyId = state.pendingPaymentLevyId;
+    final method = state.paymentMethod;
+    final analyticsMethod = method == 'WALLET' ? 'wallet' : 'paystack';
     final analyticsType = purpose == 'LEVY' ? 'levy' : 'monthly_dues';
     final paymentStart = DateTime.now();
     _analytics.track('dues_payment_started', {
       'amount': amount,
-      'payment_method': 'paystack',
+      'payment_method': analyticsMethod,
       'payment_type': analyticsType,
     });
     try {
@@ -1328,11 +1356,40 @@ class AppNotifier extends StateNotifier<AppState> {
         amount: amount,
         purpose: purpose,
         levyId: levyId,
+        method: method,
       );
       final reference = initiated['reference'] as String;
-      final authorizationUrl = initiated['authorizationUrl'] as String?;
       state = state.copyWith(paymentReference: reference);
 
+      // Wallet payments settle synchronously server-side — there's no
+      // checkout to hand off to or webhook to wait on, so a SUCCESS here is
+      // final, unlike Paystack's PENDING-until-polled flow below.
+      if (method == 'WALLET') {
+        if (initiated['status'] == 'SUCCESS') {
+          _analytics.track('dues_payment_success', {
+            'amount': amount,
+            'payment_method': analyticsMethod,
+            'payment_type': analyticsType,
+            'duration_ms': DateTime.now().difference(paymentStart).inMilliseconds,
+          });
+          await _refreshAfterPaymentSuccess(purpose);
+          state = state.copyWith(
+            paymentStep: PaymentStep.success,
+            paymentReference: reference,
+          );
+        } else {
+          _analytics.track('dues_payment_failed', {
+            'amount': amount,
+            'payment_method': analyticsMethod,
+            'payment_type': analyticsType,
+            'failure_reason': 'payment_not_successful',
+          });
+          state = state.copyWith(paymentStep: PaymentStep.idle);
+        }
+        return;
+      }
+
+      final authorizationUrl = initiated['authorizationUrl'] as String?;
       if (authorizationUrl != null) {
         try {
           await launchUrl(
@@ -1354,7 +1411,7 @@ class AppNotifier extends StateNotifier<AppState> {
       if (status == 'SUCCESS') {
         _analytics.track('dues_payment_success', {
           'amount': amount,
-          'payment_method': 'paystack',
+          'payment_method': analyticsMethod,
           'payment_type': analyticsType,
           'duration_ms': DateTime.now().difference(paymentStart).inMilliseconds,
         });
@@ -1371,7 +1428,7 @@ class AppNotifier extends StateNotifier<AppState> {
       } else {
         _analytics.track('dues_payment_failed', {
           'amount': amount,
-          'payment_method': 'paystack',
+          'payment_method': analyticsMethod,
           'payment_type': analyticsType,
           'failure_reason': 'payment_not_successful',
         });
@@ -1380,7 +1437,7 @@ class AppNotifier extends StateNotifier<AppState> {
     } catch (_) {
       _analytics.track('dues_payment_failed', {
         'amount': amount,
-        'payment_method': 'paystack',
+        'payment_method': analyticsMethod,
         'payment_type': analyticsType,
         'failure_reason': 'exception',
       });
@@ -1425,6 +1482,75 @@ class AppNotifier extends StateNotifier<AppState> {
             .map((j) => DuesEntry.fromJson(j as Map<String, dynamic>))
             .toList(),
       );
+    }
+  }
+
+  // ── Wallet ────────────────────────────────────────────────────────────
+  /// Loaded lazily by the wallet screen itself (not part of bootstrap) —
+  /// the balance alone is cheap and already fetched at login, but the full
+  /// history is only worth the round-trip once someone actually opens the
+  /// screen to look at it.
+  Future<void> loadWalletTransactions() async {
+    state = state.copyWith(walletTransactionsLoading: true);
+    try {
+      final json = await _api.walletTransactions();
+      final transactions = json
+          .map((j) => WalletTransaction.fromJson(j as Map<String, dynamic>))
+          .toList();
+      state = state.copyWith(
+        walletTransactions: transactions,
+        walletTransactionsLoading: false,
+      );
+    } catch (_) {
+      state = state.copyWith(walletTransactionsLoading: false);
+    }
+  }
+
+  String _walletTopUpError = '';
+  String get walletTopUpError => _walletTopUpError;
+
+  /// Funds the wallet via Paystack — unlike [confirmPayment], there's no
+  /// "pay with wallet" option here (funding the wallet from itself makes no
+  /// sense), so this always goes straight to a real checkout.
+  Future<void> fundWallet(int amount) async {
+    _walletTopUpError = '';
+    state = state.copyWith(walletTopUpStep: WalletTopUpStep.processing);
+    try {
+      final initiated = await _api.initiatePayment(
+        amount: amount,
+        purpose: 'WALLET_TOPUP',
+        method: 'PAYSTACK',
+      );
+      final reference = initiated['reference'] as String;
+      final authorizationUrl = initiated['authorizationUrl'] as String?;
+      if (authorizationUrl != null) {
+        try {
+          await launchUrl(Uri.parse(authorizationUrl), mode: LaunchMode.externalApplication);
+        } catch (_) {
+          // No browser available to hand off to — the poll loop below still
+          // runs, it just has nothing to eventually report success.
+        }
+      }
+
+      var status = 'PENDING';
+      for (var attempt = 0; attempt < 40 && status == 'PENDING'; attempt++) {
+        await Future<void>.delayed(const Duration(seconds: 3));
+        status = (await _api.verifyPayment(reference))['status'] as String;
+      }
+
+      if (status == 'SUCCESS') {
+        final balance = await _api.walletBalance();
+        state = state.copyWith(walletBalance: balance, walletTopUpStep: WalletTopUpStep.idle);
+        await loadWalletTransactions();
+      } else {
+        _walletTopUpError = status == 'PENDING'
+            ? 'Still waiting for payment confirmation — check your wallet balance shortly.'
+            : 'Payment was not completed.';
+        state = state.copyWith(walletTopUpStep: WalletTopUpStep.idle);
+      }
+    } catch (e) {
+      _walletTopUpError = extractMessage(e);
+      state = state.copyWith(walletTopUpStep: WalletTopUpStep.idle);
     }
   }
 
@@ -2528,6 +2654,8 @@ class AppNotifier extends StateNotifier<AppState> {
         await _answerReadOnlyVoiceIntent('CHECK_BALANCE');
       case VoiceIntent.transactionHistory:
         await _answerReadOnlyVoiceIntent('TRANSACTION_HISTORY');
+      case VoiceIntent.fundWallet:
+        await _answerFundWallet();
       case VoiceIntent.checkDues:
         await _answerCheckDues();
       case VoiceIntent.duesMonthsPaid:
@@ -2955,16 +3083,30 @@ class AppNotifier extends StateNotifier<AppState> {
   /// CHECK_BALANCE/TRANSACTION_HISTORY both answer AND land the resident on
   /// the real transactions screen — voice isn't just a talking speaker here,
   /// it's a front door onto the same page a tap would reach.
+  /// Backs both CHECK_BALANCE and TRANSACTION_HISTORY — both are wallet
+  /// concepts server-side (see VoiceService), so both hand off to the
+  /// wallet screen, which shows the balance and the full history together
+  /// rather than splitting them across two destinations.
   Future<void> _answerReadOnlyVoiceIntent(String intentApi) async {
     try {
       final result = await _api.voicePrepare(intent: intentApi);
       _showTerminalResponse(
         result['speech'] as String? ?? '',
-        navigateTo: '/resident/utility-history',
+        navigateTo: '/resident/wallet',
       );
     } catch (e) {
       await _registerVoiceFailure(extractMessage(e));
     }
+  }
+
+  /// "How do I fund my wallet" and similar — purely a hand-off to the
+  /// wallet screen (where the actual "Fund Wallet" action lives), no
+  /// backend round-trip needed.
+  Future<void> _answerFundWallet() async {
+    _showTerminalResponse(
+      'Sure — here\'s your wallet. You can fund it from here.',
+      navigateTo: '/resident/wallet',
+    );
   }
 
   /// Shows a spoken/text answer that isn't itself a real-screen hand-off

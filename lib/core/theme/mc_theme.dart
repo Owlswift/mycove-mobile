@@ -1,8 +1,65 @@
+import 'package:flutter/cupertino.dart' show CupertinoPageTransitionsBuilder;
 import 'package:flutter/material.dart';
 
 import 'mc_colors.dart';
 import 'mc_spacing.dart';
 import 'mc_text_styles.dart';
+
+/// Most pages under the resident/guard shells are bare widget trees (a
+/// `Column`, no `Scaffold` of their own) that rely on the shell's single
+/// ambient `Scaffold` for their background. That's fine at rest, but mid
+/// page-transition both the outgoing and incoming route are mounted and
+/// painted at once — with neither carrying its own opaque backing, gaps in
+/// either page's content (padding, spacing between cards, the space below
+/// a short list) show the *other* page's content straight through, which
+/// reads as a rendering glitch rather than a transition.
+///
+/// Fix: wrap `child` in an opaque background before handing off to the
+/// real platform transition — [CupertinoPageTransitionsBuilder] /
+/// [ZoomPageTransitionsBuilder] still drive the actual motion (native
+/// feel, unchanged), this only stops one page's content from bleeding
+/// through the other's empty space while they're both on screen.
+class _OpaqueCupertinoTransitionsBuilder extends CupertinoPageTransitionsBuilder {
+  const _OpaqueCupertinoTransitionsBuilder();
+
+  @override
+  Widget buildTransitions<T>(
+    PageRoute<T> route,
+    BuildContext context,
+    Animation<double> animation,
+    Animation<double> secondaryAnimation,
+    Widget child,
+  ) {
+    return super.buildTransitions(
+      route,
+      context,
+      animation,
+      secondaryAnimation,
+      ColoredBox(color: McColors.bg, child: child),
+    );
+  }
+}
+
+class _OpaqueZoomTransitionsBuilder extends ZoomPageTransitionsBuilder {
+  const _OpaqueZoomTransitionsBuilder();
+
+  @override
+  Widget buildTransitions<T>(
+    PageRoute<T> route,
+    BuildContext context,
+    Animation<double> animation,
+    Animation<double> secondaryAnimation,
+    Widget child,
+  ) {
+    return super.buildTransitions(
+      route,
+      context,
+      animation,
+      secondaryAnimation,
+      ColoredBox(color: McColors.bg, child: child),
+    );
+  }
+}
 
 class McTheme {
   McTheme._();
@@ -69,6 +126,12 @@ class McTheme {
         bodySmall: McTextStyles.body(fontSize: 12, color: McColors.bodyText),
       ),
       dividerTheme: const DividerThemeData(color: McColors.divider, thickness: 1),
+      pageTransitionsTheme: const PageTransitionsTheme(
+        builders: {
+          TargetPlatform.iOS: _OpaqueCupertinoTransitionsBuilder(),
+          TargetPlatform.android: _OpaqueZoomTransitionsBuilder(),
+        },
+      ),
     );
   }
 }

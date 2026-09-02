@@ -44,7 +44,7 @@ class GuardLogPage extends ConsumerWidget {
               Container(
                 margin: const EdgeInsets.only(bottom: 10),
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                decoration: BoxDecoration(color: McColors.surface, borderRadius: BorderRadius.circular(McRadii.card)),
+                decoration: BoxDecoration(boxShadow: McColors.cardShadow, color: McColors.surface, borderRadius: BorderRadius.circular(McRadii.card)),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [

@@ -28,11 +28,17 @@ class PaymentPage extends ConsumerWidget {
             child: switch (s.paymentStep) {
               PaymentStep.idle => _Idle(
                   balanceLabel: s.pendingPaymentAmountLabel,
+                  walletBalanceLabel: s.walletBalanceLabel,
+                  hasSufficientWalletBalance:
+                      s.walletBalance >= s.pendingPaymentAmount,
+                  selectedMethod: s.paymentMethod,
+                  onSelectMethod: notifier.selectPaymentMethod,
                   onConfirm: () => notifier.requestAuthorization(
                     s.pendingPaymentPurpose == 'LEVY' ? 'levy' : 'dues',
                   ),
                 ),
               PaymentStep.processing => _Processing(
+                  isWallet: s.paymentMethod == 'WALLET',
                   onCheckStatus: notifier.checkPendingPaymentStatus,
                 ),
               PaymentStep.success => _Success(
@@ -48,9 +54,20 @@ class PaymentPage extends ConsumerWidget {
 }
 
 class _Idle extends StatelessWidget {
-  const _Idle({required this.balanceLabel, required this.onConfirm});
+  const _Idle({
+    required this.balanceLabel,
+    required this.walletBalanceLabel,
+    required this.hasSufficientWalletBalance,
+    required this.selectedMethod,
+    required this.onSelectMethod,
+    required this.onConfirm,
+  });
 
   final String balanceLabel;
+  final String walletBalanceLabel;
+  final bool hasSufficientWalletBalance;
+  final String selectedMethod;
+  final ValueChanged<String> onSelectMethod;
   final VoidCallback onConfirm;
 
   @override
@@ -60,7 +77,7 @@ class _Idle extends StatelessWidget {
       children: [
         Container(
           padding: const EdgeInsets.all(18),
-          decoration: BoxDecoration(color: McColors.surface, borderRadius: BorderRadius.circular(McRadii.card)),
+          decoration: BoxDecoration(boxShadow: McColors.cardShadow, color: McColors.surface, borderRadius: BorderRadius.circular(McRadii.card)),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -77,22 +94,24 @@ class _Idle extends StatelessWidget {
               .copyWith(letterSpacing: 1),
         ),
         const SizedBox(height: 10),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-          decoration: BoxDecoration(color: McColors.surface, borderRadius: BorderRadius.circular(McRadii.md)),
-          child: Row(
-            children: [
-              Container(width: context.rs(28), height: context.rs(28), decoration: BoxDecoration(color: McColors.accent2, borderRadius: BorderRadius.circular(McRadii.sm))),
-              SizedBox(width: context.rs(10)),
-              Expanded(
-                child: Text(
-                  'Paystack — card/bank/USSD',
-                  overflow: TextOverflow.ellipsis,
-                  style: McTextStyles.body(fontSize: 14, fontWeight: FontWeight.w600),
-                ),
-              ),
-            ],
-          ),
+        _PaymentMethodOption(
+          icon: Icons.account_balance_wallet_rounded,
+          title: 'Wallet Balance',
+          subtitle: hasSufficientWalletBalance
+              ? 'Available: $walletBalanceLabel'
+              : 'Insufficient balance — $walletBalanceLabel available',
+          selected: selectedMethod == 'WALLET',
+          enabled: hasSufficientWalletBalance,
+          onTap: () => onSelectMethod('WALLET'),
+        ),
+        const SizedBox(height: 10),
+        _PaymentMethodOption(
+          icon: Icons.credit_card_rounded,
+          title: 'Pay via Paystack',
+          subtitle: 'Card, bank transfer or USSD',
+          selected: selectedMethod == 'PAYSTACK',
+          enabled: true,
+          onTap: () => onSelectMethod('PAYSTACK'),
         ),
         const SizedBox(height: 20),
         McButton(label: 'Confirm Payment', onPressed: onConfirm),
@@ -101,9 +120,85 @@ class _Idle extends StatelessWidget {
   }
 }
 
-class _Processing extends StatelessWidget {
-  const _Processing({required this.onCheckStatus});
+class _PaymentMethodOption extends StatelessWidget {
+  const _PaymentMethodOption({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    required this.selected,
+    required this.enabled,
+    required this.onTap,
+  });
 
+  final IconData icon;
+  final String title;
+  final String subtitle;
+  final bool selected;
+  final bool enabled;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Opacity(
+      opacity: enabled ? 1 : 0.5,
+      child: GestureDetector(
+        onTap: enabled ? onTap : null,
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          decoration: BoxDecoration(
+            color: McColors.surface,
+            borderRadius: BorderRadius.circular(McRadii.md),
+            border: Border.all(
+              color: selected ? McColors.accent2 : Colors.transparent,
+              width: 1.5,
+            ),
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: context.rs(36),
+                height: context.rs(36),
+                alignment: Alignment.center,
+                decoration: BoxDecoration(color: McColors.accent2N(100), borderRadius: BorderRadius.circular(McRadii.sm)),
+                child: Icon(icon, size: context.rs(18), color: McColors.accent2N(700)),
+              ),
+              SizedBox(width: context.rs(12)),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      overflow: TextOverflow.ellipsis,
+                      style: McTextStyles.body(fontSize: 14, fontWeight: FontWeight.w600),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      subtitle,
+                      overflow: TextOverflow.ellipsis,
+                      style: McTextStyles.body(fontSize: 12, color: McColors.bodyText),
+                    ),
+                  ],
+                ),
+              ),
+              SizedBox(width: context.rs(8)),
+              Icon(
+                selected ? Icons.radio_button_checked_rounded : Icons.radio_button_off_rounded,
+                size: context.rs(20),
+                color: selected ? McColors.accent2 : McColors.bodyText,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _Processing extends StatelessWidget {
+  const _Processing({required this.isWallet, required this.onCheckStatus});
+
+  final bool isWallet;
   final VoidCallback onCheckStatus;
 
   @override
@@ -118,15 +213,22 @@ class _Processing extends StatelessWidget {
           child: const CircularProgressIndicator(strokeWidth: 3, color: McColors.accent),
         ),
         const SizedBox(height: 18),
-        Text('Processing with Paystack…', style: McTextStyles.body(fontSize: 14, color: McColors.bodyText)),
+        Text(
+          isWallet ? 'Processing…' : 'Processing with Paystack…',
+          style: McTextStyles.body(fontSize: 14, color: McColors.bodyText),
+        ),
         const SizedBox(height: 6),
         Text(
-          'Complete the payment in your browser, then return here.',
+          isWallet
+              ? 'Deducting from your wallet balance.'
+              : 'Complete the payment in your browser, then return here.',
           textAlign: TextAlign.center,
           style: McTextStyles.body(fontSize: 12.5, color: McColors.bodyText),
         ),
-        const SizedBox(height: 20),
-        McButton(label: 'Check status', variant: ChButtonVariant.secondary, onPressed: onCheckStatus),
+        if (!isWallet) ...[
+          const SizedBox(height: 20),
+          McButton(label: 'Check status', variant: ChButtonVariant.secondary, onPressed: onCheckStatus),
+        ],
       ],
     );
   }

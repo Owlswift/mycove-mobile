@@ -103,7 +103,7 @@ class SosPage extends ConsumerWidget {
                 Container(
                   width: double.infinity,
                   padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(color: McColors.surface, borderRadius: BorderRadius.circular(McRadii.card)),
+                  decoration: BoxDecoration(boxShadow: McColors.cardShadow, color: McColors.surface, borderRadius: BorderRadius.circular(McRadii.card)),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -122,7 +122,7 @@ class SosPage extends ConsumerWidget {
                   Container(
                     width: double.infinity,
                     padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(color: McColors.surface, borderRadius: BorderRadius.circular(McRadii.card)),
+                    decoration: BoxDecoration(boxShadow: McColors.cardShadow, color: McColors.surface, borderRadius: BorderRadius.circular(McRadii.card)),
                     child: Text(
                       'No emergency contacts have been set up yet. Add a personal one from your profile, or ask estate management to publish their numbers.',
                       style: McTextStyles.body(fontSize: 12.5, color: McColors.bodyText, height: 1.4),
@@ -131,7 +131,7 @@ class SosPage extends ConsumerWidget {
                 else
                   Container(
                     width: double.infinity,
-                    decoration: BoxDecoration(color: McColors.surface, borderRadius: BorderRadius.circular(McRadii.card)),
+                    decoration: BoxDecoration(boxShadow: McColors.cardShadow, color: McColors.surface, borderRadius: BorderRadius.circular(McRadii.card)),
                     child: Column(
                       children: [
                         if (securityPhone != null)

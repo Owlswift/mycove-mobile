@@ -13,6 +13,7 @@ enum VoiceIntent {
   buyAirtime,
   checkBalance,
   transactionHistory,
+  fundWallet,
   checkDues,
   duesMonthsPaid,
   electricitySpendByMonth,
@@ -75,6 +76,32 @@ ParsedVoiceCommand? parseVoiceCommand(String rawText) {
   if (text.isEmpty) return null;
 
   final amount = extractAmount(text);
+
+  // Checked before airtimeWords below, since "top up"/"topup" alone would
+  // otherwise always resolve to BUY_AIRTIME ("top up my phone") even when
+  // the resident actually means their wallet ("top up my wallet", "how do
+  // I fund my wallet") — the deciding factor is whether "wallet" is
+  // mentioned alongside a funding verb.
+  final walletFundWords = [
+    'fund my wallet',
+    'fund wallet',
+    'fund the wallet',
+    'load my wallet',
+    'load wallet',
+    'add money to my wallet',
+    'add money to wallet',
+    'add funds to my wallet',
+    'top up my wallet',
+    'top up wallet',
+    'topup my wallet',
+    'topup wallet',
+  ];
+  if (_matchesAny(text, walletFundWords)) {
+    return ParsedVoiceCommand(
+      intent: VoiceIntent.fundWallet,
+      matchedBy: _matched(walletFundWords, text),
+    );
+  }
 
   // Airtime/network words checked before electricity's, since "recharge"
   // and network names are unambiguous, whereas a generic "buy" alone

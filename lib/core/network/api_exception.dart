@@ -15,6 +15,15 @@ String extractMessage(Object error) {
         error.type == DioExceptionType.connectionTimeout) {
       return 'Could not reach the server. Check your connection and try again.';
     }
+    // The request reached the server and started a response, but it took
+    // too long to finish (or too long to send, for a large upload) — a
+    // real, distinct case from "never connected at all" above. Previously
+    // fell through to the generic fallback below, which hid a genuine
+    // slow-server/slow-network condition behind a useless message.
+    if (error.type == DioExceptionType.receiveTimeout ||
+        error.type == DioExceptionType.sendTimeout) {
+      return 'The server is taking longer than expected to respond. Please try again.';
+    }
   }
   return 'Something went wrong. Please try again.';
 }

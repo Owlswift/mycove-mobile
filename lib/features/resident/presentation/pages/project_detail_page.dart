@@ -138,7 +138,7 @@ class ProjectDetailPage extends ConsumerWidget {
                         const SizedBox(height: 8),
                         Container(
                           padding: const EdgeInsets.all(16),
-                          decoration: BoxDecoration(color: McColors.surface, borderRadius: BorderRadius.circular(McRadii.card)),
+                          decoration: BoxDecoration(boxShadow: McColors.cardShadow, color: McColors.surface, borderRadius: BorderRadius.circular(McRadii.card)),
                           child: Column(
                             children: [
                               Row(
@@ -181,7 +181,7 @@ class ProjectDetailPage extends ConsumerWidget {
                         const SizedBox(height: 8),
                         Container(
                           padding: const EdgeInsets.all(16),
-                          decoration: BoxDecoration(color: McColors.surface, borderRadius: BorderRadius.circular(McRadii.card)),
+                          decoration: BoxDecoration(boxShadow: McColors.cardShadow, color: McColors.surface, borderRadius: BorderRadius.circular(McRadii.card)),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [

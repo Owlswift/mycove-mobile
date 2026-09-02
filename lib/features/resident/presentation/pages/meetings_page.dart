@@ -33,7 +33,7 @@ class MeetingsPage extends ConsumerWidget {
                   onTap: () => context.push('/resident/meetings/${item.id}'),
                   child: Container(
                     padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(color: McColors.surface, borderRadius: BorderRadius.circular(McRadii.card)),
+                    decoration: BoxDecoration(boxShadow: McColors.cardShadow, color: McColors.surface, borderRadius: BorderRadius.circular(McRadii.card)),
                     child: Row(
                       children: [
                         Container(

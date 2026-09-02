@@ -21,6 +21,7 @@ import '../data/models/tts_voice_option.dart';
 import '../data/models/utility_meter.dart';
 import '../data/models/utility_purchase.dart';
 import '../data/models/visitor_pass.dart';
+import '../data/models/wallet_transaction.dart';
 
 enum AuthStage {
   bootstrapping,
@@ -41,6 +42,12 @@ enum AuthStage {
 enum Role { resident, guard }
 
 enum PaymentStep { idle, processing, success }
+
+/// Drives the "Fund Wallet" bottom sheet on the wallet screen — unlike
+/// [PaymentStep], failure doesn't need its own case: the sheet just returns
+/// to [idle] with an inline error, since there's no separate success screen
+/// to navigate away from.
+enum WalletTopUpStep { idle, processing }
 
 enum VoiceStage { idle, listening, processing, error }
 
@@ -109,9 +116,13 @@ class AppState {
     this.pendingPaymentAmount = 0,
     this.pendingPaymentPurpose = 'DUES',
     this.pendingPaymentLevyId,
+    this.paymentMethod = 'PAYSTACK',
     this.duesBalance = 0,
     this.duesMonthsPaid = 0,
     this.walletBalance = 0,
+    List<WalletTransaction>? walletTransactions,
+    this.walletTransactionsLoading = false,
+    this.walletTopUpStep = WalletTopUpStep.idle,
     this.historyFilterMonth,
     this.historyFilterYear,
     this.voiceStage = VoiceStage.idle,
@@ -183,6 +194,7 @@ class AppState {
        utilityMeters = utilityMeters ?? [],
        utilityPurchases = utilityPurchases ?? [],
        discos = discos ?? [],
+       walletTransactions = walletTransactions ?? [],
        availableVoices = availableVoices ?? [];
 
   final AuthStage authStage;
@@ -277,6 +289,12 @@ class AppState {
   final int pendingPaymentAmount;
   final String pendingPaymentPurpose; // 'DUES' | 'LEVY'
   final String? pendingPaymentLevyId;
+
+  /// Which option is selected on the payment method screen — 'PAYSTACK' or
+  /// 'WALLET'. Reset to 'PAYSTACK' whenever a new payment is started
+  /// ([resetPayment]/[startLevyPayment]) rather than persisting a prior
+  /// choice, since wallet balance may no longer cover a different amount.
+  final String paymentMethod;
   final int duesBalance;
 
   /// How many months of dues have been paid so far in the current dues
@@ -285,6 +303,9 @@ class AppState {
   /// paid" question.
   final int duesMonthsPaid;
   final int walletBalance;
+  final List<WalletTransaction> walletTransactions;
+  final bool walletTransactionsLoading;
+  final WalletTopUpStep walletTopUpStep;
 
   /// Set by voice's "how much electricity did I buy in [month]" intent so
   /// `UtilityHistoryPage` can show a filtered/summed view — null means "no
@@ -384,8 +405,6 @@ class AppState {
   String get duesBalanceLabelPre =>
       formatNaira(lastPayment?.amount ?? duesBalance);
   String get pendingPaymentAmountLabel => formatNaira(pendingPaymentAmount);
-  String get receiptAmountLabel => formatNaira(lastPayment?.amount ?? 0);
-  String get receiptRef => 'PSK-${lastPayment?.id.toUpperCase() ?? 'N/A'}';
   int get activePassCount => visitorPasses.where((p) => p.isInside).length;
 
   AppState copyWith({
@@ -437,9 +456,13 @@ class AppState {
     int? pendingPaymentAmount,
     String? pendingPaymentPurpose,
     Object? pendingPaymentLevyId = _sentinel,
+    String? paymentMethod,
     int? duesBalance,
     int? duesMonthsPaid,
     int? walletBalance,
+    List<WalletTransaction>? walletTransactions,
+    bool? walletTransactionsLoading,
+    WalletTopUpStep? walletTopUpStep,
     Object? historyFilterMonth = _sentinel,
     Object? historyFilterYear = _sentinel,
     VoiceStage? voiceStage,
@@ -576,9 +599,13 @@ class AppState {
       pendingPaymentLevyId: identical(pendingPaymentLevyId, _sentinel)
           ? this.pendingPaymentLevyId
           : pendingPaymentLevyId as String?,
+      paymentMethod: paymentMethod ?? this.paymentMethod,
       duesBalance: duesBalance ?? this.duesBalance,
       duesMonthsPaid: duesMonthsPaid ?? this.duesMonthsPaid,
       walletBalance: walletBalance ?? this.walletBalance,
+      walletTransactions: walletTransactions ?? this.walletTransactions,
+      walletTransactionsLoading: walletTransactionsLoading ?? this.walletTransactionsLoading,
+      walletTopUpStep: walletTopUpStep ?? this.walletTopUpStep,
       historyFilterMonth: identical(historyFilterMonth, _sentinel)
           ? this.historyFilterMonth
           : historyFilterMonth as int?,

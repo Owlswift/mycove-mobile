@@ -49,7 +49,7 @@ class GuardResultPage extends ConsumerWidget {
             width: double.infinity,
             padding: const EdgeInsets.all(22),
             margin: const EdgeInsets.only(bottom: 16),
-            decoration: BoxDecoration(color: McColors.surface, borderRadius: BorderRadius.circular(McRadii.card)),
+            decoration: BoxDecoration(boxShadow: McColors.cardShadow, color: McColors.surface, borderRadius: BorderRadius.circular(McRadii.card)),
             child: Column(
               children: [
                 Container(

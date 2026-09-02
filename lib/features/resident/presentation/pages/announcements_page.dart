@@ -62,7 +62,7 @@ class _AnnouncementsPageState extends ConsumerState<AnnouncementsPage> {
                   },
                   child: Container(
                     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 15),
-                    decoration: BoxDecoration(color: McColors.surface, borderRadius: BorderRadius.circular(McRadii.card)),
+                    decoration: BoxDecoration(boxShadow: McColors.cardShadow, color: McColors.surface, borderRadius: BorderRadius.circular(McRadii.card)),
                     child: Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [

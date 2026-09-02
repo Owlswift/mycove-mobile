@@ -8,12 +8,15 @@ import '../theme/mc_text_styles.dart';
 /// non-dashboard resident screen and the guard screens.
 ///
 /// Three looks, matching the header treatments in the mockups:
-///  - default: bare back chevron, left-aligned title
+///  - default ([centerTitle] true): bare back chevron, title centered on
+///    the row via symmetric left/right spacers matching the trailing
+///    icon's width — every inner page's title must be centered, not
+///    left-aligned next to the chevron.
 ///  - [chipStyle]: back/trailing rendered as bordered circular icon
 ///    buttons, title centered (Project Details, notice detail)
-///  - [centerTitle]: bare back chevron (like default) but the title is
-///    centered on the row via symmetric left/right spacers, matching the
-///    trailing icon's width — used by the electricity purchase wizard
+///  - `centerTitle: false`: bare back chevron with a left-aligned title —
+///    kept only for a caller that deliberately wants the old look; nothing
+///    in the app currently opts into it.
 class McGenericHeader extends StatelessWidget {
   const McGenericHeader({
     super.key,
@@ -22,7 +25,7 @@ class McGenericHeader extends StatelessWidget {
     this.onBack,
     this.trailing,
     this.chipStyle = false,
-    this.centerTitle = false,
+    this.centerTitle = true,
   });
 
   final String title;

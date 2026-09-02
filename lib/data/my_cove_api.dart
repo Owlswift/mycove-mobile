@@ -120,10 +120,16 @@ class MyCoveApi {
 
   // ── Dues & levies ─────────────────────────────────────────────────────
   Future<Map<String, dynamic>> dues() async => _map(await _dio.get('/dues'));
-  Future<Map<String, dynamic>> levies() async => _map(await _dio.get('/levies'));
+  Future<Map<String, dynamic>> levies() async =>
+      _map(await _dio.get('/levies'));
 
   Future<int> walletBalance() async =>
       (_map(await _dio.get('/wallet/balance'))['balance'] as num).toInt();
+
+  Future<List<dynamic>> walletTransactions() async {
+    final response = await _dio.get('/wallet/transactions');
+    return response.data as List<dynamic>;
+  }
 
   Future<Map<String, dynamic>> voicePrepare({
     required String intent,
@@ -133,24 +139,37 @@ class MyCoveApi {
   }) async => _map(
     await _dio.post(
       '/voice/prepare',
-      data: {'intent': intent, 'amount': ?amount, 'network': ?network, 'meterId': ?meterId},
+      data: {
+        'intent': intent,
+        'amount': ?amount,
+        'network': ?network,
+        'meterId': ?meterId,
+      },
     ),
   );
 
-  Future<void> setPin(String pin) => _dio.post('/auth/pin/set', data: {'pin': pin});
+  Future<void> setPin(String pin) =>
+      _dio.post('/auth/pin/set', data: {'pin': pin});
 
   Future<bool> verifyPin(String pin) async =>
-      _map(await _dio.post('/auth/pin/verify', data: {'pin': pin}))['valid'] as bool;
+      _map(await _dio.post('/auth/pin/verify', data: {'pin': pin}))['valid']
+          as bool;
 
   // ── Payments ──────────────────────────────────────────────────────────
   Future<Map<String, dynamic>> initiatePayment({
     required int amount,
     required String purpose,
     String? levyId,
+    String method = 'PAYSTACK',
   }) async => _map(
     await _dio.post(
       '/payments/initiate',
-      data: {'amount': amount, 'purpose': purpose, 'levyId': levyId},
+      data: {
+        'amount': amount,
+        'purpose': purpose,
+        'levyId': levyId,
+        'method': method,
+      },
     ),
   );
 
@@ -212,7 +231,13 @@ class MyCoveApi {
   // ── Spotlights ────────────────────────────────────────────────────────
   Future<Map<String, dynamic>?> currentSpotlight() async {
     final response = await _dio.get('/spotlights/current');
-    return response.data as Map<String, dynamic>?;
+    // An unguarded `as Map<String, dynamic>?` here previously crashed the
+    // entire post-login bootstrap for any estate with no active
+    // spotlight: an empty/non-JSON body decodes to a String (or other
+    // non-Map value) in Dio, not null, and casting that straight to a Map
+    // throws — see also the backend fix in SpotlightsController.current.
+    final data = response.data;
+    return data is Map<String, dynamic> ? data : null;
   }
 
   // ── Polls ─────────────────────────────────────────────────────────────
@@ -271,7 +296,8 @@ class MyCoveApi {
   Future<List<dynamic>> utilityMeters() async =>
       _list(await _dio.get('/utilities/meters'));
 
-  Future<List<dynamic>> discos() async => _list(await _dio.get('/utilities/discos'));
+  Future<List<dynamic>> discos() async =>
+      _list(await _dio.get('/utilities/discos'));
 
   Future<Map<String, dynamic>> verifyMeter({
     required String discoCode,
@@ -343,7 +369,10 @@ class MyCoveApi {
     required String fullName,
     required String phone,
   }) async => _map(
-    await _dio.post('/household/invite', data: {'fullName': fullName, 'phone': phone}),
+    await _dio.post(
+      '/household/invite',
+      data: {'fullName': fullName, 'phone': phone},
+    ),
   );
   Future<void> cancelHouseholdInvite(String id) =>
       _dio.delete('/household/invite/$id');

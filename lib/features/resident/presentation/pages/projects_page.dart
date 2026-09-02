@@ -34,7 +34,7 @@ class _ProjectsPageState extends ConsumerState<ProjectsPage> {
 
     return Column(
       children: [
-        const McGenericHeader(title: 'Projects'),
+        const McGenericHeader(title: 'Projects', showBack: false),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 20),
           child: McUnderlineTabs(
@@ -60,7 +60,7 @@ class _ProjectsPageState extends ConsumerState<ProjectsPage> {
                     onTap: () => context.push('/resident/projects/${p.id}'),
                     child: Container(
                       padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(color: McColors.surface, borderRadius: BorderRadius.circular(McRadii.card)),
+                      decoration: BoxDecoration(boxShadow: McColors.cardShadow, color: McColors.surface, borderRadius: BorderRadius.circular(McRadii.card)),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [

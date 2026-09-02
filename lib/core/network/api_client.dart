@@ -103,8 +103,9 @@ class _VerboseLogInterceptor extends Interceptor {
 const _baseUrlOverride = String.fromEnvironment('API_BASE_URL');
 const _productionUrl = 'https://api.mycove.ng/api';
 
-String get _localDefaultUrl =>
-    Platform.isAndroid ? 'http://10.0.2.2:3000/api' : 'http://localhost:3000/api';
+String get _localDefaultUrl => Platform.isAndroid
+    ? 'http://10.0.2.2:3000/api'
+    : 'http://localhost:3000/api';
 
 String get _baseUrl {
   if (kReleaseMode) return _productionUrl;
@@ -117,8 +118,17 @@ class ApiClient {
     dio = Dio(
       BaseOptions(
         baseUrl: _baseUrl,
-        connectTimeout: const Duration(seconds: 10),
-        receiveTimeout: const Duration(seconds: 10),
+        // 10s was cutting it too close: right after login the resident/
+        // guard bootstrap fires ~17 requests concurrently, and on a modest
+        // production VM under real network conditions (as opposed to
+        // simulator-over-localhost) that burst can genuinely take longer
+        // than 10s for the slowest of them to come back — especially with
+        // cold DB connections right after a fresh login. That showed up as
+        // a receiveTimeout DioException, which extractMessage (see
+        // api_exception.dart) didn't even have a specific message for, so
+        // it silently fell through to a useless "Something went wrong."
+        connectTimeout: const Duration(seconds: 15),
+        receiveTimeout: const Duration(seconds: 30),
       ),
     );
 
@@ -149,9 +159,30 @@ class ApiClient {
             return handler.next(error);
           }
 
-          final isAuthEndpoint = error.requestOptions.path.startsWith('/auth/');
-          final alreadyRetried = error.requestOptions.extra['retriedAfterRefresh'] == true;
-          if (error.response?.statusCode != 401 || isAuthEndpoint || alreadyRetried) {
+          // Only the genuinely unauthenticated /auth/* endpoints skip
+          // retry — they establish identity themselves and never carried a
+          // Bearer token that could be stale in the first place. Every
+          // *other* /auth/* endpoint (complete-force-reset, logout,
+          // sessions, pin/set, pin/verify) DOES require a valid access
+          // token and can go just as stale as any non-auth endpoint — e.g.
+          // a resident who spends a few minutes filling out the force-reset
+          // profile form past the 15-minute access-token lifetime must
+          // still get the same silent-refresh-and-retry treatment,
+          // otherwise "Save & Continue" fails with a raw "Invalid token"
+          // instead of quietly refreshing and succeeding.
+          const noRetryPaths = {
+            '/auth/login',
+            '/auth/forgot-password',
+            '/auth/verify-otp',
+            '/auth/reset-password',
+            '/auth/refresh',
+          };
+          final skipsRetry = noRetryPaths.contains(error.requestOptions.path);
+          final alreadyRetried =
+              error.requestOptions.extra['retriedAfterRefresh'] == true;
+          if (error.response?.statusCode != 401 ||
+              skipsRetry ||
+              alreadyRetried) {
             return handler.next(error);
           }
 

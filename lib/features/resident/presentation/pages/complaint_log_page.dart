@@ -89,6 +89,7 @@ class _ComplaintLogPageState extends ConsumerState<ComplaintLogPage> {
                         child: Container(
                           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                           decoration: BoxDecoration(
+                            boxShadow: McColors.cardShadow,
                             color: McColors.surface,
                             borderRadius: BorderRadius.circular(McRadii.card),
                           ),

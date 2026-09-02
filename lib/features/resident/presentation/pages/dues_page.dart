@@ -128,7 +128,7 @@ class DuesPage extends ConsumerWidget {
                 Container(
                   margin: const EdgeInsets.only(bottom: 10),
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                  decoration: BoxDecoration(color: McColors.surface, borderRadius: BorderRadius.circular(McRadii.card)),
+                  decoration: BoxDecoration(boxShadow: McColors.cardShadow, color: McColors.surface, borderRadius: BorderRadius.circular(McRadii.card)),
                   child: Row(
                     children: [
                       Container(
@@ -203,6 +203,7 @@ class _NotLiableBanner extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
+        boxShadow: McColors.cardShadow,
         color: McColors.surface,
         borderRadius: BorderRadius.circular(McRadii.card),
       ),

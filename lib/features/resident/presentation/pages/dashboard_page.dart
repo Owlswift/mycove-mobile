@@ -67,6 +67,10 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
     final featuredProject = ongoingProjects.isEmpty
         ? null
         : ongoingProjects.first;
+    // Once the latest announcement has been read, this card has nothing
+    // new to surface — drop it rather than keep pointing at stale news.
+    final latestAnnouncement = s.announcements.isEmpty ? null : s.announcements.first;
+    final showLatestAnnouncement = latestAnnouncement?.unread ?? false;
     // Prefer a poll that's still open — otherwise a closed poll can sit here
     // indefinitely and hide newer ones a resident hasn't seen yet.
     final Poll? poll = s.polls.isEmpty
@@ -130,20 +134,39 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
                     ],
                   ),
                 ),
+                // Commented out for now — voice entry point disabled on the
+                // home screen until re-enabled.
+                // GestureDetector(
+                //   onTap: notifier.startVoiceListening,
+                //   child: Container(
+                //     width: context.rs(42),
+                //     height: context.rs(42),
+                //     margin: EdgeInsets.only(right: context.rs(10)),
+                //     decoration: const BoxDecoration(
+                //       color: McColors.accent2,
+                //       shape: BoxShape.circle,
+                //     ),
+                //     child: Icon(
+                //       Icons.mic_none_rounded,
+                //       size: context.rs(21),
+                //       color: Colors.white,
+                //     ),
+                //   ),
+                // ),
                 GestureDetector(
-                  onTap: notifier.startVoiceListening,
+                  onTap: () => context.push('/resident/wallet'),
                   child: Container(
                     width: context.rs(42),
                     height: context.rs(42),
                     margin: EdgeInsets.only(right: context.rs(10)),
                     decoration: const BoxDecoration(
-                      color: McColors.accent2,
+                      color: McColors.surfaceSunken,
                       shape: BoxShape.circle,
                     ),
                     child: Icon(
-                      Icons.mic_none_rounded,
-                      size: context.rs(21),
-                      color: Colors.white,
+                      Icons.account_balance_wallet_rounded,
+                      size: context.rs(20),
+                      color: McColors.text,
                     ),
                   ),
                 ),
@@ -353,21 +376,43 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text('Utilities', style: McTextStyles.heading(fontSize: 13)),
-                GestureDetector(
-                  onTap: () => context.push('/resident/utility-history'),
-                  child: Row(
-                    children: [
-                      Text(
-                        'History',
-                        style: McTextStyles.body(
-                          fontSize: 12.5,
-                          fontWeight: FontWeight.w600,
-                          color: McColors.accent2,
-                        ),
+                Row(
+                  children: [
+                    GestureDetector(
+                      onTap: () => context.push('/resident/wallet'),
+                      child: Row(
+                        children: [
+                          Icon(Icons.account_balance_wallet_rounded, size: context.rs(15), color: McColors.accent2),
+                          SizedBox(width: context.rs(4)),
+                          Text(
+                            'Wallet',
+                            style: McTextStyles.body(
+                              fontSize: 12.5,
+                              fontWeight: FontWeight.w600,
+                              color: McColors.accent2,
+                            ),
+                          ),
+                        ],
                       ),
-                      Icon(Icons.chevron_right_rounded, size: context.rs(16), color: McColors.accent2),
-                    ],
-                  ),
+                    ),
+                    SizedBox(width: context.rs(14)),
+                    GestureDetector(
+                      onTap: () => context.push('/resident/utility-history'),
+                      child: Row(
+                        children: [
+                          Text(
+                            'History',
+                            style: McTextStyles.body(
+                              fontSize: 12.5,
+                              fontWeight: FontWeight.w600,
+                              color: McColors.accent2,
+                            ),
+                          ),
+                          Icon(Icons.chevron_right_rounded, size: context.rs(16), color: McColors.accent2),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
@@ -516,92 +561,90 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
               ],
             ),
             SizedBox(height: context.rs(10)),
-
-            // Latest announcement
-            GestureDetector(
-              onTap: () => context.go('/resident/announcements'),
-              child: Container(
-                padding: EdgeInsets.all(context.rs(16)),
-                decoration: BoxDecoration(
-                  color: McColors.accentN(200).withValues(alpha: 0.75),
-                  borderRadius: BorderRadius.circular(McRadii.card),
-                  boxShadow: McColors.cardShadow,
-                ),
-                child: Row(
-                  children: [
-                    Container(
-                      width: context.rs(55),
-                      height: context.rs(55),
-                      decoration: BoxDecoration(
-                        color: McColors.accentN(300).withValues(alpha: 0.7),
-                        shape: BoxShape.circle,
+            // Latest announcement — hidden once it's been read, see
+            // [showLatestAnnouncement] above.
+            if (showLatestAnnouncement) ...[
+              GestureDetector(
+                onTap: () => context.go('/resident/announcements'),
+                child: Container(
+                  padding: EdgeInsets.all(context.rs(16)),
+                  decoration: BoxDecoration(
+                    color: McColors.accentN(200).withValues(alpha: 0.75),
+                    borderRadius: BorderRadius.circular(McRadii.card),
+                    boxShadow: McColors.cardShadow,
+                  ),
+                  child: Row(
+                    children: [
+                      Container(
+                        width: context.rs(55),
+                        height: context.rs(55),
+                        decoration: BoxDecoration(
+                          color: McColors.accentN(300).withValues(alpha: 0.7),
+                          shape: BoxShape.circle,
+                        ),
+                        child: Icon(
+                          Icons.campaign_outlined,
+                          size: context.rs(30),
+                          color: McColors.accentN(800),
+                        ),
                       ),
-                      child: Icon(
-                        Icons.campaign_outlined,
-                        size: context.rs(30),
-                        color: McColors.accentN(800),
-                      ),
-                    ),
-                    SizedBox(width: context.rs(12)),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Latest Announcement',
-                            style: McTextStyles.body(
-                              fontSize: 11,
-                              color: McColors.text,
+                      SizedBox(width: context.rs(12)),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Latest Announcement',
+                              style: McTextStyles.body(
+                                fontSize: 11,
+                                color: McColors.text,
+                              ),
                             ),
-                          ),
-                          SizedBox(height: context.rs(4)),
-                          Text(
-                            s.announcements.isNotEmpty
-                                ? s.announcements.first.title
-                                : 'No announcements yet',
-                            style: McTextStyles.body(
-                              fontSize: 12.5,
-                              fontWeight: FontWeight.w600,
-                              color: McColors.text,
+                            SizedBox(height: context.rs(4)),
+                            Text(
+                              latestAnnouncement!.title,
+                              style: McTextStyles.body(
+                                fontSize: 12.5,
+                                fontWeight: FontWeight.w600,
+                                color: McColors.text,
+                              ),
                             ),
-                          ),
-                          if (s.announcements.isNotEmpty) ...[
                             SizedBox(height: context.rs(2)),
                             Text(
-                              s.announcements.first.date,
+                              latestAnnouncement.date,
                               style: McTextStyles.body(
                                 fontSize: 10.5,
                                 color: McColors.text,
                               ),
                             ),
                           ],
-                        ],
-                      ),
-                    ),
-                    SizedBox(width: context.rs(8)),
-                    Container(
-                      padding: EdgeInsets.symmetric(
-                        horizontal: context.rs(10),
-                        vertical: context.rs(6),
-                      ),
-                      decoration: BoxDecoration(
-                        color: McColors.accentN(300).withValues(alpha: 0.7),
-                        borderRadius: BorderRadius.circular(McRadii.pill),
-                      ),
-                      child: Text(
-                        'Read →',
-                        style: McTextStyles.body(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w700,
-                          color: McColors.text,
                         ),
                       ),
-                    ),
-                  ],
+                      SizedBox(width: context.rs(8)),
+                      Container(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: context.rs(10),
+                          vertical: context.rs(6),
+                        ),
+                        decoration: BoxDecoration(
+                          color: McColors.accentN(300).withValues(alpha: 0.7),
+                          borderRadius: BorderRadius.circular(McRadii.pill),
+                        ),
+                        child: Text(
+                          'Read →',
+                          style: McTextStyles.body(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w700,
+                            color: McColors.text,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
-            ),
-            SizedBox(height: context.rs(10)),
+              SizedBox(height: context.rs(10)),
+            ],
 
             // Ongoing projects — spotlight the lead project, link out to the rest
             if (featuredProject != null)
@@ -965,43 +1008,54 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
   /// Pops the Spotlight's image full-screen, image only — no name/
   /// description, that's what the card next to Dues is for. Capped at
   /// [SpotlightModalStorage.maxPerDay] shows per calendar day so it doesn't
-  /// nag on every launch.
+  /// nag on every launch. Fixed-size card, image cropped to fill it (not
+  /// letterboxed) — a plain promo-ad look, not a "photo viewer". Close icon
+  /// sits below the card, circled — per explicit follow-up feedback moving
+  /// it off the reference design's top-right-corner placement.
   Future<void> _maybeShowSpotlightModal(String imageDataUrl) async {
     const storage = SpotlightModalStorage();
     if (!await storage.shouldShow()) return;
     await storage.recordShown();
     if (!mounted) return;
+    final cardWidth = MediaQuery.sizeOf(context).width * 0.8;
+    final cardHeight = cardWidth * 1.2;
     await showDialog<void>(
       context: context,
       barrierColor: Colors.black87,
       builder: (dialogContext) => Dialog(
         backgroundColor: Colors.transparent,
         insetPadding: EdgeInsets.symmetric(horizontal: context.rs(24)),
-        child: Stack(
-          clipBehavior: Clip.none,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
           children: [
-            ClipRRect(
-              borderRadius: BorderRadius.circular(McRadii.card),
-              child: McDataMedia(
-                dataUrl: imageDataUrl,
-                height: MediaQuery.sizeOf(context).height * 0.55,
-                fit: BoxFit.contain,
+            Container(
+              width: cardWidth,
+              height: cardHeight,
+              decoration: BoxDecoration(
+                color: McColors.surfaceSunken,
+                borderRadius: BorderRadius.circular(McRadii.card),
+              ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(McRadii.card),
+                child: McDataMedia(dataUrl: imageDataUrl, height: cardHeight),
               ),
             ),
-            Positioned(
-              top: -14,
-              right: -14,
+            Padding(
+              padding: EdgeInsets.only(top: context.rs(12)),
               child: GestureDetector(
                 onTap: () => Navigator.of(dialogContext).pop(),
                 child: Container(
+                  width: context.rs(36),
+                  height: context.rs(36),
                   decoration: const BoxDecoration(
-                    color: Colors.white,
                     shape: BoxShape.circle,
+                    border: Border.fromBorderSide(
+                      BorderSide(color: Colors.white, width: 1.5),
+                    ),
                   ),
-                  padding: EdgeInsets.all(context.rs(6)),
                   child: Icon(
                     Icons.close_rounded,
-                    color: McColors.text,
+                    color: Colors.white,
                     size: context.rs(20),
                   ),
                 ),

@@ -572,6 +572,7 @@ class _HouseholdContactStep extends ConsumerWidget {
             width: double.infinity,
             padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
+              boxShadow: McColors.cardShadow,
               color: McColors.surfaceSunken,
               borderRadius: BorderRadius.circular(McRadii.card),
             ),
@@ -832,6 +833,7 @@ class _ProfileStep extends ConsumerWidget {
           Container(
             padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
+              boxShadow: McColors.cardShadow,
               color: McColors.surfaceSunken,
               borderRadius: BorderRadius.circular(McRadii.card),
             ),

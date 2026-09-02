@@ -62,6 +62,7 @@ class ProfilePage extends ConsumerWidget {
                   Container(
                     width: double.infinity,
                     decoration: BoxDecoration(
+                      boxShadow: McColors.cardShadow,
                       color: McColors.surface,
                       borderRadius: BorderRadius.circular(McRadii.card),
                     ),
@@ -88,6 +89,7 @@ class ProfilePage extends ConsumerWidget {
                   Container(
                     width: double.infinity,
                     decoration: BoxDecoration(
+                      boxShadow: McColors.cardShadow,
                       color: McColors.surface,
                       borderRadius: BorderRadius.circular(McRadii.card),
                     ),
@@ -185,6 +187,7 @@ class ProfilePage extends ConsumerWidget {
                         vertical: 4,
                       ),
                       decoration: BoxDecoration(
+                        boxShadow: McColors.cardShadow,
                         color: McColors.surface,
                         borderRadius: BorderRadius.circular(McRadii.card),
                       ),

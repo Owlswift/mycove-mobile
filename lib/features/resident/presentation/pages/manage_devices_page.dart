@@ -143,6 +143,7 @@ class _DeviceTile extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
+        boxShadow: McColors.cardShadow,
         color: McColors.surface,
         borderRadius: BorderRadius.circular(McRadii.card),
       ),

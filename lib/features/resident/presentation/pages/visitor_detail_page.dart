@@ -124,7 +124,7 @@ class _VisitorDetailPageState extends ConsumerState<VisitorDetailPage> {
                   Container(
                     width: double.infinity,
                     padding: const EdgeInsets.all(22),
-                    decoration: BoxDecoration(color: McColors.surface, borderRadius: BorderRadius.circular(McRadii.card)),
+                    decoration: BoxDecoration(boxShadow: McColors.cardShadow, color: McColors.surface, borderRadius: BorderRadius.circular(McRadii.card)),
                     child: Column(
                       children: [
                         Text(pass.name, style: McTextStyles.body(fontSize: 15, fontWeight: FontWeight.w600)),
