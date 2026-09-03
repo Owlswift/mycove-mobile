@@ -1171,10 +1171,7 @@ class _ProfileFieldState extends State<_ProfileField> {
                   controller: _controller,
                   onChanged: widget.onChanged,
                   keyboardType: widget.keyboardType,
-                  style: McTextStyles.body(
-                    fontSize: 13.5,
-                    color: McColors.bodyText,
-                  ),
+                  style: McTextStyles.inputValue(),
                   decoration: InputDecoration(
                     isDense: true,
                     contentPadding: EdgeInsets.zero,
@@ -1183,10 +1180,7 @@ class _ProfileFieldState extends State<_ProfileField> {
                     focusedBorder: InputBorder.none,
                     disabledBorder: InputBorder.none,
                     hintText: widget.hint,
-                    hintStyle: McTextStyles.body(
-                      fontSize: 13.5,
-                      // color: McColors.neutralN(500),
-                    ),
+                    hintStyle: McTextStyles.inputPlaceholder(),
                   ),
                 ),
               ],
@@ -1302,10 +1296,7 @@ class _EmergencyContactFieldState extends State<_EmergencyContactField> {
                         controller: _controller,
                         onChanged: widget.onChanged,
                         keyboardType: TextInputType.phone,
-                        style: McTextStyles.body(
-                          fontSize: 13.5,
-                          color: McColors.bodyText,
-                        ),
+                        style: McTextStyles.inputValue(),
                         decoration: InputDecoration(
                           isDense: true,
                           contentPadding: EdgeInsets.zero,
@@ -1314,10 +1305,7 @@ class _EmergencyContactFieldState extends State<_EmergencyContactField> {
                           focusedBorder: InputBorder.none,
                           disabledBorder: InputBorder.none,
                           hintText: 'Enter phone number',
-                          hintStyle: McTextStyles.body(
-                            fontSize: 13.5,
-                            color: McColors.neutralN(500),
-                          ),
+                          hintStyle: McTextStyles.inputPlaceholder(),
                         ),
                       ),
                     ),

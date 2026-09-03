@@ -61,9 +61,10 @@ class _ElectricitySelectProviderPageState extends ConsumerState<ElectricitySelec
           padding: EdgeInsets.fromLTRB(context.rs(20), 0, context.rs(20), context.rs(14)),
           child: TextField(
             onChanged: (v) => setState(() => _query = v),
+            style: McTextStyles.inputValue(),
             decoration: InputDecoration(
               hintText: 'Search provider',
-              hintStyle: McTextStyles.body(color: McColors.bodyText, fontWeight: FontWeight.w600),
+              hintStyle: McTextStyles.inputPlaceholder(),
               prefixIcon: Icon(
                 Icons.search,
                 color: McColors.bodyText,

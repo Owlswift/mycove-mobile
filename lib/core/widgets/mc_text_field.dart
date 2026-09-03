@@ -15,7 +15,7 @@ class McTextField extends StatefulWidget {
     this.maxLength,
     this.textAlign = TextAlign.start,
     this.letterSpacing,
-    this.fontSize = 14,
+    this.fontSize = 15,
   });
 
   final String? label;
@@ -72,8 +72,12 @@ class _ChTextFieldState extends State<McTextField> {
           keyboardType: widget.keyboardType,
           maxLength: widget.maxLength,
           textAlign: widget.textAlign,
-          style: McTextStyles.body(fontSize: widget.fontSize).copyWith(letterSpacing: widget.letterSpacing),
-          decoration: InputDecoration(hintText: widget.placeholder, counterText: ''),
+          style: McTextStyles.inputValue(fontSize: widget.fontSize).copyWith(letterSpacing: widget.letterSpacing),
+          decoration: InputDecoration(
+            hintText: widget.placeholder,
+            hintStyle: McTextStyles.inputPlaceholder(fontSize: widget.fontSize),
+            counterText: '',
+          ),
         ),
       ],
     );

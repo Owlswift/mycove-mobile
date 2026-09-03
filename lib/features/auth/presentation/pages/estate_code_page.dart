@@ -338,10 +338,7 @@ class _CodeFieldState extends State<_CodeField> {
               controller: _controller,
               onChanged: widget.onChanged,
               textCapitalization: TextCapitalization.characters,
-              style: McTextStyles.body(
-                fontSize: 15,
-                fontWeight: FontWeight.w600,
-              ),
+              style: McTextStyles.inputValue(),
               decoration: InputDecoration(
                 isDense: true,
                 filled: false,
@@ -350,10 +347,7 @@ class _CodeFieldState extends State<_CodeField> {
                 focusedBorder: InputBorder.none,
                 disabledBorder: InputBorder.none,
                 hintText: 'e.g. PALM001',
-                hintStyle: McTextStyles.body(
-                  fontSize: 15,
-                  color: McColors.neutralN(500),
-                ),
+                hintStyle: McTextStyles.inputPlaceholder(),
               ),
             ),
           ),

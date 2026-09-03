@@ -509,13 +509,10 @@ class _EditEmergencyContactDialogState
           TextField(
             controller: _nameController,
             textInputAction: TextInputAction.next,
-            style: McTextStyles.body(fontSize: 14),
+            style: McTextStyles.inputValue(),
             decoration: InputDecoration(
               labelText: 'Name (optional)',
-              labelStyle: McTextStyles.body(
-                fontSize: 13,
-                color: McColors.neutralN(500),
-              ),
+              labelStyle: McTextStyles.inputPlaceholder(),
               enabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(McRadii.sm),
                 borderSide: const BorderSide(color: McColors.divider),
@@ -532,13 +529,10 @@ class _EditEmergencyContactDialogState
             keyboardType: TextInputType.phone,
             textInputAction: TextInputAction.done,
             onSubmitted: (_) => _save(),
-            style: McTextStyles.body(fontSize: 14),
+            style: McTextStyles.inputValue(),
             decoration: InputDecoration(
               labelText: 'Phone number',
-              labelStyle: McTextStyles.body(
-                fontSize: 13,
-                color: McColors.neutralN(500),
-              ),
+              labelStyle: McTextStyles.inputPlaceholder(),
               enabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(McRadii.sm),
                 borderSide: const BorderSide(color: McColors.divider),

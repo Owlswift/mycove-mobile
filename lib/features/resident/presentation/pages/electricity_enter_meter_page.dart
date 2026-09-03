@@ -124,8 +124,10 @@ class _ElectricityEnterMeterPageState extends ConsumerState<ElectricityEnterMete
                   controller: _meterController,
                   keyboardType: TextInputType.number,
                   onChanged: notifier.onElecMeterNumber,
+                  style: McTextStyles.inputValue(),
                   decoration: InputDecoration(
                     hintText: 'Enter meter number',
+                    hintStyle: McTextStyles.inputPlaceholder(),
                     suffixIcon: GestureDetector(
                       onTap: () => ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(content: Text('Meter scanning is coming soon.')),

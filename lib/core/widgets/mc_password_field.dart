@@ -69,7 +69,7 @@ class _ChPasswordFieldState extends State<McPasswordField> {
               controller: _controller,
               onChanged: widget.onChanged,
               obscureText: _obscure,
-              style: McTextStyles.body(fontSize: 14.5),
+              style: McTextStyles.inputValue(),
               decoration: InputDecoration(
                 isDense: true,
                 filled: false,
@@ -82,10 +82,7 @@ class _ChPasswordFieldState extends State<McPasswordField> {
                 focusedBorder: InputBorder.none,
                 disabledBorder: InputBorder.none,
                 hintText: widget.hintText,
-                hintStyle: McTextStyles.body(
-                  fontSize: 12,
-                  color: McColors.bodyText,
-                ),
+                hintStyle: McTextStyles.inputPlaceholder(),
               ),
             ),
           ),

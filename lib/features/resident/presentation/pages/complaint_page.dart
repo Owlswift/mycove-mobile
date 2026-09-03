@@ -48,7 +48,11 @@ class ComplaintPage extends ConsumerWidget {
                   minLines: 5,
                   maxLines: 8,
                   onChanged: notifier.onComplaintDesc,
-                  decoration: const InputDecoration(hintText: 'Describe the issue…'),
+                  style: McTextStyles.inputValue(),
+                  decoration: InputDecoration(
+                    hintText: 'Describe the issue…',
+                    hintStyle: McTextStyles.inputPlaceholder(),
+                  ),
                 ),
                 const SizedBox(height: 14),
                 if (s.complaintError.isNotEmpty) ...[

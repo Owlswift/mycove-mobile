@@ -70,7 +70,7 @@ class _ChPhoneFieldState extends State<McPhoneField> {
                 controller: _controller,
                 onChanged: widget.onChanged,
                 keyboardType: TextInputType.phone,
-                style: McTextStyles.body(fontSize: 13),
+                style: McTextStyles.inputValue(),
                 decoration: InputDecoration(
                   isDense: true,
                   filled: false,
@@ -79,7 +79,7 @@ class _ChPhoneFieldState extends State<McPhoneField> {
                   focusedBorder: InputBorder.none,
                   disabledBorder: InputBorder.none,
                   hintText: 'Enter phone number',
-                  hintStyle: McTextStyles.body(fontSize: 12, color: McColors.bodyText),
+                  hintStyle: McTextStyles.inputPlaceholder(),
                 ),
               ),
             ),

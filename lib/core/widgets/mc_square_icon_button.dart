@@ -23,15 +23,15 @@ class McSquareIconButton extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        width: context.rs(44),
-        height: context.rs(44),
+        width: context.rs(50),
+        height: context.rs(50),
         alignment: Alignment.center,
         decoration: BoxDecoration(
           color: McColors.surface,
           borderRadius: BorderRadius.circular(McRadii.button),
           boxShadow: McColors.cardShadow,
         ),
-        child: Icon(icon, size: context.rs(18), color: iconColor),
+        child: Icon(icon, size: context.rs(22), color: iconColor),
       ),
     );
   }

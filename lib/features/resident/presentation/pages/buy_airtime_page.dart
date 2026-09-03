@@ -97,7 +97,11 @@ class _BuyAirtimePageState extends ConsumerState<BuyAirtimePage> {
                   controller: _phoneController,
                   keyboardType: TextInputType.phone,
                   onChanged: notifier.onAirtimePhone,
-                  decoration: const InputDecoration(hintText: '08012345678'),
+                  style: McTextStyles.inputValue(),
+                  decoration: InputDecoration(
+                    hintText: '08012345678',
+                    hintStyle: McTextStyles.inputPlaceholder(),
+                  ),
                 ),
                 SizedBox(height: context.rs(16)),
                 Text(
@@ -109,7 +113,11 @@ class _BuyAirtimePageState extends ConsumerState<BuyAirtimePage> {
                   controller: _amountController,
                   keyboardType: TextInputType.number,
                   onChanged: notifier.onAirtimeAmount,
-                  decoration: const InputDecoration(hintText: '₦0'),
+                  style: McTextStyles.inputValue(),
+                  decoration: InputDecoration(
+                    hintText: '₦0',
+                    hintStyle: McTextStyles.inputPlaceholder(),
+                  ),
                 ),
                 SizedBox(height: context.rs(10)),
                 Wrap(

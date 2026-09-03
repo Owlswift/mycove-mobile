@@ -43,13 +43,13 @@ class McGenericHeader extends StatelessWidget {
         child: Row(
           children: [
             if (showBack)
-              _HeaderChip(onTap: onBack ?? () => Navigator.of(context).maybePop(), child: Icon(Icons.arrow_back, size: context.rs(18)))
+              _HeaderChip(onTap: onBack ?? () => Navigator.of(context).maybePop(), child: Icon(Icons.arrow_back, size: context.rs(20)))
             else
-              SizedBox(width: context.rs(40)),
+              SizedBox(width: context.rs(44)),
             Expanded(
               child: Text(title, textAlign: TextAlign.center, style: McTextStyles.heading(fontSize: 17)),
             ),
-            trailing ?? SizedBox(width: context.rs(40)),
+            trailing ?? SizedBox(width: context.rs(44)),
           ],
         ),
       );
@@ -61,18 +61,22 @@ class McGenericHeader extends StatelessWidget {
         child: Row(
           children: [
             SizedBox(
-              width: context.rs(40),
+              width: context.rs(44),
+              height: context.rs(44),
               child: showBack
                   ? GestureDetector(
+                      behavior: HitTestBehavior.opaque,
                       onTap: onBack ?? () => Navigator.of(context).maybePop(),
-                      child: Icon(Icons.arrow_back, size: context.rs(20), color: McColors.text),
+                      child: Center(
+                        child: Icon(Icons.arrow_back, size: context.rs(24), color: McColors.text),
+                      ),
                     )
                   : null,
             ),
             Expanded(
               child: Text(title, textAlign: TextAlign.center, style: McTextStyles.heading(fontSize: 19)),
             ),
-            SizedBox(width: context.rs(40), child: trailing),
+            SizedBox(width: context.rs(44), child: trailing),
           ],
         ),
       );
@@ -84,10 +88,14 @@ class McGenericHeader extends StatelessWidget {
         children: [
           if (showBack)
             GestureDetector(
+              behavior: HitTestBehavior.opaque,
               onTap: onBack ?? () => Navigator.of(context).maybePop(),
               child: SizedBox(
-                width: context.rs(24),
-                child: Icon(Icons.arrow_back, size: context.rs(20), color: McColors.text),
+                width: context.rs(44),
+                height: context.rs(44),
+                child: Center(
+                  child: Icon(Icons.arrow_back, size: context.rs(24), color: McColors.text),
+                ),
               ),
             ),
           Expanded(child: Text(title, style: McTextStyles.heading(fontSize: 19))),
@@ -109,8 +117,8 @@ class _HeaderChip extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        width: context.rs(40),
-        height: context.rs(40),
+        width: context.rs(44),
+        height: context.rs(44),
         alignment: Alignment.center,
         decoration: BoxDecoration(
           color: McColors.surface,

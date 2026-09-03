@@ -66,4 +66,15 @@ class McTextStyles {
       body(fontSize: 12, fontWeight: FontWeight.w500, color: color);
   static TextStyle button({Color color = Colors.white}) =>
       body(fontSize: 16, fontWeight: FontWeight.w600, color: color);
+
+  // ── Input fields ─────────────────────────────────────────────────────
+  // One shared color/size/weight for every text field's typed value across
+  // the app, and one for its placeholder — previously each field (login,
+  // estate code, phone, password, complaint, amount entry...) set its own
+  // slightly different fontSize/fontWeight/color inline, so a value could
+  // look heavier or lighter depending on which screen you were on.
+  static TextStyle inputValue({double fontSize = 15}) =>
+      body(fontSize: fontSize, fontWeight: FontWeight.w500, color: McColors.neutralN(800));
+  static TextStyle inputPlaceholder({double fontSize = 15}) =>
+      body(fontSize: fontSize, fontWeight: FontWeight.w400, color: McColors.bodyText);
 }

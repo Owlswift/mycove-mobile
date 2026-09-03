@@ -106,7 +106,7 @@ class McTheme {
           borderRadius: BorderRadius.circular(McRadii.button),
           borderSide: const BorderSide(color: McColors.accent2, width: 1.5),
         ),
-        hintStyle: McTextStyles.body(color: McColors.bodyText),
+        hintStyle: McTextStyles.inputPlaceholder(),
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
