@@ -165,9 +165,12 @@ class _VoiceLogsSection extends ConsumerWidget {
                       );
                       return;
                     }
+                    final box = context.findRenderObject() as RenderBox?;
+                    final origin = box != null ? box.localToGlobal(Offset.zero) & box.size : null;
                     await Share.shareXFiles(
                       [XFile(file.path)],
                       subject: 'MyCove voice logs',
+                      sharePositionOrigin: origin,
                     );
                   },
                 ),

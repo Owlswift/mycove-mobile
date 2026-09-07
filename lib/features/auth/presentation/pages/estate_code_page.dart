@@ -242,12 +242,23 @@ class _EstateCodeCard extends StatelessWidget {
                   borderRadius: BorderRadius.circular(McRadii.button),
                 ),
                 child: loading
-                    ? SizedBox(
-                        width: context.rs(20),
-                        height: context.rs(20),
-                        child: const CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: Colors.white,
+                    ? Center(
+                        // Container above is `width: double.infinity`,
+                        // which hands SizedBox a *tight* infinite-width
+                        // constraint via Padding — without Center to
+                        // loosen it first, Flutter's constraint clamping
+                        // forces the "20" here up to infinity instead,
+                        // stretching the spinner's arc into a smeared
+                        // scribble across the whole button. Center (see
+                        // the login button's identical spinner) breaks
+                        // that tightness so the fixed size actually holds.
+                        child: SizedBox(
+                          width: context.rs(20),
+                          height: context.rs(20),
+                          child: const CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Colors.white,
+                          ),
                         ),
                       )
                     : Stack(

@@ -13,7 +13,7 @@ import '../theme/mc_colors.dart';
 /// base64 data URL (e.g. "data:image/png;base64,..." or
 /// "data:video/mp4;base64,..."). The backend returns the same field either
 /// way; the MIME prefix decides how it's displayed.
-class McDataMedia extends StatelessWidget {
+class McDataMedia extends StatefulWidget {
   const McDataMedia({super.key, required this.dataUrl, this.height, this.borderRadius, this.fit = BoxFit.cover});
 
   final String dataUrl;
@@ -21,30 +21,66 @@ class McDataMedia extends StatelessWidget {
   final BorderRadius? borderRadius;
   final BoxFit fit;
 
-  bool get _isVideo => dataUrl.startsWith('data:video/');
+  @override
+  State<McDataMedia> createState() => _McDataMediaState();
+}
+
+/// Decoding is cached per `dataUrl` string rather than redone in `build()`
+/// (as a StatelessWidget would) — a parent rebuilding for an unrelated
+/// reason (e.g. the login page's estate banner re-rendering on every
+/// keystroke, since it and the phone/password fields share one watched
+/// AppState) used to re-run `base64Decode` and hand `Image.memory` a
+/// freshly-allocated `Uint8List` each time. `Uint8List` has no value
+/// equality, so `MemoryImage` treated every rebuild as a brand-new image
+/// to load rather than the same unchanged photo, causing a visible
+/// flicker even though the bytes were byte-for-byte identical.
+class _McDataMediaState extends State<McDataMedia> {
+  Uint8List? _bytes;
+  String? _decodedFor;
+
+  bool get _isVideo => widget.dataUrl.startsWith('data:video/');
+
+  @override
+  void initState() {
+    super.initState();
+    _decode();
+  }
+
+  @override
+  void didUpdateWidget(covariant McDataMedia oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.dataUrl != oldWidget.dataUrl) _decode();
+  }
+
+  void _decode() {
+    final dataUrl = widget.dataUrl;
+    final commaIndex = dataUrl.indexOf(',');
+    final base64Part = commaIndex == -1 ? dataUrl : dataUrl.substring(commaIndex + 1);
+    try {
+      _bytes = base64Decode(base64Part);
+    } catch (_) {
+      _bytes = null;
+    }
+    _decodedFor = dataUrl;
+  }
 
   @override
   Widget build(BuildContext context) {
-    final commaIndex = dataUrl.indexOf(',');
-    final base64Part = commaIndex == -1 ? dataUrl : dataUrl.substring(commaIndex + 1);
-    Uint8List bytes;
-    try {
-      bytes = base64Decode(base64Part);
-    } catch (_) {
-      return const SizedBox.shrink();
-    }
+    if (_decodedFor != widget.dataUrl) _decode();
+    final bytes = _bytes;
+    if (bytes == null) return const SizedBox.shrink();
 
     final content = _isVideo
-        ? _InlineVideo(bytes: bytes, cacheKey: dataUrl.hashCode, height: height)
+        ? _InlineVideo(bytes: bytes, cacheKey: widget.dataUrl.hashCode, height: widget.height)
         : Image.memory(
             bytes,
-            height: height,
+            height: widget.height,
             width: double.infinity,
-            fit: fit,
+            fit: widget.fit,
             errorBuilder: (_, _, _) => const SizedBox.shrink(),
           );
 
-    return borderRadius == null ? content : ClipRRect(borderRadius: borderRadius!, child: content);
+    return widget.borderRadius == null ? content : ClipRRect(borderRadius: widget.borderRadius!, child: content);
   }
 }
 

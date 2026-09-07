@@ -87,20 +87,36 @@ class _VisitorDetailPageState extends ConsumerState<VisitorDetailPage> {
   }
 
   void _sharePass(VisitorPass pass) async {
+    // This message goes to the visitor themselves (so they can present the
+    // code at the gate) — status, vehicle, phone, and visit duration are
+    // for the resident's own reference on this page, not something the
+    // visitor needs to see.
     final message = StringBuffer()
-      ..writeln('Visitor Pass — ${pass.name}')
-      ..writeln('Status: ${_statusLabel(pass)}')
-      ..writeln('Code: ${pass.code}')
-      ..writeln('Vehicle: ${pass.plate}')
-      ..writeln('Phone: ${pass.phone}')
-      ..writeln(pass.visitLabel);
+      ..writeln('Visitor Pass for ${pass.name}')
+      ..writeln('Code: ${pass.code}');
     try {
-      await Share.share(message.toString(), subject: 'Visitor Pass — ${pass.name}');
+      // sharePositionOrigin is required on iPad (the share sheet has
+      // nowhere to popover from without it) and harmless elsewhere — worth
+      // always providing rather than only patching it in when an iPad
+      // actually hits the missing-anchor failure.
+      final box = context.findRenderObject() as RenderBox?;
+      final origin = box != null ? box.localToGlobal(Offset.zero) & box.size : null;
+      await Share.share(
+        message.toString(),
+        subject: 'Visitor Pass — ${pass.name}',
+        sharePositionOrigin: origin,
+      );
     } catch (e) {
+      // The previous fallback message claimed "no share apps available",
+      // which is essentially never true on a real device (Messages/Mail
+      // are always present) — it was masking whatever the actual failure
+      // was. Log the real reason so this is diagnosable next time, and
+      // stop asserting a specific cause we can't actually confirm.
+      debugPrint('Share.share failed for visitor pass ${pass.id}: $e');
       if (!mounted) return;
       Clipboard.setData(ClipboardData(text: message.toString()));
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('No share apps available — pass details copied to clipboard')),
+        const SnackBar(content: Text("Couldn't open the share sheet — pass details copied to clipboard instead")),
       );
     }
   }
