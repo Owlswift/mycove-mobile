@@ -1,4 +1,11 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Every network call the app makes at runtime (Dio -> api.mycove.ng,
+         Firebase, Mixpanel, etc.) needs this — it must live here, not only
+         in src/debug/AndroidManifest.xml's copy (whose own comment only
+         mentions hot-reload/debugging tooling). Without it here, release
+         and profile builds have no network access at all: every request
+         fails silently at the OS level before it ever reaches Dio. -->
+    <uses-permission android:name="android.permission.INTERNET"/>
     <!-- Required on Android 13+ to show notifications (push and local). -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
     <!-- Required by speech_to_text for voice commands. -->

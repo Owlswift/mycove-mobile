@@ -226,6 +226,10 @@ class _EstateCodeCard extends StatelessWidget {
           GestureDetector(
             onTap: onSubmit,
             child: Opacity(
+              // `onSubmit` is only ever null while `loading` (see the
+              // caller) — full opacity then keeps the spinner clearly
+              // visible; 0.6 is reserved for a future disabled-but-not-
+              // loading state (e.g. an empty code) that doesn't exist yet.
               opacity: onSubmit == null && !loading ? 0.6 : 1,
               child: Container(
                 width: double.infinity,
