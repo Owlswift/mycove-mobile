@@ -786,17 +786,35 @@ class _ProfileStep extends ConsumerWidget {
             hint: 'Enter your full name',
           ),
           const SizedBox(height: 12),
-          _ProfileField(
-            icon: Icons.home_outlined,
-            label: 'House Address',
-            value: s.setupHouse,
-            onChanged: notifier.onSetupHouse,
-            hint: 'House number, street, estate',
-            trailing: Icon(
-              Icons.keyboard_arrow_down_rounded,
-              color: McColors.neutralN(600),
+          // When the estate has preloaded its streets the resident picks
+          // theirs and only types a house number; otherwise it's the
+          // original free-text address.
+          if (s.estateStreets.isNotEmpty) ...[
+            _StreetField(
+              value: s.setupStreet,
+              streets: s.estateStreets,
+              onChanged: notifier.onSetupStreet,
             ),
-          ),
+            const SizedBox(height: 12),
+            _ProfileField(
+              icon: Icons.home_outlined,
+              label: 'House Number',
+              value: s.setupHouseNumber,
+              onChanged: notifier.onSetupHouseNumber,
+              hint: 'e.g. 12',
+            ),
+          ] else
+            _ProfileField(
+              icon: Icons.home_outlined,
+              label: 'House Address',
+              value: s.setupHouse,
+              onChanged: notifier.onSetupHouse,
+              hint: 'House number, street, estate',
+              trailing: Icon(
+                Icons.keyboard_arrow_down_rounded,
+                color: McColors.neutralN(600),
+              ),
+            ),
           const SizedBox(height: 12),
           _ProfileField(
             icon: Icons.directions_car_outlined,
@@ -1067,6 +1085,123 @@ class _AvatarPicker extends StatelessWidget {
   void _showComingSoon(BuildContext context) {
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text("Profile photos aren't supported yet.")),
+    );
+  }
+}
+
+/// Tap-to-choose street picker, styled like [_ProfileField] — opens a
+/// bottom sheet of the estate's preloaded streets instead of a keyboard.
+class _StreetField extends StatelessWidget {
+  const _StreetField({
+    required this.value,
+    required this.streets,
+    required this.onChanged,
+  });
+
+  final String value;
+  final List<String> streets;
+  final ValueChanged<String> onChanged;
+
+  Future<void> _pick(BuildContext context) async {
+    final picked = await showModalBottomSheet<String>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: McColors.surface,
+      builder: (ctx) => SafeArea(
+        child: ConstrainedBox(
+          constraints: BoxConstraints(
+            maxHeight: MediaQuery.of(ctx).size.height * 0.6,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(20, 18, 20, 8),
+                child: Text(
+                  'Select your street',
+                  style: McTextStyles.heading(fontSize: 18),
+                ),
+              ),
+              Flexible(
+                child: ListView.builder(
+                  shrinkWrap: true,
+                  itemCount: streets.length,
+                  itemBuilder: (_, i) => ListTile(
+                    title: Text(streets[i], style: McTextStyles.inputValue()),
+                    trailing: streets[i] == value
+                        ? Icon(Icons.check_rounded, color: McColors.accent2)
+                        : null,
+                    onTap: () => Navigator.pop(ctx, streets[i]),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+    if (picked != null) onChanged(picked);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      borderRadius: BorderRadius.circular(McRadii.button),
+      onTap: () => _pick(context),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+        decoration: BoxDecoration(
+          color: McColors.surface,
+          borderRadius: BorderRadius.circular(McRadii.button),
+          border: Border.all(color: McColors.divider),
+        ),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Container(
+              width: context.rs(40),
+              height: context.rs(40),
+              decoration: BoxDecoration(
+                color: McColors.accent2N(100),
+                borderRadius: BorderRadius.circular(McRadii.sm),
+              ),
+              child: Icon(
+                Icons.signpost_outlined,
+                size: context.rs(19),
+                color: McColors.accent2N(700),
+              ),
+            ),
+            SizedBox(width: context.rs(12)),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    'Street',
+                    style: McTextStyles.body(
+                      fontSize: 13.5,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    value.isEmpty ? 'Select your street' : value,
+                    style: value.isEmpty
+                        ? McTextStyles.inputPlaceholder()
+                        : McTextStyles.inputValue(),
+                  ),
+                ],
+              ),
+            ),
+            Icon(
+              Icons.keyboard_arrow_down_rounded,
+              color: McColors.neutralN(600),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

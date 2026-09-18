@@ -1,5 +1,9 @@
-# Uncomment this line to define a global platform for your project
-# platform :ios, '13.0'
+# Must match Runner's IPHONEOS_DEPLOYMENT_TARGET (project.pbxproj) — left
+# commented out, CocoaPods still generates the "Flutter" aggregate target
+# (the engine build step) at an old default of 13.0 regardless of what the
+# Xcode project itself is set to, which firebase_core's newer SPM package
+# (requires iOS 15+) then fails to build against.
+platform :ios, '15.0'
 
 # CocoaPods analytics sends network stats synchronously affecting flutter build latency.
 ENV['COCOAPODS_DISABLE_STATS'] = 'true'

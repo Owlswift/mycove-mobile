@@ -102,6 +102,9 @@ class AppState {
     this.resetMsg = '',
     this.setupFullName = '',
     this.setupHouse = '',
+    this.setupStreet = '',
+    this.setupHouseNumber = '',
+    this.estateStreets = const [],
     this.setupEmail = '',
     this.setupEmergencyContactName = '',
     this.setupEmergencyContactPhone = '',
@@ -110,6 +113,9 @@ class AppState {
     this.vfPhone = '',
     this.vfPlate = '',
     this.vfError = '',
+    this.vfDuesBlocked = false,
+    this.vfDuesMonthsOwed = 0,
+    this.vfDuesBalance = 0,
     List<VisitorPass>? visitorPasses,
     this.paymentStep = PaymentStep.idle,
     this.paymentReference,
@@ -268,6 +274,12 @@ class AppState {
 
   final String setupFullName;
   final String setupHouse;
+  final String setupStreet;
+  final String setupHouseNumber;
+
+  /// The estate's preloaded street names (empty = not configured, so the
+  /// profile step falls back to a free-text house address).
+  final List<String> estateStreets;
   final String setupEmail;
   final String setupEmergencyContactName;
   final String setupEmergencyContactPhone;
@@ -277,6 +289,12 @@ class AppState {
   final String vfPhone;
   final String vfPlate;
   final String vfError;
+
+  /// Set when the API refused a pass because the resident is owing too many
+  /// months of dues — the create page shows a pay-your-dues prompt for it.
+  final bool vfDuesBlocked;
+  final int vfDuesMonthsOwed;
+  final int vfDuesBalance;
   final List<VisitorPass> visitorPasses;
 
   final PaymentStep paymentStep;
@@ -442,6 +460,9 @@ class AppState {
     String? resetMsg,
     String? setupFullName,
     String? setupHouse,
+    String? setupStreet,
+    String? setupHouseNumber,
+    List<String>? estateStreets,
     String? setupEmail,
     String? setupEmergencyContactName,
     String? setupEmergencyContactPhone,
@@ -450,6 +471,9 @@ class AppState {
     String? vfPhone,
     String? vfPlate,
     String? vfError,
+    bool? vfDuesBlocked,
+    int? vfDuesMonthsOwed,
+    int? vfDuesBalance,
     List<VisitorPass>? visitorPasses,
     PaymentStep? paymentStep,
     Object? paymentReference = _sentinel,
@@ -578,6 +602,9 @@ class AppState {
       resetMsg: resetMsg ?? this.resetMsg,
       setupFullName: setupFullName ?? this.setupFullName,
       setupHouse: setupHouse ?? this.setupHouse,
+      setupStreet: setupStreet ?? this.setupStreet,
+      setupHouseNumber: setupHouseNumber ?? this.setupHouseNumber,
+      estateStreets: estateStreets ?? this.estateStreets,
       setupEmail: setupEmail ?? this.setupEmail,
       setupEmergencyContactName:
           setupEmergencyContactName ?? this.setupEmergencyContactName,
@@ -588,6 +615,9 @@ class AppState {
       vfPhone: vfPhone ?? this.vfPhone,
       vfPlate: vfPlate ?? this.vfPlate,
       vfError: vfError ?? this.vfError,
+      vfDuesBlocked: vfDuesBlocked ?? this.vfDuesBlocked,
+      vfDuesMonthsOwed: vfDuesMonthsOwed ?? this.vfDuesMonthsOwed,
+      vfDuesBalance: vfDuesBalance ?? this.vfDuesBalance,
       visitorPasses: visitorPasses ?? this.visitorPasses,
       paymentStep: paymentStep ?? this.paymentStep,
       paymentReference: identical(paymentReference, _sentinel)

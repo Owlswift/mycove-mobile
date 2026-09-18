@@ -9,6 +9,8 @@ class CurrentUser {
     required this.role,
     required this.initials,
     this.house,
+    this.street,
+    this.houseNumber,
     this.email,
     this.emergencyContactName,
     this.emergencyContactPhone,
@@ -28,6 +30,8 @@ class CurrentUser {
       role: json['role'] as String,
       initials: json['initials'] as String,
       house: json['house'] as String?,
+      street: json['street'] as String?,
+      houseNumber: json['houseNumber'] as String?,
       email: json['email'] as String?,
       emergencyContactName: json['emergencyContactName'] as String?,
       emergencyContactPhone: json['emergencyContactPhone'] as String?,
@@ -46,6 +50,8 @@ class CurrentUser {
   final String role; // RESIDENT | GUARD | ADMIN
   final String initials;
   final String? house;
+  final String? street;
+  final String? houseNumber;
   final String? email;
   final String? emergencyContactName;
   final String? emergencyContactPhone;

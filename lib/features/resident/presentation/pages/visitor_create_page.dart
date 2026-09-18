@@ -8,6 +8,7 @@ import '../../../../core/widgets/mc_button.dart';
 import '../../../../core/widgets/mc_generic_header.dart';
 import '../../../../core/widgets/mc_text_field.dart';
 import '../../../../state/app_notifier.dart';
+import '../widgets/dues_outstanding_sheet.dart';
 
 class VisitorCreatePage extends ConsumerWidget {
   const VisitorCreatePage({super.key});
@@ -43,7 +44,7 @@ class VisitorCreatePage extends ConsumerWidget {
                   placeholder: 'e.g. LND 442 KJ',
                 ),
                 const SizedBox(height: 20),
-                if (s.vfError.isNotEmpty) ...[
+                if (s.vfError.isNotEmpty && !s.vfDuesBlocked) ...[
                   Text(s.vfError, style: McTextStyles.body(fontSize: 13, color: McColors.danger)),
                   const SizedBox(height: 12),
                 ],
@@ -51,8 +52,21 @@ class VisitorCreatePage extends ConsumerWidget {
                   label: 'Generate Pass',
                   onPressed: () async {
                     final id = await notifier.createVisitorPass();
-                    if (id != null && context.mounted) {
+                    if (!context.mounted) return;
+                    if (id != null) {
                       context.pushReplacement('/resident/visitor/$id');
+                    } else {
+                      // The estate blocks passes for residents owing too
+                      // many months of dues — offer to take them to pay.
+                      final blocked = ref.read(appStateProvider);
+                      if (blocked.vfDuesBlocked) {
+                        final pay = await showDuesOutstandingSheet(
+                          context,
+                          monthsOwed: blocked.vfDuesMonthsOwed,
+                          balance: blocked.vfDuesBalance,
+                        );
+                        if (pay && context.mounted) context.go('/resident/dues');
+                      }
                     }
                   },
                 ),

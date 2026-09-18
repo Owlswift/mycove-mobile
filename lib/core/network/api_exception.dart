@@ -28,6 +28,16 @@ String extractMessage(Object error) {
   return 'Something went wrong. Please try again.';
 }
 
+/// The raw JSON error body, for callers that need fields beyond
+/// `message`/`code` (e.g. the amount owed on a `DUES_OUTSTANDING` refusal).
+Map<String, dynamic>? extractErrorBody(Object error) {
+  if (error is DioException) {
+    final data = error.response?.data;
+    if (data is Map) return Map<String, dynamic>.from(data);
+  }
+  return null;
+}
+
 /// Machine-readable error identifier some 401s carry alongside `message`
 /// (e.g. `ACCOUNT_DEACTIVATED`) — for reacting programmatically, where
 /// matching on human-readable message text would be fragile.

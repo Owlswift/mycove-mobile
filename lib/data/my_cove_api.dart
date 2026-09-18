@@ -57,6 +57,8 @@ class MyCoveApi {
     required String newPassword,
     String? fullName,
     String? house,
+    String? street,
+    String? houseNumber,
     String? email,
     String? emergencyContactName,
     String? emergencyContactPhone,
@@ -67,6 +69,8 @@ class MyCoveApi {
       'newPassword': newPassword,
       'fullName': ?fullName,
       'house': ?house,
+      'street': ?street,
+      'houseNumber': ?houseNumber,
       'email': ?email,
       'emergencyContactName': ?emergencyContactName,
       'emergencyContactPhone': ?emergencyContactPhone,
@@ -103,6 +107,13 @@ class MyCoveApi {
   /// be null when nothing's been configured yet.
   Future<Map<String, dynamic>> estateEmergencyContacts() async =>
       _map(await _dio.get('/estates/emergency-contacts'));
+
+  /// The estate's preloaded street names, set by the admin — empty until
+  /// they've configured any.
+  Future<List<String>> estateStreets() async {
+    final data = _map(await _dio.get('/estates/streets'));
+    return (data['streets'] as List?)?.cast<String>() ?? const [];
+  }
 
   // ── Announcements ────────────────────────────────────────────────────
   Future<List<dynamic>> announcements() async =>

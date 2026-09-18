@@ -528,11 +528,14 @@ class AppNotifier extends StateNotifier<AppState> {
           authStage: AuthStage.forceReset,
           setupFullName: user.fullName,
           setupHouse: user.house ?? '',
+          setupStreet: user.street ?? '',
+          setupHouseNumber: user.houseNumber ?? '',
           setupEmail: user.email ?? '',
           setupEmergencyContactName: user.emergencyContactName ?? '',
           setupEmergencyContactPhone: user.emergencyContactPhone ?? '',
           setupVehiclePlates: user.vehiclePlates.join(', '),
         );
+        await loadEstateStreets();
         return;
       }
       if (user.role == 'GUARD') {
@@ -645,6 +648,21 @@ class AppNotifier extends StateNotifier<AppState> {
   void onNewPass2(String v) => state = state.copyWith(newPass2: v);
   void onSetupFullName(String v) => state = state.copyWith(setupFullName: v);
   void onSetupHouse(String v) => state = state.copyWith(setupHouse: v);
+  void onSetupStreet(String v) => state = state.copyWith(setupStreet: v);
+  void onSetupHouseNumber(String v) =>
+      state = state.copyWith(setupHouseNumber: v);
+
+  /// Loads the estate's street list for the profile step. A failure just
+  /// leaves the list empty, which falls back to the free-text house field —
+  /// never worth blocking onboarding over.
+  Future<void> loadEstateStreets() async {
+    try {
+      final streets = await _api.estateStreets();
+      state = state.copyWith(estateStreets: streets);
+    } catch (_) {
+      // Keep whatever we had; the free-text fallback still works.
+    }
+  }
   void onSetupEmail(String v) => state = state.copyWith(setupEmail: v);
   void onSetupEmergencyContactName(String v) =>
       state = state.copyWith(setupEmergencyContactName: v);
@@ -704,7 +722,17 @@ class AppNotifier extends StateNotifier<AppState> {
       state = state.copyWith(resetMsg: 'Full name is required.');
       return;
     }
-    if (state.setupHouse.trim().isEmpty) {
+    final usesStreets = state.estateStreets.isNotEmpty;
+    if (usesStreets) {
+      if (state.setupStreet.trim().isEmpty) {
+        state = state.copyWith(resetMsg: 'Please select your street.');
+        return;
+      }
+      if (state.setupHouseNumber.trim().isEmpty) {
+        state = state.copyWith(resetMsg: 'House number is required.');
+        return;
+      }
+    } else if (state.setupHouse.trim().isEmpty) {
       state = state.copyWith(resetMsg: 'House address is required.');
       return;
     }
@@ -719,7 +747,9 @@ class AppNotifier extends StateNotifier<AppState> {
       await _api.completeForceReset(
         newPassword: state.newPass1,
         fullName: state.setupFullName.trim(),
-        house: state.setupHouse.trim(),
+        house: usesStreets ? null : state.setupHouse.trim(),
+        street: usesStreets ? state.setupStreet.trim() : null,
+        houseNumber: usesStreets ? state.setupHouseNumber.trim() : null,
         email: state.setupEmail.trim().isEmpty ? null : state.setupEmail.trim(),
         emergencyContactName: state.setupEmergencyContactName.trim().isEmpty
             ? null
@@ -1556,7 +1586,13 @@ class AppNotifier extends StateNotifier<AppState> {
 
   // ── Visitor passes ───────────────────────────────────────────────────
   void resetVisitorForm() =>
-      state = state.copyWith(vfName: '', vfPhone: '', vfPlate: '', vfError: '');
+      state = state.copyWith(
+        vfName: '',
+        vfPhone: '',
+        vfPlate: '',
+        vfError: '',
+        vfDuesBlocked: false,
+      );
   void onVfName(String v) => state = state.copyWith(vfName: v);
   void onVfPhone(String v) => state = state.copyWith(vfPhone: v);
   void onVfPlate(String v) => state = state.copyWith(vfPlate: v);
@@ -1566,6 +1602,7 @@ class AppNotifier extends StateNotifier<AppState> {
     if (state.vfName.trim().isEmpty || state.vfPhone.trim().isEmpty) {
       state = state.copyWith(
         vfError: 'Visitor name and phone number are required.',
+        vfDuesBlocked: false,
       );
       return null;
     }
@@ -1582,11 +1619,23 @@ class AppNotifier extends StateNotifier<AppState> {
         vfPhone: '',
         vfPlate: '',
         vfError: '',
+        vfDuesBlocked: false,
       );
       _analytics.track('visitor_created', {'pass_id': pass.id});
       return pass.id;
     } catch (e) {
-      state = state.copyWith(vfError: extractMessage(e));
+      // The estate blocks passes for residents owing too many months of
+      // dues — the create page turns this into a "pay your dues" prompt
+      // rather than just showing an error line.
+      final duesBlocked = extractErrorCode(e) == 'DUES_OUTSTANDING';
+      if (duesBlocked) _analytics.track('visitor_blocked_dues');
+      final body = extractErrorBody(e);
+      state = state.copyWith(
+        vfError: extractMessage(e),
+        vfDuesBlocked: duesBlocked,
+        vfDuesMonthsOwed: (body?['monthsOwed'] as num?)?.toInt() ?? 0,
+        vfDuesBalance: (body?['balance'] as num?)?.toInt() ?? 0,
+      );
       return null;
     }
   }
