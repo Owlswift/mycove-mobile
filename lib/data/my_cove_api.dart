@@ -115,6 +115,24 @@ class MyCoveApi {
     return (data['streets'] as List?)?.cast<String>() ?? const [];
   }
 
+  // ── Chairman oversight (read-only, plus announcements) ────────────────
+  Future<Map<String, dynamic>> financeDues() async =>
+      _map(await _dio.get('/finance/dues'));
+  Future<Map<String, dynamic>> financeSummary() async =>
+      _map(await _dio.get('/finance/summary'));
+  Future<List<dynamic>> adminComplaints() async =>
+      _list(await _dio.get('/complaints/admin/all'));
+  Future<Map<String, dynamic>> createAnnouncement({
+    required String title,
+    required String category,
+    required String body,
+  }) async => _map(
+    await _dio.post(
+      '/announcements',
+      data: {'title': title, 'category': category, 'body': body},
+    ),
+  );
+
   // ── Announcements ────────────────────────────────────────────────────
   Future<List<dynamic>> announcements() async =>
       _list(await _dio.get('/announcements'));

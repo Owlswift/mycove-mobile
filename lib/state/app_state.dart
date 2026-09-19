@@ -2,6 +2,7 @@ import 'package:intl/intl.dart';
 
 import '../data/models/access_log_entry.dart';
 import '../data/models/announcement.dart';
+import '../data/models/chairman.dart';
 import '../data/models/complaint_item.dart';
 import '../data/models/dues_entry.dart';
 import '../data/models/household_invite.dart';
@@ -39,7 +40,7 @@ enum AuthStage {
   locked,
 }
 
-enum Role { resident, guard }
+enum Role { resident, guard, chairman }
 
 enum PaymentStep { idle, processing, success }
 
@@ -142,6 +143,7 @@ class AppState {
     List<TtsVoiceOption>? availableVoices,
     List<DuesEntry>? duesHistory,
     this.guardCode = '',
+    this.chairman = const ChairmanData(),
     this.guardResult,
     List<AccessLogEntry>? accessLog,
     List<OwingResident>? owingResidents,
@@ -364,6 +366,9 @@ class AppState {
   final GuardResult? guardResult;
   final List<AccessLogEntry> accessLog;
   final List<OwingResident> owingResidents;
+
+  /// Estate-wide oversight numbers for the chairman account (see [Role.chairman]).
+  final ChairmanData chairman;
   final List<HouseholdMember> householdMembers;
   final List<HouseholdInvite> householdInvites;
 
@@ -503,6 +508,7 @@ class AppState {
     Object? guardResult = _sentinel,
     List<AccessLogEntry>? accessLog,
     List<OwingResident>? owingResidents,
+    ChairmanData? chairman,
     List<HouseholdMember>? householdMembers,
     List<HouseholdInvite>? householdInvites,
     bool? allNotifsRead,
@@ -666,6 +672,7 @@ class AppState {
           : guardResult as GuardResult?,
       accessLog: accessLog ?? this.accessLog,
       owingResidents: owingResidents ?? this.owingResidents,
+      chairman: chairman ?? this.chairman,
       householdMembers: householdMembers ?? this.householdMembers,
       householdInvites: householdInvites ?? this.householdInvites,
       allNotifsRead: allNotifsRead ?? this.allNotifsRead,

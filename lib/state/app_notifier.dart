@@ -28,6 +28,7 @@ import '../data/my_cove_api.dart';
 import '../data/models/access_log_entry.dart';
 import '../data/models/owing_resident.dart';
 import '../data/models/announcement.dart';
+import '../data/models/chairman.dart';
 import '../data/models/complaint_item.dart';
 import '../data/models/dues_entry.dart';
 import '../data/models/household_invite.dart';
@@ -56,9 +57,16 @@ import 'app_state.dart';
 /// an endpoint that shouldn't exist.
 const demoScanCodes = ['482913', '116607'];
 
-Role _roleFromApi(String value) =>
-    value == 'GUARD' ? Role.guard : Role.resident;
-String _roleToApi(Role role) => role == Role.guard ? 'GUARD' : 'RESIDENT';
+Role _roleFromApi(String value) => switch (value) {
+  'GUARD' => Role.guard,
+  'CHAIRMAN' => Role.chairman,
+  _ => Role.resident,
+};
+String _roleToApi(Role role) => switch (role) {
+  Role.guard => 'GUARD',
+  Role.chairman => 'CHAIRMAN',
+  Role.resident => 'RESIDENT',
+};
 String _digitsOnly(String v) => v.replaceAll(RegExp(r'\D'), '');
 
 enum _VoiceFlow { none, electricity, airtime }
@@ -377,11 +385,10 @@ class AppNotifier extends StateNotifier<AppState> {
         estateName: user.estateName ?? state.estateName,
         estateAddress: user.estateAddress ?? state.estateAddress,
       );
-      if (user.role == 'GUARD') {
-        // Guard-role offline caching isn't built yet — unchanged: block on
-        // a real fetch before entering the app, same as before this cache
-        // existed.
-        await _bootstrapGuardDeduped();
+      if (user.role == 'GUARD' || user.role == 'CHAIRMAN') {
+        // Guard/chairman offline caching isn't built yet — block on a real
+        // fetch before entering the app, same as before this cache existed.
+        await _bootstrapCurrentRole();
         await _enterApp();
       } else {
         // Show last-known data immediately instead of sitting on
@@ -441,6 +448,8 @@ class AppNotifier extends StateNotifier<AppState> {
       state = state.copyWith(role: Role.resident, loginError: '');
   void setRoleGuard() =>
       state = state.copyWith(role: Role.guard, loginError: '');
+  void setRoleChairman() =>
+      state = state.copyWith(role: Role.chairman, loginError: '');
   void onPhoneChange(String v) => state = state.copyWith(loginPhone: v);
   void onPasswordChange(String v) => state = state.copyWith(loginPassword: v);
   void setRememberMe(bool v) => state = state.copyWith(rememberMe: v);
@@ -540,6 +549,8 @@ class AppNotifier extends StateNotifier<AppState> {
       }
       if (user.role == 'GUARD') {
         await _bootstrapGuardDeduped();
+      } else if (user.role == 'CHAIRMAN') {
+        await _bootstrapChairmanDeduped();
       } else {
         await _bootstrapResidentDeduped();
       }
@@ -767,14 +778,9 @@ class AppNotifier extends StateNotifier<AppState> {
       // The role driving which bootstrap runs is whatever the admin set
       // this account up as — not assumed to always be a resident, since
       // guard accounts can need first-time setup too.
-      final role = state.currentUser?.role == 'GUARD'
-          ? Role.guard
-          : Role.resident;
-      if (role == Role.guard) {
-        await _bootstrapGuardDeduped();
-      } else {
-        await _bootstrapResidentDeduped();
-      }
+      final role = _roleFromApi(state.currentUser?.role ?? '');
+      state = state.copyWith(role: role);
+      await _bootstrapCurrentRole();
       developer.log('completeForceReset: bootstrap succeeded', name: 'AppNotifier');
       // Data's already loaded (bootstrap just ran above) — the success
       // screen sits in front of an app that's ready to go the moment
@@ -894,6 +900,7 @@ class AppNotifier extends StateNotifier<AppState> {
   /// fetch bootstrap used at guard login, so the log stays in sync with
   /// whatever it refetches.
   Future<void> refreshGuard() => _bootstrapGuardDeduped();
+  Future<void> refreshChairman() => _bootstrapChairmanDeduped();
 
   /// Re-fetches whenever the app comes back to the foreground (opened from
   /// the app switcher, or from tapping a push notification) — otherwise the
@@ -914,11 +921,7 @@ class AppNotifier extends StateNotifier<AppState> {
       return;
     }
     unawaited(checkPendingPaymentStatus());
-    if (state.role == Role.guard) {
-      await _bootstrapGuardDeduped();
-    } else {
-      await _bootstrapResidentDeduped();
-    }
+    await _bootstrapCurrentRole();
   }
 
   // ── Biometric lock ───────────────────────────────────────────────────
@@ -974,11 +977,7 @@ class AppNotifier extends StateNotifier<AppState> {
 
   Future<void> _resumeAppAfterUnlock() async {
     state = state.copyWith(authStage: AuthStage.app);
-    if (state.role == Role.guard) {
-      await _bootstrapGuardDeduped();
-    } else {
-      await _bootstrapResidentDeduped();
-    }
+    await _bootstrapCurrentRole();
   }
 
   /// Called from the profile toggle — requires a successful auth right
@@ -1080,6 +1079,20 @@ class AppNotifier extends StateNotifier<AppState> {
       () => _guardBootstrapInFlight = null,
     );
   }
+
+  Future<void>? _chairmanBootstrapInFlight;
+  Future<void> _bootstrapChairmanDeduped() {
+    return _chairmanBootstrapInFlight ??= _bootstrapChairman().whenComplete(
+      () => _chairmanBootstrapInFlight = null,
+    );
+  }
+
+  /// Runs whichever bootstrap matches the signed-in role.
+  Future<void> _bootstrapCurrentRole() => switch (state.role) {
+    Role.guard => _bootstrapGuardDeduped(),
+    Role.chairman => _bootstrapChairmanDeduped(),
+    Role.resident => _bootstrapResidentDeduped(),
+  };
 
   // ── Offline cache ────────────────────────────────────────────────────
   // Resident data only — guard-role caching (accessLog/duesOwing from
@@ -1313,6 +1326,59 @@ class AppNotifier extends StateNotifier<AppState> {
         .map((j) => OwingResident.fromJson(j as Map<String, dynamic>))
         .toList();
     state = state.copyWith(accessLog: accessLog, owingResidents: owingResidents);
+  }
+
+  /// Everything the chairman's tabs show, fetched together. Read-only data
+  /// except announcements, which he can also post (see [postAnnouncement]).
+  Future<void> _bootstrapChairman() async {
+    final results = await Future.wait([
+      _api.financeDues(),
+      _api.financeSummary(),
+      _api.adminComplaints(),
+      _api.accessLog(),
+      _api.projects(),
+      _api.announcements(),
+    ]);
+    state = state.copyWith(
+      chairman: ChairmanData(
+        dues: DuesOverview.fromJson(results[0] as Map<String, dynamic>),
+        treasury: TreasurySummary.fromJson(results[1] as Map<String, dynamic>),
+        complaints: (results[2] as List)
+            .map((j) => AdminComplaint.fromJson(j as Map<String, dynamic>))
+            .toList(),
+        loaded: true,
+      ),
+      accessLog: (results[3] as List)
+          .map((j) => AccessLogEntry.fromJson(j as Map<String, dynamic>))
+          .toList(),
+      projects: (results[4] as List)
+          .map((j) => Project.fromJson(j as Map<String, dynamic>))
+          .toList(),
+      announcements: (results[5] as List)
+          .map((j) => Announcement.fromJson(j as Map<String, dynamic>))
+          .toList(),
+    );
+  }
+
+  /// Publishes an announcement to every resident. Returns an error message,
+  /// or null on success.
+  Future<String?> postAnnouncement({
+    required String title,
+    required String category,
+    required String body,
+  }) async {
+    try {
+      await _api.createAnnouncement(
+        title: title.trim(),
+        category: category.trim(),
+        body: body.trim(),
+      );
+      _analytics.track('chairman_announcement_posted', {'category': category});
+      await _bootstrapChairmanDeduped();
+      return null;
+    } catch (e) {
+      return extractMessage(e);
+    }
   }
 
   // ── Meetings ──────────────────────────────────────────────────────────

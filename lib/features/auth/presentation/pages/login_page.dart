@@ -58,11 +58,32 @@ class LoginPage extends ConsumerWidget {
                 ),
               ),
               SizedBox(height: context.rs(22)),
-              _RoleToggle(
-                isResident: isResident,
-                onSelectResident: notifier.setRoleResident,
-                onSelectGuard: notifier.setRoleGuard,
-              ),
+              // The chairman signs in through the same screen, but he isn't
+              // one of the two everyday roles, so he gets a quiet link
+              // beneath the toggle instead of a third button competing with them.
+              if (s.role == Role.chairman)
+                _ChairmanBadge(onBack: notifier.setRoleResident)
+              else ...[
+                _RoleToggle(
+                  isResident: isResident,
+                  onSelectResident: notifier.setRoleResident,
+                  onSelectGuard: notifier.setRoleGuard,
+                ),
+                SizedBox(height: context.rs(10)),
+                Center(
+                  child: GestureDetector(
+                    onTap: notifier.setRoleChairman,
+                    child: Text(
+                      'Estate chairman? Sign in here',
+                      style: McTextStyles.body(
+                        fontSize: 12.5,
+                        fontWeight: FontWeight.w600,
+                        color: McColors.accent2,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
               SizedBox(height: context.rs(20)),
               _FieldLabel('Phone Number'),
               SizedBox(height: context.rs(6)),
@@ -459,6 +480,43 @@ class _EstateBanner extends StatelessWidget {
             ],
           );
         },
+      ),
+    );
+  }
+}
+
+/// Shown in place of the role toggle while signing in as the estate chairman.
+class _ChairmanBadge extends StatelessWidget {
+  const _ChairmanBadge({required this.onBack});
+
+  final VoidCallback onBack;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: context.rs(14), vertical: context.rs(12)),
+      decoration: BoxDecoration(
+        color: McColors.accent2,
+        borderRadius: BorderRadius.circular(McRadii.button),
+      ),
+      child: Row(
+        children: [
+          Icon(Icons.account_balance_outlined, size: context.rs(22), color: Colors.white),
+          SizedBox(width: context.rs(10)),
+          Expanded(
+            child: Text(
+              'Signing in as Estate Chairman',
+              style: McTextStyles.body(fontSize: 14, fontWeight: FontWeight.w600, color: Colors.white),
+            ),
+          ),
+          GestureDetector(
+            onTap: onBack,
+            child: Text(
+              'Change',
+              style: McTextStyles.body(fontSize: 12.5, fontWeight: FontWeight.w700, color: Colors.white),
+            ),
+          ),
+        ],
       ),
     );
   }
