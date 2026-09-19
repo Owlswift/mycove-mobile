@@ -239,6 +239,27 @@ class MyCoveApi {
   Future<List<dynamic>> myPledges() async =>
       _list(await _dio.get('/projects/my-pledges'));
 
+  // ── Birthdays ─────────────────────────────────────────────────────────
+  Future<Map<String, dynamic>> myBirthday() async => _map(await _dio.get('/birthdays/mine'));
+
+  Future<void> setMyBirthday({required int month, required int day}) =>
+      _dio.put('/birthdays/mine', data: {'month': month, 'day': day});
+
+  Future<void> respondToBirthday({
+    String? photoBase64,
+    required bool hasParty,
+    String? partyAt,
+    String? partyVenue,
+  }) => _dio.post(
+    '/birthdays/mine/respond',
+    data: {
+      'photoBase64': ?photoBase64,
+      'hasParty': hasParty,
+      'partyAt': ?partyAt,
+      'partyVenue': ?partyVenue,
+    },
+  );
+
   // ── Spotlights ────────────────────────────────────────────────────────
   Future<Map<String, dynamic>?> currentSpotlight() async {
     final response = await _dio.get('/spotlights/current');

@@ -17,6 +17,7 @@ import '../../../../data/models/utility_meter.dart';
 import '../../../../data/models/utility_purchase.dart';
 import '../../../../state/app_notifier.dart';
 import '../../../../state/app_state.dart';
+import 'birthday_page.dart';
 
 /// The provider already returns this pre-formatted (e.g. "79.9 kWh") — see
 /// VtpassProvider/BuypowerProvider on the backend — so it's shown as-is.
@@ -253,6 +254,8 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
               style: McTextStyles.body(fontSize: 12.5, color: McColors.text),
             ),
             SizedBox(height: context.rs(16)),
+
+            const BirthdayDashboardCards(),
 
             // Dues card (+ spotlight, if the estate is currently celebrating/promoting someone)
             Row(
@@ -1416,7 +1419,9 @@ class _SpotlightCard extends StatelessWidget {
                       Text(
                         spotlight.isBusiness
                             ? 'Local business'
-                            : 'Community spotlight',
+                            : spotlight.isBirthday
+                                ? 'Birthday celebration'
+                                : 'Community spotlight',
                         style: McTextStyles.body(
                           fontSize: 12,
                           color: McColors.text,
@@ -1480,7 +1485,11 @@ class _SpotlightCard extends StatelessWidget {
                 borderRadius: BorderRadius.circular(McRadii.pill),
               ),
               child: Text(
-                spotlight.isBusiness ? 'BUSINESS' : 'SPOTLIGHT',
+                spotlight.isBusiness
+                    ? 'BUSINESS'
+                    : spotlight.isBirthday
+                        ? 'BIRTHDAY'
+                        : 'SPOTLIGHT',
                 style: McTextStyles.body(
                   fontSize: 9.5,
                   fontWeight: FontWeight.w700,

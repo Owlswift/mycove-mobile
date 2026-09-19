@@ -31,6 +31,10 @@
 		<key>NSAllowsArbitraryLoads</key>
 		<true/>
 	</dict>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Choose a photo of yourself to show on the estate spotlight for your birthday.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>Take a photo of yourself to show on the estate spotlight for your birthday.</string>
 	<key>NSCalendarsUsageDescription</key>
 	<string>MyCove uses your calendar to add estate meetings you choose to save.</string>
 	<key>NSFaceIDUsageDescription</key>

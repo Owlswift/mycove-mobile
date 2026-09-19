@@ -21,12 +21,13 @@ class Spotlight {
 
   final String id;
   final String name;
-  final String category; // PERSON | BUSINESS
+  final String category; // PERSON | BUSINESS | BIRTHDAY
   final String description;
   final String? imageBase64;
   final String? phone;
 
   bool get isBusiness => category == 'BUSINESS';
+  bool get isBirthday => category == 'BIRTHDAY';
 
   Map<String, dynamic> toJson() => {
         'id': id,

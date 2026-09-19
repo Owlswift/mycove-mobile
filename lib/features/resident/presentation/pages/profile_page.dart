@@ -8,6 +8,8 @@ import '../../../../core/theme/mc_spacing.dart';
 import '../../../../core/theme/mc_text_styles.dart';
 import '../../../../core/widgets/mc_generic_header.dart';
 import '../../../../state/app_notifier.dart';
+import '../../../../state/detail_providers.dart';
+import 'birthday_page.dart';
 
 class ProfilePage extends ConsumerWidget {
   const ProfilePage({super.key});
@@ -87,6 +89,7 @@ class ProfilePage extends ConsumerWidget {
                             _moveInLabel(user!.moveInMonth)!,
                             showBorder: true,
                           ),
+                        _birthdayRow(context, ref),
                         _infoRow('Estate', s.estateName ?? ''),
                       ],
                     ),
@@ -380,6 +383,34 @@ class ProfilePage extends ConsumerWidget {
       'July', 'August', 'September', 'October', 'November', 'December',
     ];
     return '${names[int.parse(key.substring(5)) - 1]} ${key.substring(0, 4)}';
+  }
+
+  /// Their own day and month — tap to add or change it.
+  Widget _birthdayRow(BuildContext context, WidgetRef ref) {
+    final b = ref.watch(myBirthdayProvider).asData?.value;
+    return InkWell(
+      onTap: () => showBirthdayPickerDialog(context, ref, month: b?.birthMonth, day: b?.birthDay),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        decoration: const BoxDecoration(
+          border: Border(bottom: BorderSide(color: McColors.divider)),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text('Birthday', style: McTextStyles.body(fontSize: 14, color: McColors.text)),
+            Text(
+              b?.label ?? 'Add',
+              style: McTextStyles.body(
+                fontSize: 14,
+                color: b?.hasBirthday == true ? McColors.text : McColors.accent2,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   Widget _infoRow(String label, String value, {bool showBorder = false}) {
