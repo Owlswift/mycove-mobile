@@ -20,6 +20,7 @@ class CurrentUser {
     this.hasPin = false,
     this.duesLiable = true,
     this.invitedByName,
+    this.moveInMonth,
   });
 
   factory CurrentUser.fromJson(Map<String, dynamic> json) {
@@ -41,6 +42,7 @@ class CurrentUser {
       hasPin: json['hasPin'] as bool? ?? false,
       duesLiable: json['duesLiable'] as bool? ?? true,
       invitedByName: json['invitedByName'] as String?,
+      moveInMonth: json['moveInMonth'] as String?,
     );
   }
 
@@ -64,6 +66,8 @@ class CurrentUser {
   /// invited them (see [invitedByName]).
   final bool duesLiable;
   final String? invitedByName;
+  /// 'YYYY-MM' the estate admin recorded as when the resident moved in. Read-only here.
+  final String? moveInMonth;
 
   String get first => fullName.split(' ').first;
 }

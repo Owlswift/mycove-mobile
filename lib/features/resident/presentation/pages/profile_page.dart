@@ -81,6 +81,12 @@ class ProfilePage extends ConsumerWidget {
                             user!.vehiclePlates.join(', '),
                             showBorder: true,
                           ),
+                        if (_moveInLabel(user?.moveInMonth) != null)
+                          _infoRow(
+                            'Moved in',
+                            _moveInLabel(user!.moveInMonth)!,
+                            showBorder: true,
+                          ),
                         _infoRow('Estate', s.estateName ?? ''),
                       ],
                     ),
@@ -364,6 +370,16 @@ class ProfilePage extends ConsumerWidget {
         ),
       ),
     );
+  }
+
+  /// 'YYYY-MM' → 'March 2026'; null when the admin hasn't recorded one.
+  static String? _moveInLabel(String? key) {
+    if (key == null || !RegExp(r'^\d{4}-(0[1-9]|1[0-2])$').hasMatch(key)) return null;
+    const names = [
+      'January', 'February', 'March', 'April', 'May', 'June',
+      'July', 'August', 'September', 'October', 'November', 'December',
+    ];
+    return '${names[int.parse(key.substring(5)) - 1]} ${key.substring(0, 4)}';
   }
 
   Widget _infoRow(String label, String value, {bool showBorder = false}) {
