@@ -106,6 +106,13 @@ class ProfilePage extends ConsumerWidget {
                       children: [
                         _linkRow(
                           context,
+                          icon: Icons.cleaning_services_outlined,
+                          label: 'Domestic Staff',
+                          showBorder: true,
+                          onTap: () => context.push('/resident/domestic-staff'),
+                        ),
+                        _linkRow(
+                          context,
                           icon: Icons.poll_outlined,
                           label: 'Polls',
                           showBorder: true,

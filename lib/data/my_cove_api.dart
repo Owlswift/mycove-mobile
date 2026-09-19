@@ -241,6 +241,53 @@ class MyCoveApi {
   Future<List<dynamic>> myPledges() async =>
       _list(await _dio.get('/projects/my-pledges'));
 
+  // ── Domestic staff ───────────────────────────────────────────────────
+  Future<List<dynamic>> domesticStaff() async => _list(await _dio.get('/domestic-staff'));
+
+  Future<void> addDomesticStaff({
+    required String name,
+    required String phone,
+    required List<int> days,
+    String? startTime,
+    String? endTime,
+    required bool requiresApproval,
+  }) => _dio.post(
+    '/domestic-staff',
+    data: {
+      'name': name,
+      'phone': phone,
+      'days': days,
+      'startTime': startTime,
+      'endTime': endTime,
+      'requiresApproval': requiresApproval,
+    },
+  );
+
+  Future<void> updateDomesticStaff(
+    String id, {
+    required String name,
+    required List<int> days,
+    String? startTime,
+    String? endTime,
+    required bool requiresApproval,
+  }) => _dio.patch(
+    '/domestic-staff/$id',
+    data: {
+      'name': name,
+      'days': days,
+      'startTime': startTime,
+      'endTime': endTime,
+      'requiresApproval': requiresApproval,
+    },
+  );
+
+  Future<void> removeDomesticStaff(String id) => _dio.delete('/domestic-staff/$id');
+
+  Future<List<dynamic>> domesticRequests() async => _list(await _dio.get('/domestic-staff/requests'));
+
+  Future<void> decideDomesticRequest(String id, {required bool approve}) =>
+      _dio.post('/domestic-staff/requests/$id/${approve ? 'approve' : 'decline'}');
+
   // ── Birthdays ─────────────────────────────────────────────────────────
   Future<Map<String, dynamic>> myBirthday() async => _map(await _dio.get('/birthdays/mine'));
 

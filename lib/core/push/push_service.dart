@@ -143,6 +143,11 @@ class PushService {
         router.go('/resident/visitor');
       case 'payment':
         router.go('/resident/dues');
+      case 'domestic_approval':
+      case 'domestic_code':
+      case 'domestic_refused':
+      case 'domestic_expired':
+        router.go('/resident/domestic-staff');
       default:
         router.go('/resident/notifications');
     }

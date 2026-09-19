@@ -18,6 +18,7 @@ import '../../../../data/models/utility_purchase.dart';
 import '../../../../state/app_notifier.dart';
 import '../../../../state/app_state.dart';
 import 'birthday_page.dart';
+import 'domestic_staff_page.dart';
 
 /// The provider already returns this pre-formatted (e.g. "79.9 kWh") — see
 /// VtpassProvider/BuypowerProvider on the backend — so it's shown as-is.
@@ -260,6 +261,7 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
             SizedBox(height: context.rs(16)),
 
             const BirthdayDashboardCards(),
+            const DomesticRequestBanner(),
 
             // Dues card (+ spotlight, if the estate is currently celebrating/promoting someone)
             Row(

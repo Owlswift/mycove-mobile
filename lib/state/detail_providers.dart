@@ -9,6 +9,15 @@ import '../data/my_cove_api.dart';
 /// detail-only shapes.
 final myCoveApiProvider = Provider<MyCoveApi>((ref) => MyCoveApi());
 
+/// The resident's domestic staff and the entry-code requests waiting for their approval.
+final domesticStaffProvider = FutureProvider.autoDispose<List<Map<String, dynamic>>>(
+  (ref) async => (await ref.watch(myCoveApiProvider).domesticStaff()).cast<Map<String, dynamic>>(),
+);
+
+final domesticRequestsProvider = FutureProvider.autoDispose<List<Map<String, dynamic>>>(
+  (ref) async => (await ref.watch(myCoveApiProvider).domesticRequests()).cast<Map<String, dynamic>>(),
+);
+
 /// The resident's own birthday and any celebration prompt. Invalidate after
 /// saving so the dashboard cards refresh.
 final myBirthdayProvider = FutureProvider.autoDispose<MyBirthday>(
