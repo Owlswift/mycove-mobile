@@ -13,12 +13,6 @@ import '../../features/auth/presentation/pages/otp_page.dart';
 import '../../features/auth/presentation/pages/password_reset_success_page.dart';
 import '../../features/auth/presentation/pages/welcome_page.dart';
 import '../../features/guard/presentation/pages/guard_code_page.dart';
-import '../../features/chairman/presentation/pages/chairman_complaints_page.dart';
-import '../../features/chairman/presentation/pages/chairman_gate_page.dart';
-import '../../features/chairman/presentation/pages/chairman_notices_page.dart';
-import '../../features/chairman/presentation/pages/chairman_overview_page.dart';
-import '../../features/chairman/presentation/pages/chairman_projects_page.dart';
-import '../../features/chairman/presentation/widgets/chairman_shell.dart';
 import '../../features/guard/presentation/pages/guard_dues_page.dart';
 import '../../features/guard/presentation/pages/guard_log_page.dart';
 import '../../features/guard/presentation/pages/guard_result_page.dart';
@@ -108,11 +102,7 @@ final routerProvider = Provider<GoRouter>((ref) {
         return loc == target ? null : target;
       }
 
-      final roleRoot = switch (s.role) {
-        Role.resident => '/resident',
-        Role.guard => '/guard',
-        Role.chairman => '/chairman',
-      };
+      final roleRoot = s.role == Role.resident ? '/resident' : '/guard';
       if (!loc.startsWith(roleRoot)) return roleRoot;
       return null;
     },
@@ -377,54 +367,6 @@ final routerProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: '/guard/dues',
                 builder: (_, _) => const GuardDuesPage(),
-              ),
-            ],
-          ),
-        ],
-      ),
-
-      // Estate chairman — read-only oversight tabs (plus posting notices).
-      StatefulShellRoute.indexedStack(
-        builder: (context, state, navigationShell) =>
-            ChairmanShell(navigationShell: navigationShell),
-        branches: [
-          StatefulShellBranch(
-            routes: [
-              GoRoute(
-                path: '/chairman',
-                builder: (_, _) => const ChairmanOverviewPage(),
-              ),
-            ],
-          ),
-          StatefulShellBranch(
-            routes: [
-              GoRoute(
-                path: '/chairman/complaints',
-                builder: (_, _) => const ChairmanComplaintsPage(),
-              ),
-            ],
-          ),
-          StatefulShellBranch(
-            routes: [
-              GoRoute(
-                path: '/chairman/gate',
-                builder: (_, _) => const ChairmanGatePage(),
-              ),
-            ],
-          ),
-          StatefulShellBranch(
-            routes: [
-              GoRoute(
-                path: '/chairman/projects',
-                builder: (_, _) => const ChairmanProjectsPage(),
-              ),
-            ],
-          ),
-          StatefulShellBranch(
-            routes: [
-              GoRoute(
-                path: '/chairman/notices',
-                builder: (_, _) => const ChairmanNoticesPage(),
               ),
             ],
           ),
