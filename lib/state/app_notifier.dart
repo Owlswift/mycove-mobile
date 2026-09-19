@@ -1597,13 +1597,17 @@ class AppNotifier extends StateNotifier<AppState> {
         vfPlate: '',
         vfError: '',
         vfDuesBlocked: false,
+        vfExtraTokenCode: '',
       );
   void onVfName(String v) => state = state.copyWith(vfName: v);
   void onVfPhone(String v) => state = state.copyWith(vfPhone: v);
   void onVfPlate(String v) => state = state.copyWith(vfPlate: v);
 
-  /// Returns the new pass's id on success, or null if it failed.
-  Future<String?> createVisitorPass() async {
+  /// Returns the new pass's id on success, or null if it failed. When the
+  /// estate charges for tokens past the daily free allowance, the first
+  /// attempt fails with an EXTRA_TOKEN_CHARGE code; the page then asks the
+  /// resident and calls again with [acceptExtraCharge] true.
+  Future<String?> createVisitorPass({bool acceptExtraCharge = false}) async {
     if (state.vfName.trim().isEmpty || state.vfPhone.trim().isEmpty) {
       state = state.copyWith(
         vfError: 'Visitor name and phone number are required.',
@@ -1616,6 +1620,7 @@ class AppNotifier extends StateNotifier<AppState> {
         name: state.vfName.trim(),
         phone: state.vfPhone.trim(),
         plate: state.vfPlate.trim().isEmpty ? null : state.vfPlate.trim(),
+        acceptExtraCharge: acceptExtraCharge,
       );
       final pass = VisitorPass.fromJson(json);
       state = state.copyWith(
@@ -1625,6 +1630,7 @@ class AppNotifier extends StateNotifier<AppState> {
         vfPlate: '',
         vfError: '',
         vfDuesBlocked: false,
+        vfExtraTokenCode: '',
       );
       _analytics.track('visitor_created', {'pass_id': pass.id});
       return pass.id;
@@ -1635,11 +1641,16 @@ class AppNotifier extends StateNotifier<AppState> {
       final duesBlocked = extractErrorCode(e) == 'DUES_OUTSTANDING';
       if (duesBlocked) _analytics.track('visitor_blocked_dues');
       final body = extractErrorBody(e);
+      final code = extractErrorCode(e);
+      final extraToken = code == 'EXTRA_TOKEN_CHARGE' || code == 'EXTRA_TOKEN_INSUFFICIENT_FUNDS';
       state = state.copyWith(
         vfError: extractMessage(e),
         vfDuesBlocked: duesBlocked,
         vfDuesMonthsOwed: (body?['monthsOwed'] as num?)?.toInt() ?? 0,
         vfDuesBalance: (body?['balance'] as num?)?.toInt() ?? 0,
+        vfExtraTokenCode: extraToken ? code : '',
+        vfExtraTokenPrice: (body?['price'] as num?)?.toInt() ?? 0,
+        vfWalletBalance: (body?['walletBalance'] as num?)?.toInt() ?? 0,
       );
       return null;
     }

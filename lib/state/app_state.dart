@@ -116,6 +116,9 @@ class AppState {
     this.vfDuesBlocked = false,
     this.vfDuesMonthsOwed = 0,
     this.vfDuesBalance = 0,
+    this.vfExtraTokenCode = '',
+    this.vfExtraTokenPrice = 0,
+    this.vfWalletBalance = 0,
     List<VisitorPass>? visitorPasses,
     this.paymentStep = PaymentStep.idle,
     this.paymentReference,
@@ -296,6 +299,11 @@ class AppState {
   final bool vfDuesBlocked;
   final int vfDuesMonthsOwed;
   final int vfDuesBalance;
+
+  /// 'EXTRA_TOKEN_CHARGE' or 'EXTRA_TOKEN_INSUFFICIENT_FUNDS' when the estate charges for tokens past the daily free allowance; '' otherwise.
+  final String vfExtraTokenCode;
+  final int vfExtraTokenPrice;
+  final int vfWalletBalance;
   final List<VisitorPass> visitorPasses;
 
   final PaymentStep paymentStep;
@@ -478,6 +486,9 @@ class AppState {
     bool? vfDuesBlocked,
     int? vfDuesMonthsOwed,
     int? vfDuesBalance,
+    String? vfExtraTokenCode,
+    int? vfExtraTokenPrice,
+    int? vfWalletBalance,
     List<VisitorPass>? visitorPasses,
     PaymentStep? paymentStep,
     Object? paymentReference = _sentinel,
@@ -623,6 +634,9 @@ class AppState {
       vfDuesBlocked: vfDuesBlocked ?? this.vfDuesBlocked,
       vfDuesMonthsOwed: vfDuesMonthsOwed ?? this.vfDuesMonthsOwed,
       vfDuesBalance: vfDuesBalance ?? this.vfDuesBalance,
+      vfExtraTokenCode: vfExtraTokenCode ?? this.vfExtraTokenCode,
+      vfExtraTokenPrice: vfExtraTokenPrice ?? this.vfExtraTokenPrice,
+      vfWalletBalance: vfWalletBalance ?? this.vfWalletBalance,
       visitorPasses: visitorPasses ?? this.visitorPasses,
       paymentStep: paymentStep ?? this.paymentStep,
       paymentReference: identical(paymentReference, _sentinel)

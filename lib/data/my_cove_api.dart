@@ -199,6 +199,7 @@ class MyCoveApi {
     required String phone,
     String? plate,
     int? validHours,
+    bool acceptExtraCharge = false,
   }) async => _map(
     await _dio.post(
       '/visitor-passes',
@@ -207,6 +208,7 @@ class MyCoveApi {
         'phone': phone,
         'plate': plate,
         'validHours': ?validHours,
+        if (acceptExtraCharge) 'acceptExtraCharge': true,
       },
     ),
   );

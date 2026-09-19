@@ -44,15 +44,32 @@ class VisitorCreatePage extends ConsumerWidget {
                   placeholder: 'e.g. LND 442 KJ',
                 ),
                 const SizedBox(height: 20),
-                if (s.vfError.isNotEmpty && !s.vfDuesBlocked) ...[
+                if (s.vfError.isNotEmpty && !s.vfDuesBlocked && s.vfExtraTokenCode.isEmpty) ...[
                   Text(s.vfError, style: McTextStyles.body(fontSize: 13, color: McColors.danger)),
                   const SizedBox(height: 12),
                 ],
                 McButton(
                   label: 'Generate Pass',
                   onPressed: () async {
-                    final id = await notifier.createVisitorPass();
+                    var id = await notifier.createVisitorPass();
                     if (!context.mounted) return;
+
+                    // Past the day's free tokens the estate charges for each
+                    // extra one from the wallet — ask before taking the money.
+                    final charged = ref.read(appStateProvider);
+                    if (id == null && charged.vfExtraTokenCode == 'EXTRA_TOKEN_CHARGE') {
+                      final agree = await _confirmExtraToken(context, charged.vfError, charged.vfExtraTokenPrice);
+                      if (agree != true || !context.mounted) return;
+                      id = await notifier.createVisitorPass(acceptExtraCharge: true);
+                      if (!context.mounted) return;
+                    }
+                    final stillCharged = ref.read(appStateProvider);
+                    if (id == null && stillCharged.vfExtraTokenCode == 'EXTRA_TOKEN_INSUFFICIENT_FUNDS') {
+                      final topUp = await _needWalletTopUp(context, stillCharged.vfError);
+                      if (topUp == true && context.mounted) context.push('/resident/wallet');
+                      return;
+                    }
+
                     if (id != null) {
                       context.pushReplacement('/resident/visitor/$id');
                     } else {
@@ -77,4 +94,35 @@ class VisitorCreatePage extends ConsumerWidget {
       ],
     );
   }
+}
+
+Future<bool?> _confirmExtraToken(BuildContext context, String message, int price) {
+  return showDialog<bool>(
+    context: context,
+    builder: (dialogContext) => AlertDialog(
+      title: const Text('Extra visitor token'),
+      content: Text(message),
+      actions: [
+        TextButton(onPressed: () => Navigator.of(dialogContext).pop(false), child: const Text('Cancel')),
+        TextButton(
+          onPressed: () => Navigator.of(dialogContext).pop(true),
+          child: Text('Pay ₦$price and continue'),
+        ),
+      ],
+    ),
+  );
+}
+
+Future<bool?> _needWalletTopUp(BuildContext context, String message) {
+  return showDialog<bool>(
+    context: context,
+    builder: (dialogContext) => AlertDialog(
+      title: const Text('Not enough in your wallet'),
+      content: Text(message),
+      actions: [
+        TextButton(onPressed: () => Navigator.of(dialogContext).pop(false), child: const Text('Cancel')),
+        TextButton(onPressed: () => Navigator.of(dialogContext).pop(true), child: const Text('Top up wallet')),
+      ],
+    ),
+  );
 }
