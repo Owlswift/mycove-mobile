@@ -52,16 +52,20 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
     final s = ref.watch(appStateProvider);
     final notifier = ref.read(appStateProvider.notifier);
     if (!_spotlightModalChecked) {
-      final spotlightImage = s.spotlight?.imageBase64;
-      // Bootstrap fills in `s.spotlight` asynchronously after the first
-      // build, so this stays unlatched across rebuilds until it actually
-      // has an image to show — otherwise the very first (still-empty)
-      // build would permanently skip the popup.
-      if (spotlightImage != null && spotlightImage.isNotEmpty) {
+      // Bootstrap fills in the spotlights asynchronously after the first
+      // build, so this stays unlatched across rebuilds until there is
+      // something to show — otherwise the very first (still-empty) build
+      // would permanently skip the popup.
+      final hasSpotlight = s.spotlights.isNotEmpty || s.spotlight != null;
+      if (hasSpotlight) {
         _spotlightModalChecked = true;
-        WidgetsBinding.instance.addPostFrameCallback(
-          (_) => _maybeShowSpotlightModal(spotlightImage),
-        );
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          // Several can be active at once (e.g. two birthdays the same day):
+          // each time one is about to pop up, pick among them at random.
+          notifier.shuffleSpotlight();
+          final image = ref.read(appStateProvider).spotlight?.imageBase64;
+          if (image != null && image.isNotEmpty) _maybeShowSpotlightModal(image);
+        });
       }
     }
     final ongoingProjects = s.projects.where((p) => !p.isCompleted).toList();

@@ -261,6 +261,9 @@ class MyCoveApi {
   );
 
   // ── Spotlights ────────────────────────────────────────────────────────
+  /// Every active spotlight; the app picks one at random each time it shows one.
+  Future<List<dynamic>> activeSpotlights() async => _list(await _dio.get('/spotlights/active'));
+
   Future<Map<String, dynamic>?> currentSpotlight() async {
     final response = await _dio.get('/spotlights/current');
     // An unguarded `as Map<String, dynamic>?` here previously crashed the

@@ -1101,6 +1101,7 @@ class AppNotifier extends StateNotifier<AppState> {
     'allNotifsRead': state.allNotifsRead,
     'rulesSections': state.rulesSections.map((e) => e.toJson()).toList(),
     'spotlight': state.spotlight?.toJson(),
+    'spotlights': state.spotlights.map((e) => e.toJson()).toList(),
     'myPledges': state.myPledges.map((e) => e.toJson()).toList(),
     'utilityMeters': state.utilityMeters.map((e) => e.toJson()).toList(),
     'discos': state.discos.map((e) => e.toJson()).toList(),
@@ -1147,6 +1148,7 @@ class AppNotifier extends StateNotifier<AppState> {
       allNotifsRead: json['allNotifsRead'] as bool? ?? true,
       rulesSections: parseList('rulesSections', RulesSection.fromJson),
       spotlight: spotlightJson == null ? null : Spotlight.fromJson(spotlightJson),
+      spotlights: parseList('spotlights', Spotlight.fromJson),
       myPledges: parseList('myPledges', MyPledge.fromJson),
       utilityMeters: parseList('utilityMeters', UtilityMeter.fromJson),
       discos: parseList('discos', Disco.fromJson),
@@ -1170,7 +1172,7 @@ class AppNotifier extends StateNotifier<AppState> {
       _api.polls(),
       _api.notifications(),
       _api.rules(),
-      _api.currentSpotlight(),
+      _api.activeSpotlights(),
       _api.myPledges(),
       _api.utilityMeters(),
       _api.discos(),
@@ -1219,10 +1221,12 @@ class AppNotifier extends StateNotifier<AppState> {
     final rulesSections = (results[8] as List)
         .map((j) => RulesSection.fromJson(j as Map<String, dynamic>))
         .toList();
-    final spotlightJson = results[9] as Map<String, dynamic>?;
-    final spotlight = spotlightJson == null
+    final spotlights = (results[9] as List)
+        .map((j) => Spotlight.fromJson(j as Map<String, dynamic>))
+        .toList();
+    final spotlight = spotlights.isEmpty
         ? null
-        : Spotlight.fromJson(spotlightJson);
+        : spotlights[Random().nextInt(spotlights.length)];
     final myPledges = (results[10] as List)
         .map((j) => MyPledge.fromJson(j as Map<String, dynamic>))
         .toList();
@@ -1264,6 +1268,7 @@ class AppNotifier extends StateNotifier<AppState> {
       ),
       rulesSections: rulesSections,
       spotlight: spotlight,
+      spotlights: spotlights,
       myPledges: myPledges,
       utilityMeters: utilityMeters,
       discos: discos,
@@ -1736,6 +1741,15 @@ class AppNotifier extends StateNotifier<AppState> {
   }
 
   // ── Notifications / polls / rules / complaints ──────────────────────
+  /// Picks the spotlight to show at random from all the active ones — called
+  /// each time the dashboard is about to pop one up, so when several are
+  /// running (e.g. two birthdays on the same day) each gets its turn.
+  void shuffleSpotlight() {
+    final all = state.spotlights;
+    if (all.length < 2) return;
+    state = state.copyWith(spotlight: all[Random().nextInt(all.length)]);
+  }
+
   Future<void> loadComplaints() async {
     try {
       final complaints = (await _api.complaints())

@@ -163,6 +163,7 @@ class AppState {
     List<ComplaintItem>? complaints,
     List<SessionInfo>? sessions,
     this.spotlight,
+    this.spotlights = const [],
     this.utilityLoading = false,
     this.utilityError = '',
     this.airtimeNetwork = '',
@@ -386,6 +387,9 @@ class AppState {
   final List<SessionInfo> sessions;
   final Spotlight? spotlight;
 
+  /// Every active spotlight; [spotlight] is the one currently on show, picked at random from these.
+  final List<Spotlight> spotlights;
+
   final bool utilityLoading;
   final String utilityError;
   final List<UtilityMeter> utilityMeters;
@@ -521,6 +525,7 @@ class AppState {
     List<ComplaintItem>? complaints,
     List<SessionInfo>? sessions,
     Object? spotlight = _sentinel,
+    List<Spotlight>? spotlights,
     bool? utilityLoading,
     String? utilityError,
     List<UtilityMeter>? utilityMeters,
@@ -686,6 +691,7 @@ class AppState {
       spotlight: identical(spotlight, _sentinel)
           ? this.spotlight
           : spotlight as Spotlight?,
+      spotlights: spotlights ?? this.spotlights,
       utilityLoading: utilityLoading ?? this.utilityLoading,
       utilityError: utilityError ?? this.utilityError,
       utilityMeters: utilityMeters ?? this.utilityMeters,
