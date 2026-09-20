@@ -14,6 +14,7 @@ import '../../../../core/widgets/mc_toast.dart';
 import '../../../../state/detail_providers.dart';
 import '../widgets/domestic_format.dart';
 import '../widgets/domestic_illustration.dart';
+import '../widgets/whatsapp_icon.dart';
 
 /// Domestic staff the resident has authorised to get their own entry code
 /// over WhatsApp. With none added yet it introduces the feature; after that
@@ -77,7 +78,7 @@ class DomesticStaffPage extends ConsumerWidget {
                 error: (e, _) => Center(
                   child: Padding(
                     padding: const EdgeInsets.all(20),
-                    child: Text(extractMessage(e), style: McTextStyles.body(fontSize: 13, color: McColors.danger)),
+                    child: Text(extractMessage(e), style: McTextStyles.body(height: 1.6, fontSize: 13, color: McColors.danger)),
                   ),
                 ),
                 data: (list) => list.isEmpty && requests.isEmpty
@@ -109,35 +110,36 @@ class _Intro extends StatelessWidget {
       children: [
         const DomesticIllustration(),
         const SizedBox(height: 22),
-        Text('Give your domestic staff access', style: McTextStyles.heading(fontSize: 20)),
+        Text('Give your domestic staff access', style: McTextStyles.heading(height: 1.35, fontSize: 20)),
         const SizedBox(height: 8),
         Text(
           'Add your cleaner, cook or driver. They message ACCESS to MyCove on WhatsApp and get their own entry code, so you are not bothered each time.',
-          style: McTextStyles.body(fontSize: 13, color: McColors.bodyText),
+          style: McTextStyles.body(height: 1.6, fontSize: 13, color: McColors.bodyText),
         ),
         const SizedBox(height: 18),
         Container(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(24),
           decoration: BoxDecoration(color: McColors.accent2N(100), borderRadius: BorderRadius.circular(McRadii.card)),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Container(
-                width: 36,
-                height: 36,
+                width: 40,
+                height: 40,
+                alignment: Alignment.center,
                 decoration: const BoxDecoration(color: Color(0xFF0BB66F), shape: BoxShape.circle),
-                child: const Icon(Icons.chat_bubble, color: Colors.white, size: 18),
+                child: const WhatsappIcon(size: 22),
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: 16),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('How it works', style: McTextStyles.body(fontSize: 13, fontWeight: FontWeight.w600, color: McColors.text)),
+                    Text('How it works', style: McTextStyles.body(height: 1.6, fontSize: 13, fontWeight: FontWeight.w600, color: McColors.text)),
                     const SizedBox(height: 4),
                     Text(
                       'Your staff sends ACCESS on WhatsApp. If they are allowed at that time, MyCove sends them a temporary gate code.',
-                      style: McTextStyles.body(fontSize: 12, color: McColors.bodyText),
+                      style: McTextStyles.body(height: 1.6, fontSize: 12, color: McColors.bodyText),
                     ),
                   ],
                 ),
@@ -146,7 +148,7 @@ class _Intro extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 22),
-        McButton(label: 'Add domestic staff', onPressed: onAdd),
+        McButton(verticalPadding: 15, label: 'Add domestic staff', onPressed: onAdd),
       ],
     );
   }
@@ -193,22 +195,23 @@ class _StaffList extends StatelessWidget {
               children: [
                 Text(
                   '${r['staffName']} is asking for an entry code',
-                  style: McTextStyles.body(fontSize: 13, fontWeight: FontWeight.w500, color: McColors.text),
+                  style: McTextStyles.body(height: 1.6, fontSize: 13, fontWeight: FontWeight.w500, color: McColors.text),
                 ),
                 const SizedBox(height: 4),
-                Text('Approve to send them a code now.', style: McTextStyles.body(fontSize: 11.5, color: McColors.bodyText)),
+                Text('Approve to send them a code now.', style: McTextStyles.body(height: 1.6, fontSize: 11.5, color: McColors.bodyText)),
                 const SizedBox(height: 12),
                 Row(
                   children: [
                     Expanded(
                       child: McButton(
+                        verticalPadding: 15,
                         label: 'Decline',
                         variant: ChButtonVariant.secondary,
                         onPressed: () => onDecide(r['id'] as String, false),
                       ),
                     ),
                     const SizedBox(width: 10),
-                    Expanded(child: McButton(label: 'Approve', onPressed: () => onDecide(r['id'] as String, true))),
+                    Expanded(child: McButton(verticalPadding: 15, label: 'Approve', onPressed: () => onDecide(r['id'] as String, true))),
                   ],
                 ),
               ],
@@ -226,7 +229,7 @@ class _StaffList extends StatelessWidget {
                   decoration: BoxDecoration(color: McColors.accent2N(100), shape: BoxShape.circle),
                   child: Text(
                     initialsOf(s['name'] as String),
-                    style: McTextStyles.body(fontSize: 13, fontWeight: FontWeight.w700, color: McColors.accent2N(700)),
+                    style: McTextStyles.body(height: 1.6, fontSize: 13, fontWeight: FontWeight.w700, color: McColors.accent2N(700)),
                   ),
                 ),
                 SizedBox(width: context.rs(12)),
@@ -240,18 +243,18 @@ class _StaffList extends StatelessWidget {
                           Expanded(
                             child: Text(
                               s['name'] as String,
-                              style: McTextStyles.body(fontSize: 13, fontWeight: FontWeight.w500, color: McColors.text),
+                              style: McTextStyles.body(height: 1.6, fontSize: 13, fontWeight: FontWeight.w500, color: McColors.text),
                             ),
                           ),
                           if (s['requiresApproval'] == true) const _ApprovalPill(),
                         ],
                       ),
                       const SizedBox(height: 4),
-                      Text(s['phone'] as String, style: McTextStyles.body(fontSize: 11.5, color: McColors.bodyText)),
+                      Text(s['phone'] as String, style: McTextStyles.body(height: 1.6, fontSize: 11.5, color: McColors.bodyText)),
                       const SizedBox(height: 2),
                       Text(
                         '${daysLabel((s['days'] as List).cast<int>())} · ${hoursLabel(s['startTime'] as String?, s['endTime'] as String?)}',
-                        style: McTextStyles.body(fontSize: 11.5, color: McColors.bodyText),
+                        style: McTextStyles.body(height: 1.6, fontSize: 11.5, color: McColors.bodyText),
                       ),
                     ],
                   ),
@@ -272,7 +275,7 @@ class _ApprovalPill extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
       decoration: BoxDecoration(color: McColors.accent2N(100), borderRadius: BorderRadius.circular(McRadii.pill)),
-      child: Text('APPROVAL', style: McTextStyles.body(fontSize: 10, fontWeight: FontWeight.w700, color: McColors.accent2N(700))),
+      child: Text('APPROVAL', style: McTextStyles.body(height: 1.6, fontSize: 10, fontWeight: FontWeight.w700, color: McColors.accent2N(700))),
     );
   }
 }
@@ -297,7 +300,7 @@ class DomesticRequestBanner extends ConsumerWidget {
           const Icon(Icons.badge_outlined),
           SizedBox(width: context.rs(12)),
           Expanded(
-            child: Text('$name is asking for an entry code$more.', style: McTextStyles.body(fontSize: 13, color: McColors.text)),
+            child: Text('$name is asking for an entry code$more.', style: McTextStyles.body(height: 1.6, fontSize: 13, color: McColors.text)),
           ),
           McTextButton(onPressed: () => context.push('/resident/domestic-staff'), label: 'Review'),
         ],

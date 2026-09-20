@@ -202,10 +202,27 @@ class _DomesticStaffFlowPageState extends ConsumerState<DomesticStaffFlowPage> {
 
   Widget _label(String text) => Padding(
         padding: const EdgeInsets.only(bottom: 5),
-        child: Text(text, style: McTextStyles.body(fontSize: 12, color: McColors.text.withValues(alpha: 0.7))),
+        child: Text(text, style: McTextStyles.body(height: 1.6, fontSize: 12, color: McColors.text.withValues(alpha: 0.7))),
       );
 
-  InputDecoration _decoration(String hint) => InputDecoration(hintText: hint, counterText: '');
+  static final _border = OutlineInputBorder(
+    borderRadius: BorderRadius.circular(McRadii.button),
+    borderSide: BorderSide(color: McColors.neutralN(300)),
+  );
+
+  /// Bordered, white fields for this flow (the theme's default is a borderless grey fill).
+  InputDecoration _decoration(String hint) => InputDecoration(
+        hintText: hint,
+        counterText: '',
+        fillColor: McColors.surface,
+        enabledBorder: _border,
+      );
+
+  BoxDecoration get _boxField => BoxDecoration(
+        color: McColors.surface,
+        borderRadius: BorderRadius.circular(McRadii.button),
+        border: Border.all(color: McColors.neutralN(300)),
+      );
 
   TextStyle get _value => McTextStyles.inputValue();
 
@@ -251,9 +268,9 @@ class _DomesticStaffFlowPageState extends ConsumerState<DomesticStaffFlowPage> {
   Widget _sectionTitle(String title, String subtitle) => Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(title, style: McTextStyles.heading(fontSize: 16, fontWeight: FontWeight.w600)),
+          Text(title, style: McTextStyles.heading(height: 1.35, fontSize: 16, fontWeight: FontWeight.w600)),
           const SizedBox(height: 4),
-          Text(subtitle, style: McTextStyles.body(fontSize: 12, color: McColors.bodyText)),
+          Text(subtitle, style: McTextStyles.body(height: 1.6, fontSize: 12, color: McColors.bodyText)),
           const SizedBox(height: 16),
         ],
       );
@@ -280,7 +297,7 @@ class _DomesticStaffFlowPageState extends ConsumerState<DomesticStaffFlowPage> {
           children: [
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 13),
-              decoration: BoxDecoration(color: McColors.inputFill, borderRadius: BorderRadius.circular(McRadii.button)),
+              decoration: _boxField,
               child: Row(
                 children: [
                   ClipRRect(
@@ -307,7 +324,7 @@ class _DomesticStaffFlowPageState extends ConsumerState<DomesticStaffFlowPage> {
               child: _editing
                   ? Container(
                       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 13),
-                      decoration: BoxDecoration(color: McColors.inputFill, borderRadius: BorderRadius.circular(McRadii.button)),
+                      decoration: _boxField,
                       child: Text((widget.existing!['phone'] as String).replaceFirst('+234', ''), style: _value),
                     )
                   : TextField(
@@ -321,7 +338,7 @@ class _DomesticStaffFlowPageState extends ConsumerState<DomesticStaffFlowPage> {
           ],
         ),
         const SizedBox(height: 6),
-        Text('Use the number they will message MyCove with.', style: McTextStyles.body(fontSize: 11.5, color: McColors.bodyText)),
+        Text('Use the number they will message MyCove with.', style: McTextStyles.body(height: 1.6, fontSize: 11.5, color: McColors.bodyText)),
         const SizedBox(height: 22),
         _sectionTitle('When can they come?', 'Select the days they normally visit.'),
         Row(
@@ -337,13 +354,13 @@ class _DomesticStaffFlowPageState extends ConsumerState<DomesticStaffFlowPage> {
                     height: 40,
                     alignment: Alignment.center,
                     decoration: BoxDecoration(
-                      shape: BoxShape.circle,
+                      borderRadius: BorderRadius.circular(McRadii.button),
                       color: _days.contains(d) ? McColors.accent2 : McColors.surface,
-                      border: _days.contains(d) ? null : Border.all(color: McColors.divider),
+                      border: _days.contains(d) ? null : Border.all(color: McColors.neutralN(300)),
                     ),
                     child: Text(
                       _dayLetters[d],
-                      style: McTextStyles.body(
+                      style: McTextStyles.body(height: 1.6, 
                         fontSize: 13,
                         fontWeight: FontWeight.w600,
                         color: _days.contains(d) ? Colors.white : McColors.bodyText,
@@ -362,8 +379,8 @@ class _DomesticStaffFlowPageState extends ConsumerState<DomesticStaffFlowPage> {
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 11),
             decoration: BoxDecoration(
               color: anyDay ? McColors.accent2N(100) : McColors.surface,
-              borderRadius: BorderRadius.circular(McRadii.pill),
-              border: anyDay ? null : Border.all(color: McColors.divider),
+              borderRadius: BorderRadius.circular(McRadii.button),
+              border: anyDay ? null : Border.all(color: McColors.neutralN(300)),
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -372,7 +389,7 @@ class _DomesticStaffFlowPageState extends ConsumerState<DomesticStaffFlowPage> {
                 const SizedBox(width: 8),
                 Text(
                   anyDay ? 'Allow any day' : '${daysLabel(_days.toList())} · tap to allow any day',
-                  style: McTextStyles.body(
+                  style: McTextStyles.body(height: 1.6, 
                     fontSize: 13,
                     fontWeight: FontWeight.w600,
                     color: anyDay ? McColors.accent2N(700) : McColors.bodyText,
@@ -384,7 +401,7 @@ class _DomesticStaffFlowPageState extends ConsumerState<DomesticStaffFlowPage> {
         ),
         const SizedBox(height: 20),
       ],
-      actions: [McButton(label: _fromReview ? 'Done' : 'Next', onPressed: _basicsNext)],
+      actions: [McButton(verticalPadding: 15, label: _fromReview ? 'Done' : 'Next', onPressed: _basicsNext)],
     );
   }
 
@@ -400,13 +417,13 @@ class _DomesticStaffFlowPageState extends ConsumerState<DomesticStaffFlowPage> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(start ? 'From what time?' : 'Until what time?', style: McTextStyles.heading(fontSize: 18, fontWeight: FontWeight.w600)),
+              Text(start ? 'From what time?' : 'Until what time?', style: McTextStyles.heading(height: 1.35, fontSize: 18, fontWeight: FontWeight.w600)),
               SizedBox(
                 height: 190,
                 child: CupertinoTheme(
                   data: CupertinoThemeData(
                     textTheme: CupertinoTextThemeData(
-                      dateTimePickerTextStyle: McTextStyles.body(fontSize: 20, color: McColors.text),
+                      dateTimePickerTextStyle: McTextStyles.body(height: 1.6, fontSize: 20, color: McColors.text),
                     ),
                   ),
                   child: CupertinoDatePicker(
@@ -417,7 +434,7 @@ class _DomesticStaffFlowPageState extends ConsumerState<DomesticStaffFlowPage> {
                   ),
                 ),
               ),
-              McButton(label: 'Done', onPressed: () => Navigator.of(sheetContext).pop(true)),
+              McButton(verticalPadding: 15, label: 'Done', onPressed: () => Navigator.of(sheetContext).pop(true)),
             ],
           ),
         ),
@@ -434,14 +451,14 @@ class _DomesticStaffFlowPageState extends ConsumerState<DomesticStaffFlowPage> {
           width: double.infinity,
           margin: const EdgeInsets.only(top: 12),
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-          decoration: BoxDecoration(color: McColors.inputFill, borderRadius: BorderRadius.circular(McRadii.button)),
+          decoration: _boxField,
           child: Row(
             children: [
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(label, style: McTextStyles.body(fontSize: 11.5, color: McColors.bodyText)),
+                    Text(label, style: McTextStyles.body(height: 1.6, fontSize: 11.5, color: McColors.bodyText)),
                     const SizedBox(height: 2),
                     Text(timeLabel(value), style: _value),
                   ],
@@ -461,10 +478,10 @@ class _DomesticStaffFlowPageState extends ConsumerState<DomesticStaffFlowPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(title, style: McTextStyles.body(fontSize: 14, color: McColors.text)),
+                Text(title, style: McTextStyles.body(height: 1.6, fontSize: 14, color: McColors.text)),
                 if (subtitle != null) ...[
                   const SizedBox(height: 2),
-                  Text(subtitle, style: McTextStyles.body(fontSize: 11.5, color: McColors.bodyText)),
+                  Text(subtitle, style: McTextStyles.body(height: 1.6, fontSize: 11.5, color: McColors.bodyText)),
                 ],
               ],
             ),
@@ -500,11 +517,11 @@ class _DomesticStaffFlowPageState extends ConsumerState<DomesticStaffFlowPage> {
                 const SizedBox(height: 10),
                 Text(
                   'They can ask for a code from 15 minutes before the start time until the end time.',
-                  style: McTextStyles.body(fontSize: 11.5, color: McColors.bodyText),
+                  style: McTextStyles.body(height: 1.6, fontSize: 11.5, color: McColors.bodyText),
                 ),
               ] else ...[
                 const SizedBox(height: 8),
-                Text('Off: they can ask for a code at any time on their days.', style: McTextStyles.body(fontSize: 11.5, color: McColors.bodyText)),
+                Text('Off: they can ask for a code at any time on their days.', style: McTextStyles.body(height: 1.6, fontSize: 11.5, color: McColors.bodyText)),
               ],
             ],
           ),
@@ -520,7 +537,7 @@ class _DomesticStaffFlowPageState extends ConsumerState<DomesticStaffFlowPage> {
           ),
         ),
       ],
-      actions: [McButton(label: 'Save', onPressed: _hoursSave)],
+      actions: [McButton(verticalPadding: 15, label: 'Save', onPressed: _hoursSave)],
     );
   }
 
@@ -535,9 +552,9 @@ class _DomesticStaffFlowPageState extends ConsumerState<DomesticStaffFlowPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(title, style: McTextStyles.body(fontSize: 13, fontWeight: FontWeight.w500, color: McColors.text)),
+                  Text(title, style: McTextStyles.body(height: 1.6, fontSize: 13, fontWeight: FontWeight.w500, color: McColors.text)),
                   const SizedBox(height: 2),
-                  Text(value, style: McTextStyles.body(fontSize: 11.5, color: McColors.bodyText)),
+                  Text(value, style: McTextStyles.body(height: 1.6, fontSize: 11.5, color: McColors.bodyText)),
                 ],
               ),
             ),
@@ -571,13 +588,13 @@ class _DomesticStaffFlowPageState extends ConsumerState<DomesticStaffFlowPage> {
         ),
       ],
       actions: [
-        McButton(label: _editing ? 'Save changes' : 'Add domestic staff', onPressed: _busy ? null : _submit, isLoading: _busy),
+        McButton(verticalPadding: 15, label: _editing ? 'Save changes' : 'Add domestic staff', onPressed: _busy ? null : _submit, isLoading: _busy),
         const SizedBox(height: 10),
         if (_editing) ...[
-          McButton(label: 'Remove domestic staff', variant: ChButtonVariant.danger, onPressed: _remove),
+          McButton(verticalPadding: 15, label: 'Remove domestic staff', variant: ChButtonVariant.danger, onPressed: _remove),
           const SizedBox(height: 10),
         ],
-        McButton(label: 'Cancel', variant: ChButtonVariant.secondary, onPressed: () => Navigator.of(context).pop()),
+        McButton(verticalPadding: 15, label: 'Cancel', variant: ChButtonVariant.secondary, onPressed: () => Navigator.of(context).pop()),
       ],
     );
   }
@@ -590,13 +607,13 @@ class _DomesticStaffFlowPageState extends ConsumerState<DomesticStaffFlowPage> {
           decoration: last ? null : const BoxDecoration(border: Border(bottom: BorderSide(color: McColors.divider))),
           child: Row(
             children: [
-              Text(label, style: McTextStyles.body(fontSize: 13, color: McColors.bodyText)),
+              Text(label, style: McTextStyles.body(height: 1.6, fontSize: 13, color: McColors.bodyText)),
               const SizedBox(width: 16),
               Expanded(
                 child: Text(
                   value,
                   textAlign: TextAlign.right,
-                  style: McTextStyles.body(fontSize: 13, fontWeight: FontWeight.w500, color: McColors.text),
+                  style: McTextStyles.body(height: 1.6, fontSize: 13, fontWeight: FontWeight.w500, color: McColors.text),
                 ),
               ),
             ],
@@ -616,12 +633,12 @@ class _DomesticStaffFlowPageState extends ConsumerState<DomesticStaffFlowPage> {
             ),
           ),
           const SizedBox(height: 18),
-          Text('Domestic staff added', textAlign: TextAlign.center, style: McTextStyles.heading(fontSize: 18)),
+          Text('Domestic staff added', textAlign: TextAlign.center, style: McTextStyles.heading(height: 1.35, fontSize: 18)),
           const SizedBox(height: 6),
           Text(
             '${_name.text.trim()} can now request gate access through WhatsApp.',
             textAlign: TextAlign.center,
-            style: McTextStyles.body(fontSize: 13, color: McColors.bodyText),
+            style: McTextStyles.body(height: 1.6, fontSize: 13, color: McColors.bodyText),
           ),
           const SizedBox(height: 22),
           _card(
@@ -636,7 +653,7 @@ class _DomesticStaffFlowPageState extends ConsumerState<DomesticStaffFlowPage> {
               ],
             ),
           ),
-          McButton(label: 'Done', onPressed: () => Navigator.of(context).pop()),
+          McButton(verticalPadding: 15, label: 'Done', onPressed: () => Navigator.of(context).pop()),
         ],
       ),
     );

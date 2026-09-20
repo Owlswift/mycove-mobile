@@ -15,6 +15,7 @@ class McButton extends StatelessWidget {
     this.variant = ChButtonVariant.primary,
     this.expand = true,
     this.isLoading = false,
+    this.verticalPadding = 14,
   });
 
   final String label;
@@ -22,6 +23,9 @@ class McButton extends StatelessWidget {
   final ChButtonVariant variant;
   final bool expand;
   final bool isLoading;
+
+  /// The onboarding screens' main buttons (Get Started, Continue) are 15–16 tall; forms use 14.
+  final double verticalPadding;
 
   @override
   Widget build(BuildContext context) {
@@ -41,7 +45,7 @@ class McButton extends StatelessWidget {
 
     final child = Container(
       width: expand ? double.infinity : null,
-      padding: EdgeInsets.symmetric(vertical: context.rs(14)),
+      padding: EdgeInsets.symmetric(vertical: context.rs(verticalPadding)),
       alignment: Alignment.center,
       decoration: BoxDecoration(color: fill, borderRadius: BorderRadius.circular(McRadii.button)),
       child: isLoading

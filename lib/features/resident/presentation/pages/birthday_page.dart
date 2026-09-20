@@ -251,7 +251,15 @@ class _BirthdayCelebrationPageState extends ConsumerState<BirthdayCelebrationPag
                       onChanged: (_) => setState(() {}),
                       onTapOutside: (_) => FocusScope.of(context).unfocus(),
                       style: McTextStyles.inputValue(),
-                      decoration: const InputDecoration(hintText: 'e.g. Block C clubhouse', counterText: ''),
+                      decoration: InputDecoration(
+                        hintText: 'e.g. Block C clubhouse',
+                        counterText: '',
+                        fillColor: McColors.surface,
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(McRadii.button),
+                          borderSide: BorderSide(color: McColors.neutralN(300)),
+                        ),
+                      ),
                     ),
                   ],
                   if (_hasParty == false) ...[
