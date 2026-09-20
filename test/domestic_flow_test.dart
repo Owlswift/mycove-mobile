@@ -35,6 +35,8 @@ void main() {
     await tester.tap(find.text('Next'));
     await tester.pump();
     expect(find.text('Enter their name.'), findsOneWidget);
+    await tester.pump(const Duration(seconds: 5)); // let the toast slide away
+    await tester.pumpAndSettle();
 
     await tester.enterText(find.byType(TextField).at(0), 'Mary Johnson');
     await tester.enterText(find.byType(TextField).at(1), '0801 234 5678');

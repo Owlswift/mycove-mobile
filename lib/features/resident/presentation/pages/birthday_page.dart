@@ -14,6 +14,7 @@ import '../../../../core/widgets/mc_button.dart';
 import '../../../../core/widgets/mc_generic_header.dart';
 import '../../../../core/widgets/mc_sheet.dart';
 import '../../../../core/widgets/mc_text_button.dart';
+import '../../../../core/widgets/mc_toast.dart';
 import '../../../../data/models/birthday.dart';
 import '../../../../state/detail_providers.dart';
 
@@ -36,7 +37,6 @@ class _BirthdayCelebrationPageState extends ConsumerState<BirthdayCelebrationPag
   bool? _hasParty;
   DateTime? _partyAt;
   bool _busy = false;
-  String? _error;
 
   @override
   void dispose() {
@@ -59,7 +59,7 @@ class _BirthdayCelebrationPageState extends ConsumerState<BirthdayCelebrationPag
         _photoDataUrl = 'data:image/jpeg;base64,${base64Encode(bytes)}';
       });
     } catch (_) {
-      setState(() => _error = 'Could not open your photos. Check that MyCove is allowed to use them.');
+      if (mounted) showMcToast(context, 'Could not open your photos. Check that MyCove is allowed to use them.');
     }
   }
 
@@ -132,10 +132,7 @@ class _BirthdayCelebrationPageState extends ConsumerState<BirthdayCelebrationPag
       !_busy;
 
   Future<void> _submit() async {
-    setState(() {
-      _busy = true;
-      _error = null;
-    });
+    setState(() => _busy = true);
     try {
       await ref.read(myCoveApiProvider).respondToBirthday(
             photoBase64: _photoDataUrl,
@@ -147,34 +144,42 @@ class _BirthdayCelebrationPageState extends ConsumerState<BirthdayCelebrationPag
       if (!mounted) return;
       Navigator.of(context).pop(true);
     } catch (_) {
-      setState(() {
-        _busy = false;
-        _error = 'Something went wrong. Please try again.';
-      });
+      setState(() => _busy = false);
+      if (mounted) showMcToast(context, 'Something went wrong. Please try again.');
     }
   }
 
+  /// Yes / No — the same pill chip the complaint categories use.
   Widget _choice(String label, bool value) {
     final selected = _hasParty == value;
-    return Expanded(
+    return Padding(
+      padding: const EdgeInsets.only(right: 8),
       child: GestureDetector(
         onTap: () => setState(() => _hasParty = value),
         child: Container(
-          padding: EdgeInsets.symmetric(vertical: context.rs(14)),
-          alignment: Alignment.center,
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 9),
           decoration: BoxDecoration(
-            color: selected ? McColors.accent2N(100) : McColors.surface,
-            borderRadius: BorderRadius.circular(McRadii.button),
-            border: Border.all(color: selected ? McColors.accent2 : McColors.divider),
+            color: selected ? McColors.accent2 : McColors.surface,
+            borderRadius: BorderRadius.circular(McRadii.pill),
+            border: selected ? null : Border.all(color: McColors.divider),
           ),
           child: Text(
             label,
-            style: McTextStyles.body(fontSize: 15, fontWeight: FontWeight.w600, color: McColors.text),
+            style: McTextStyles.body(
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+              color: selected ? Colors.white : McColors.bodyText,
+            ),
           ),
         ),
       ),
     );
   }
+
+  Widget _label(String text) => Padding(
+        padding: const EdgeInsets.only(bottom: 5),
+        child: Text(text, style: McTextStyles.body(fontSize: 12, color: McColors.text.withValues(alpha: 0.7))),
+      );
 
   @override
   Widget build(BuildContext context) {
@@ -187,24 +192,22 @@ class _BirthdayCelebrationPageState extends ConsumerState<BirthdayCelebrationPag
             McGenericHeader(title: 'Your birthday', centerTitle: true, onBack: () => Navigator.of(context).pop()),
             Expanded(
               child: ListView(
-                padding: EdgeInsets.symmetric(horizontal: context.rs(24), vertical: context.rs(8)),
+                keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+                padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
                 children: [
+                  Text('Your birthday is ${b.label}, ${b.whenLabel}! 🎂', style: McTextStyles.heading(fontSize: 18)),
+                  const SizedBox(height: 6),
                   Text(
-                    'Your birthday is ${b.label} — ${b.whenLabel}! 🎂',
-                    style: McTextStyles.heading(fontSize: 20),
+                    "Add a photo and we'll put you on the estate spotlight with a birthday message.",
+                    style: McTextStyles.body(fontSize: 13, color: McColors.bodyText),
                   ),
-                  SizedBox(height: context.rs(6)),
-                  Text(
-                    'Add a photo and we\'ll put you on the estate spotlight with a birthday message.',
-                    style: McTextStyles.body(fontSize: 14, color: McColors.text),
-                  ),
-                  SizedBox(height: context.rs(20)),
+                  const SizedBox(height: 20),
                   Center(
                     child: GestureDetector(
                       onTap: _choosePhotoSource,
                       child: Container(
-                        width: context.rs(140),
-                        height: context.rs(140),
+                        width: context.rs(112),
+                        height: context.rs(112),
                         decoration: BoxDecoration(
                           color: McColors.surfaceSunken,
                           shape: BoxShape.circle,
@@ -213,43 +216,35 @@ class _BirthdayCelebrationPageState extends ConsumerState<BirthdayCelebrationPag
                               : DecorationImage(image: MemoryImage(_photoBytes!), fit: BoxFit.cover),
                         ),
                         child: _photoBytes == null
-                            ? Icon(Icons.add_a_photo_outlined, size: context.rs(36), color: McColors.text)
+                            ? Icon(Icons.add_a_photo_outlined, size: context.rs(30), color: McColors.bodyText)
                             : null,
                       ),
                     ),
                   ),
-                  SizedBox(height: context.rs(8)),
                   Center(
                     child: McTextButton(
                       onPressed: _choosePhotoSource,
                       label: _photoBytes == null ? 'Add a photo' : 'Change photo',
                     ),
                   ),
-                  SizedBox(height: context.rs(16)),
-                  Text('Will you be having a party?', style: McTextStyles.heading(fontSize: 16)),
-                  SizedBox(height: context.rs(10)),
-                  Row(
-                    children: [
-                      _choice('Yes', true),
-                      SizedBox(width: context.rs(12)),
-                      _choice('No', false),
-                    ],
-                  ),
+                  const SizedBox(height: 12),
+                  _label('Will you be having a party?'),
+                  Row(children: [_choice('Yes', true), _choice('No', false)]),
                   if (_hasParty == true) ...[
-                    SizedBox(height: context.rs(16)),
+                    const SizedBox(height: 6),
                     Text(
                       'Everyone in the estate will be told when and where.',
-                      style: McTextStyles.body(fontSize: 13, color: McColors.text),
+                      style: McTextStyles.body(fontSize: 11.5, color: McColors.bodyText),
                     ),
-                    SizedBox(height: context.rs(10)),
+                    const SizedBox(height: 14),
+                    _label('When?'),
                     McButton(
                       variant: ChButtonVariant.secondary,
                       label: _partyAt == null ? 'Choose date and time' : _partyLabel(_partyAt!),
                       onPressed: _pickPartyTime,
                     ),
-                    SizedBox(height: context.rs(14)),
-                    Text('Where?', style: McTextStyles.body(fontSize: 12, color: McColors.text.withValues(alpha: 0.7))),
-                    const SizedBox(height: 5),
+                    const SizedBox(height: 14),
+                    _label('Where?'),
                     TextField(
                       controller: _venue,
                       maxLength: 120,
@@ -260,23 +255,18 @@ class _BirthdayCelebrationPageState extends ConsumerState<BirthdayCelebrationPag
                     ),
                   ],
                   if (_hasParty == false) ...[
-                    SizedBox(height: context.rs(12)),
+                    const SizedBox(height: 8),
                     Text(
-                      'No problem — on the day, everyone will get a message so they can wish you a happy birthday.',
-                      style: McTextStyles.body(fontSize: 13, color: McColors.text),
+                      'No problem. On the day, everyone will get a message so they can wish you a happy birthday.',
+                      style: McTextStyles.body(fontSize: 11.5, color: McColors.bodyText),
                     ),
                   ],
-                  if (_error != null) ...[
-                    SizedBox(height: context.rs(12)),
-                    Text(_error!, style: McTextStyles.body(fontSize: 13, color: McColors.danger)),
-                  ],
-                  SizedBox(height: context.rs(24)),
+                  const SizedBox(height: 20),
                   McButton(
                     label: 'Add me to the spotlight',
                     onPressed: _canSubmit ? _submit : null,
                     isLoading: _busy,
                   ),
-                  SizedBox(height: context.rs(24)),
                 ],
               ),
             ),
@@ -347,7 +337,7 @@ class _BirthdaySheetState extends State<_BirthdaySheet> {
             SizedBox(height: context.rs(4)),
             Text(
               'Day and month only. Your neighbours will celebrate with you.',
-              style: McTextStyles.body(fontSize: 13, color: McColors.text),
+              style: McTextStyles.body(fontSize: 13, color: McColors.bodyText),
             ),
             SizedBox(
               height: context.rs(180),
@@ -424,9 +414,9 @@ class _BirthdayDashboardCardsState extends ConsumerState<BirthdayDashboardCards>
       ),
       child: Row(
         children: [
-          const Text('🎂', style: TextStyle(fontSize: 26)),
+          const Text('🎂', style: TextStyle(fontSize: 24)),
           SizedBox(width: context.rs(12)),
-          Expanded(child: Text(text, style: McTextStyles.body(fontSize: 13.5, color: McColors.text))),
+          Expanded(child: Text(text, style: McTextStyles.body(fontSize: 12.5, color: McColors.text))),
           McTextButton(onPressed: onTap, label: action),
           if (onDismiss != null)
             IconButton(visualDensity: VisualDensity.compact, onPressed: onDismiss, icon: const Icon(Icons.close, size: 18)),

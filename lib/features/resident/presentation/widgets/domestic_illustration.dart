@@ -25,9 +25,9 @@ class DomesticIllustration extends StatelessWidget {
           child: Stack(
             children: [
               SvgPicture.string(_svg, width: width, height: _viewHeight * s),
-              _text('ACCESS CODE', 312, 102, 11, FontWeight.w600, const Color(0xFF68756E), s),
-              _text('465297', 286, 129, 21, FontWeight.w700, const Color(0xFF075C38), s, spacing: 2),
-              _text('Valid for 10 minutes', 286, 144, 9, FontWeight.w400, const Color(0xFF8A958F), s),
+              _text('ACCESS CODE', 311, 101.5, 9.5, FontWeight.w600, const Color(0xFF68756E), s),
+              _text('465297', 286, 129, 20, FontWeight.w700, const Color(0xFF075C38), s, spacing: 1.5),
+              _text('Valid for 10 minutes', 286, 144, 8.5, FontWeight.w400, const Color(0xFF8A958F), s),
             ],
           ),
         );
