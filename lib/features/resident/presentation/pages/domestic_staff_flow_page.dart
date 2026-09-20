@@ -1,4 +1,5 @@
-import 'package:flutter/cupertino.dart' show CupertinoDatePicker, CupertinoDatePickerMode;
+import 'package:flutter/cupertino.dart'
+    show CupertinoDatePicker, CupertinoDatePickerMode, CupertinoTextThemeData, CupertinoTheme, CupertinoThemeData;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -10,6 +11,7 @@ import '../../../../core/theme/mc_text_styles.dart';
 import '../../../../core/widgets/mc_button.dart';
 import '../../../../core/widgets/mc_generic_header.dart';
 import '../../../../core/widgets/mc_sheet.dart';
+import '../../../../core/widgets/mc_text_button.dart';
 import '../../../../state/detail_providers.dart';
 import '../widgets/domestic_format.dart';
 
@@ -205,19 +207,17 @@ class _DomesticStaffFlowPageState extends ConsumerState<DomesticStaffFlowPage> {
   Widget _field({required String label, required Widget child}) => Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(label, style: McTextStyles.body(fontSize: 13.5, fontWeight: FontWeight.w600, color: McColors.text)),
-          SizedBox(height: context.rs(6)),
+          Text(label, style: McTextStyles.body(fontSize: 12, color: McColors.text.withValues(alpha: 0.7))),
+          const SizedBox(height: 5),
           child,
         ],
       );
 
-  InputDecoration _decoration(String hint) => InputDecoration(
-        hintText: hint,
-        filled: true,
-        fillColor: McColors.inputFill,
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(McRadii.button), borderSide: BorderSide.none),
-        contentPadding: EdgeInsets.symmetric(horizontal: context.rs(14), vertical: context.rs(14)),
-      );
+  /// The theme already gives every field the app's fill, radius, padding and
+  /// Inter placeholder; the typed value uses [McTextStyles.inputValue].
+  InputDecoration _decoration(String hint) => InputDecoration(hintText: hint, counterText: '');
+
+  TextStyle get _value => McTextStyles.inputValue();
 
   Widget _card({required Widget child}) => Container(
         width: double.infinity,
@@ -273,11 +273,11 @@ class _DomesticStaffFlowPageState extends ConsumerState<DomesticStaffFlowPage> {
       title: _editing ? 'Edit domestic staff' : 'Add domestic staff',
       children: [
         SizedBox(height: context.rs(12)),
-        Text('Basic details', style: McTextStyles.heading(fontSize: 20)),
+        Text('Basic details', style: McTextStyles.cardTitle()),
         SizedBox(height: context.rs(4)),
         Text(
           'Provide the staff member\'s name and WhatsApp number.',
-          style: McTextStyles.body(fontSize: 13.5, color: McColors.text),
+          style: McTextStyles.body(fontSize: 14, color: McColors.text),
         ),
         SizedBox(height: context.rs(18)),
         _field(
@@ -286,6 +286,7 @@ class _DomesticStaffFlowPageState extends ConsumerState<DomesticStaffFlowPage> {
             controller: _name,
             textCapitalization: TextCapitalization.words,
             textInputAction: TextInputAction.next,
+            style: _value,
             decoration: _decoration('e.g. Mary Johnson'),
           ),
         ),
@@ -295,7 +296,7 @@ class _DomesticStaffFlowPageState extends ConsumerState<DomesticStaffFlowPage> {
           child: Row(
             children: [
               Container(
-                padding: EdgeInsets.symmetric(horizontal: context.rs(12), vertical: context.rs(14)),
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 13),
                 decoration: BoxDecoration(color: McColors.inputFill, borderRadius: BorderRadius.circular(McRadii.button)),
                 child: Row(
                   children: [
@@ -315,7 +316,7 @@ class _DomesticStaffFlowPageState extends ConsumerState<DomesticStaffFlowPage> {
                       ),
                     ),
                     SizedBox(width: context.rs(8)),
-                    Text('+234', style: McTextStyles.body(fontSize: 14.5, color: McColors.text)),
+                    Text('+234', style: _value),
                   ],
                 ),
               ),
@@ -323,17 +324,18 @@ class _DomesticStaffFlowPageState extends ConsumerState<DomesticStaffFlowPage> {
               Expanded(
                 child: _editing
                     ? Container(
-                        padding: EdgeInsets.symmetric(horizontal: context.rs(14), vertical: context.rs(14)),
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 13),
                         decoration: BoxDecoration(color: McColors.inputFill, borderRadius: BorderRadius.circular(McRadii.button)),
                         child: Text(
                           (widget.existing!['phone'] as String).replaceFirst('+234', ''),
-                          style: McTextStyles.body(fontSize: 14.5, color: McColors.text),
+                          style: _value,
                         ),
                       )
                     : TextField(
                         controller: _phone,
                         keyboardType: TextInputType.phone,
                         onTapOutside: (_) => FocusScope.of(context).unfocus(),
+                        style: _value,
                         decoration: _decoration('e.g. 801 234 5678'),
                       ),
               ),
@@ -341,11 +343,11 @@ class _DomesticStaffFlowPageState extends ConsumerState<DomesticStaffFlowPage> {
           ),
         ),
         SizedBox(height: context.rs(6)),
-        Text('Use the number they will message MyCove with.', style: McTextStyles.body(fontSize: 12.5, color: McColors.text)),
+        Text('Use the number they will message MyCove with.', style: McTextStyles.body(fontSize: 12, color: McColors.text)),
         SizedBox(height: context.rs(24)),
-        Text('When can they come?', style: McTextStyles.heading(fontSize: 18)),
+        Text('When can they come?', style: McTextStyles.cardTitle()),
         SizedBox(height: context.rs(4)),
-        Text('Select the days they normally visit.', style: McTextStyles.body(fontSize: 13.5, color: McColors.text)),
+        Text('Select the days they normally visit.', style: McTextStyles.body(fontSize: 14, color: McColors.text)),
         SizedBox(height: context.rs(12)),
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -423,11 +425,18 @@ class _DomesticStaffFlowPageState extends ConsumerState<DomesticStaffFlowPage> {
               Text(start ? 'From what time?' : 'Until what time?', style: McTextStyles.heading(fontSize: 18)),
               SizedBox(
                 height: context.rs(190),
-                child: CupertinoDatePicker(
-                  mode: CupertinoDatePickerMode.time,
-                  use24hFormat: false,
-                  initialDateTime: picked,
-                  onDateTimeChanged: (v) => picked = v,
+                child: CupertinoTheme(
+                  data: CupertinoThemeData(
+                    textTheme: CupertinoTextThemeData(
+                      dateTimePickerTextStyle: McTextStyles.body(fontSize: 20, color: McColors.text),
+                    ),
+                  ),
+                  child: CupertinoDatePicker(
+                    mode: CupertinoDatePickerMode.time,
+                    use24hFormat: false,
+                    initialDateTime: picked,
+                    onDateTimeChanged: (v) => picked = v,
+                  ),
                 ),
               ),
               McButton(label: 'Done', onPressed: () => Navigator.of(sheetContext).pop(true)),
@@ -460,7 +469,7 @@ class _DomesticStaffFlowPageState extends ConsumerState<DomesticStaffFlowPage> {
                       children: [
                         const Icon(Icons.access_time, size: 18),
                         SizedBox(width: context.rs(8)),
-                        Text(timeLabel(value), style: McTextStyles.body(fontSize: 15, fontWeight: FontWeight.w600, color: McColors.text)),
+                        Text(timeLabel(value), style: _value),
                       ],
                     ),
                   ],
@@ -477,9 +486,9 @@ class _DomesticStaffFlowPageState extends ConsumerState<DomesticStaffFlowPage> {
       title: _editing ? 'Edit domestic staff' : 'Add domestic staff',
       children: [
         SizedBox(height: context.rs(12)),
-        Text('Access hours', style: McTextStyles.heading(fontSize: 20)),
+        Text('Access hours', style: McTextStyles.cardTitle()),
         SizedBox(height: context.rs(4)),
-        Text('Limit access to specific hours (optional).', style: McTextStyles.body(fontSize: 13.5, color: McColors.text)),
+        Text('Limit access to specific hours (optional).', style: McTextStyles.body(fontSize: 14, color: McColors.text)),
         SizedBox(height: context.rs(18)),
         _card(
           child: Column(
@@ -499,11 +508,11 @@ class _DomesticStaffFlowPageState extends ConsumerState<DomesticStaffFlowPage> {
                 SizedBox(height: context.rs(10)),
                 Text(
                   'They can ask for a code from 15 minutes before the start time until the end time.',
-                  style: McTextStyles.body(fontSize: 12.5, color: McColors.text),
+                  style: McTextStyles.body(fontSize: 12, color: McColors.text),
                 ),
               ] else ...[
                 SizedBox(height: context.rs(4)),
-                Text('Off: they can ask for a code at any time on their days.', style: McTextStyles.body(fontSize: 12.5, color: McColors.text)),
+                Text('Off: they can ask for a code at any time on their days.', style: McTextStyles.body(fontSize: 12, color: McColors.text)),
               ],
             ],
           ),
@@ -523,7 +532,7 @@ class _DomesticStaffFlowPageState extends ConsumerState<DomesticStaffFlowPage> {
               SizedBox(height: context.rs(4)),
               Text(
                 'You will get a notification and must approve before they receive a code.',
-                style: McTextStyles.body(fontSize: 12.5, color: McColors.text),
+                style: McTextStyles.body(fontSize: 12, color: McColors.text),
               ),
             ],
           ),
@@ -549,14 +558,14 @@ class _DomesticStaffFlowPageState extends ConsumerState<DomesticStaffFlowPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(title, style: McTextStyles.heading(fontSize: 14.5)),
+                  Text(title, style: McTextStyles.heading(fontSize: 14)),
                   SizedBox(height: context.rs(2)),
                   Text(value, style: McTextStyles.body(fontSize: 13, color: McColors.text)),
                 ],
               ),
             ),
             if (onEdit != null)
-              TextButton(onPressed: onEdit, child: const Text('Edit')),
+              McTextButton(label: 'Edit', onPressed: onEdit),
           ],
         ),
       );
@@ -609,7 +618,7 @@ class _DomesticStaffFlowPageState extends ConsumerState<DomesticStaffFlowPage> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(label, style: McTextStyles.body(fontSize: 12, color: McColors.text)),
-                    Text(value, style: McTextStyles.body(fontSize: 14.5, fontWeight: FontWeight.w600, color: McColors.text)),
+                    Text(value, style: McTextStyles.body(fontSize: 14, fontWeight: FontWeight.w600, color: McColors.text)),
                   ],
                 ),
               ),
@@ -640,12 +649,12 @@ class _DomesticStaffFlowPageState extends ConsumerState<DomesticStaffFlowPage> {
                 ),
               ),
               SizedBox(height: context.rs(20)),
-              Text('Domestic staff added', textAlign: TextAlign.center, style: McTextStyles.heading(fontSize: 22)),
+              Text('Domestic staff added', textAlign: TextAlign.center, style: McTextStyles.sectionTitle()),
               SizedBox(height: context.rs(8)),
               Text(
                 '${_name.text.trim()} can now request gate access through WhatsApp.',
                 textAlign: TextAlign.center,
-                style: McTextStyles.body(fontSize: 14.5, color: McColors.text),
+                style: McTextStyles.body(fontSize: 14, color: McColors.text),
               ),
               SizedBox(height: context.rs(24)),
               Container(

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
+import '../../../../core/theme/mc_text_styles.dart';
+
 /// The intro illustration for Domestic staff: a house, a staff member with
 /// WhatsApp open, and the access code they receive. The drawing is an SVG
 /// without its text (flutter_svg does not draw text elements), so the three text
@@ -40,7 +42,7 @@ class DomesticIllustration extends StatelessWidget {
       top: (y - size * 0.92) * s,
       child: Text(
         value,
-        style: TextStyle(
+        style: McTextStyles.body(
           fontSize: size * s,
           fontWeight: weight,
           color: color,

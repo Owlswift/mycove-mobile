@@ -9,6 +9,7 @@ import '../../../../core/theme/mc_spacing.dart';
 import '../../../../core/theme/mc_text_styles.dart';
 import '../../../../core/widgets/mc_button.dart';
 import '../../../../core/widgets/mc_generic_header.dart';
+import '../../../../core/widgets/mc_text_button.dart';
 import '../../../../state/detail_providers.dart';
 import '../widgets/domestic_format.dart';
 import '../widgets/domestic_illustration.dart';
@@ -26,13 +27,20 @@ class DomesticStaffPage extends ConsumerWidget {
       ref.invalidate(domesticRequestsProvider);
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(approve ? 'Approved. The code has been sent to them on WhatsApp.' : 'Declined.')),
+          SnackBar(
+            content: Text(
+              approve ? 'Approved. The code has been sent to them on WhatsApp.' : 'Declined.',
+              style: McTextStyles.body(fontSize: 14, color: Colors.white),
+            ),
+          ),
         );
       }
     } catch (e) {
       ref.invalidate(domesticRequestsProvider);
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(extractMessage(e))));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(extractMessage(e), style: McTextStyles.body(fontSize: 14, color: Colors.white))),
+        );
       }
     }
   }
@@ -96,11 +104,11 @@ class _Intro extends StatelessWidget {
               SizedBox(height: context.rs(8)),
               const DomesticIllustration(),
               SizedBox(height: context.rs(24)),
-              Text('Give your domestic staff access', style: McTextStyles.heading(fontSize: 26)),
+              Text('Give your domestic staff access', style: McTextStyles.sectionTitle()),
               SizedBox(height: context.rs(12)),
               Text(
                 'Add your cleaner, cook or driver. They message ACCESS to MyCove on WhatsApp and get their own entry code, so you are not bothered each time.',
-                style: McTextStyles.body(fontSize: 14.5, color: McColors.text),
+                style: McTextStyles.body(fontSize: 14, color: McColors.text),
               ),
               SizedBox(height: context.rs(20)),
               Container(
@@ -168,7 +176,7 @@ class _StaffList extends StatelessWidget {
           children: [
             Icon(icon, size: 14, color: McColors.text),
             SizedBox(width: context.rs(6)),
-            Expanded(child: Text(text, style: McTextStyles.body(fontSize: 12.5, color: McColors.text))),
+            Expanded(child: Text(text, style: McTextStyles.body(fontSize: 12, color: McColors.text))),
           ],
         ),
       );
@@ -178,9 +186,9 @@ class _StaffList extends StatelessWidget {
     return ListView(
       padding: EdgeInsets.symmetric(horizontal: context.rs(20), vertical: context.rs(8)),
       children: [
-        Text('Domestic staff', style: McTextStyles.heading(fontSize: 24)),
+        Text('Domestic staff', style: McTextStyles.sectionTitle()),
         SizedBox(height: context.rs(4)),
-        Text('Manage access for your staff members.', style: McTextStyles.body(fontSize: 13.5, color: McColors.text)),
+        Text('Manage access for your staff members.', style: McTextStyles.body(fontSize: 14, color: McColors.text)),
         SizedBox(height: context.rs(16)),
         McButton(label: '+ Add staff', onPressed: onAdd),
         SizedBox(height: context.rs(16)),
@@ -280,9 +288,9 @@ class DomesticRequestBanner extends ConsumerWidget {
           const Icon(Icons.badge_outlined),
           SizedBox(width: context.rs(12)),
           Expanded(
-            child: Text('$name is asking for an entry code$more.', style: McTextStyles.body(fontSize: 13.5, color: McColors.text)),
+            child: Text('$name is asking for an entry code$more.', style: McTextStyles.body(fontSize: 13, color: McColors.text)),
           ),
-          TextButton(onPressed: () => context.push('/resident/domestic-staff'), child: const Text('Review')),
+          McTextButton(onPressed: () => context.push('/resident/domestic-staff'), label: 'Review'),
         ],
       ),
     );

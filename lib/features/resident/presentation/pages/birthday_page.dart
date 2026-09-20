@@ -13,6 +13,7 @@ import '../../../../core/theme/mc_text_styles.dart';
 import '../../../../core/widgets/mc_button.dart';
 import '../../../../core/widgets/mc_generic_header.dart';
 import '../../../../core/widgets/mc_sheet.dart';
+import '../../../../core/widgets/mc_text_button.dart';
 import '../../../../data/models/birthday.dart';
 import '../../../../state/detail_providers.dart';
 
@@ -63,28 +64,32 @@ class _BirthdayCelebrationPageState extends ConsumerState<BirthdayCelebrationPag
   }
 
   void _choosePhotoSource() {
-    showModalBottomSheet<void>(
-      context: context,
+    showMcSheet<void>(
+      context,
       builder: (sheetContext) => SafeArea(
-        child: Wrap(
-          children: [
-            ListTile(
-              leading: const Icon(Icons.photo_library_outlined),
-              title: const Text('Choose from gallery'),
-              onTap: () {
-                Navigator.of(sheetContext).pop();
-                _pickPhoto(ImageSource.gallery);
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.photo_camera_outlined),
-              title: const Text('Take a photo'),
-              onTap: () {
-                Navigator.of(sheetContext).pop();
-                _pickPhoto(ImageSource.camera);
-              },
-            ),
-          ],
+        child: Padding(
+          padding: EdgeInsets.only(bottom: context.rs(12)),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              McSheetOption(
+                icon: Icons.photo_library_outlined,
+                label: 'Choose from gallery',
+                onTap: () {
+                  Navigator.of(sheetContext).pop();
+                  _pickPhoto(ImageSource.gallery);
+                },
+              ),
+              McSheetOption(
+                icon: Icons.photo_camera_outlined,
+                label: 'Take a photo',
+                onTap: () {
+                  Navigator.of(sheetContext).pop();
+                  _pickPhoto(ImageSource.camera);
+                },
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -215,9 +220,9 @@ class _BirthdayCelebrationPageState extends ConsumerState<BirthdayCelebrationPag
                   ),
                   SizedBox(height: context.rs(8)),
                   Center(
-                    child: TextButton(
+                    child: McTextButton(
                       onPressed: _choosePhotoSource,
-                      child: Text(_photoBytes == null ? 'Add a photo' : 'Change photo'),
+                      label: _photoBytes == null ? 'Add a photo' : 'Change photo',
                     ),
                   ),
                   SizedBox(height: context.rs(16)),
@@ -237,21 +242,21 @@ class _BirthdayCelebrationPageState extends ConsumerState<BirthdayCelebrationPag
                       style: McTextStyles.body(fontSize: 13, color: McColors.text),
                     ),
                     SizedBox(height: context.rs(10)),
-                    OutlinedButton.icon(
+                    McButton(
+                      variant: ChButtonVariant.secondary,
+                      label: _partyAt == null ? 'Choose date and time' : _partyLabel(_partyAt!),
                       onPressed: _pickPartyTime,
-                      icon: const Icon(Icons.event_outlined),
-                      label: Text(_partyAt == null ? 'Choose date and time' : _partyLabel(_partyAt!)),
                     ),
-                    SizedBox(height: context.rs(12)),
+                    SizedBox(height: context.rs(14)),
+                    Text('Where?', style: McTextStyles.body(fontSize: 12, color: McColors.text.withValues(alpha: 0.7))),
+                    const SizedBox(height: 5),
                     TextField(
                       controller: _venue,
                       maxLength: 120,
                       onChanged: (_) => setState(() {}),
-                      decoration: const InputDecoration(
-                        labelText: 'Where?',
-                        hintText: 'e.g. Block C clubhouse',
-                        border: OutlineInputBorder(),
-                      ),
+                      onTapOutside: (_) => FocusScope.of(context).unfocus(),
+                      style: McTextStyles.inputValue(),
+                      decoration: const InputDecoration(hintText: 'e.g. Block C clubhouse', counterText: ''),
                     ),
                   ],
                   if (_hasParty == false) ...[
@@ -362,7 +367,8 @@ class _BirthdaySheetState extends State<_BirthdaySheet> {
                         }
                       }),
                       children: [
-                        for (final name in MyBirthday.monthNames) Center(child: Text(name)),
+                        for (final name in MyBirthday.monthNames)
+                          Center(child: Text(name, style: McTextStyles.body(fontSize: 18, color: McColors.text))),
                       ],
                     ),
                   ),
@@ -373,7 +379,10 @@ class _BirthdaySheetState extends State<_BirthdaySheet> {
                       itemExtent: 40,
                       scrollController: _dayController,
                       onSelectedItemChanged: (i) => _day = i + 1,
-                      children: [for (var d = 1; d <= maxDay; d++) Center(child: Text('$d'))],
+                      children: [
+                        for (var d = 1; d <= maxDay; d++)
+                          Center(child: Text('$d', style: McTextStyles.body(fontSize: 18, color: McColors.text))),
+                      ],
                     ),
                   ),
                 ],
@@ -418,7 +427,7 @@ class _BirthdayDashboardCardsState extends ConsumerState<BirthdayDashboardCards>
           const Text('🎂', style: TextStyle(fontSize: 26)),
           SizedBox(width: context.rs(12)),
           Expanded(child: Text(text, style: McTextStyles.body(fontSize: 13.5, color: McColors.text))),
-          TextButton(onPressed: onTap, child: Text(action)),
+          McTextButton(onPressed: onTap, label: action),
           if (onDismiss != null)
             IconButton(visualDensity: VisualDensity.compact, onPressed: onDismiss, icon: const Icon(Icons.close, size: 18)),
         ],
