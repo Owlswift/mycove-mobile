@@ -88,7 +88,7 @@ class DomesticStaffPage extends ConsumerWidget {
                     child: Text(
                       extractMessage(e),
                       style: McTextStyles.body(
-                        fontSize: 14,
+                        fontSize: 13,
                         color: McColors.bodyText,
                       ),
                     ),
@@ -130,13 +130,13 @@ class _Intro extends StatelessWidget {
               const SizedBox(height: 28),
               Text(
                 'Give your domestic staff access',
-                style: McTextStyles.heading(fontSize: 26, height: 1.3),
+                style: McTextStyles.heading(fontSize: 25, height: 1.3),
               ),
               const SizedBox(height: 12),
               Text(
                 'Add your cleaner, cook or driver. They message ACCESS to MyCove on WhatsApp and get their own entry code, so you are not bothered each time.',
                 style: McTextStyles.body(
-                  fontSize: 15,
+                  fontSize: 14,
                   color: McColors.bodyText,
                   height: 1.6,
                 ),
@@ -168,13 +168,13 @@ class _Intro extends StatelessWidget {
                         children: [
                           Text(
                             'How it works',
-                            style: McTextStyles.heading(fontSize: 16),
+                            style: McTextStyles.heading(fontSize: 15),
                           ),
                           const SizedBox(height: 6),
                           Text(
                             'Your staff sends ACCESS on WhatsApp. If they are allowed at that time, MyCove sends them a temporary gate code.',
                             style: McTextStyles.body(
-                              fontSize: 13,
+                              fontSize: 12,
                               color: McColors.bodyText,
                               height: 1.6,
                             ),
@@ -241,7 +241,7 @@ class _StaffList extends StatelessWidget {
         Expanded(
           child: Text(
             text,
-            style: McTextStyles.body(fontSize: 14, color: McColors.bodyText),
+            style: McTextStyles.body(fontSize: 13, color: McColors.bodyText),
           ),
         ),
       ],
@@ -255,13 +255,13 @@ class _StaffList extends StatelessWidget {
       children: [
         Text(
           'Domestic staff',
-          style: McTextStyles.heading(fontSize: 26, height: 1.3),
+          style: McTextStyles.heading(fontSize: 25, height: 1.3),
         ),
         const SizedBox(height: 6),
         Text(
           'Manage access for your staff members.',
           style: McTextStyles.body(
-            fontSize: 14,
+            fontSize: 13,
             color: McColors.bodyText,
             height: 1.5,
           ),
@@ -281,13 +281,13 @@ class _StaffList extends StatelessWidget {
               children: [
                 Text(
                   '${r['staffName']} is asking for an entry code',
-                  style: McTextStyles.heading(fontSize: 16),
+                  style: McTextStyles.heading(fontSize: 15),
                 ),
                 const SizedBox(height: 6),
                 Text(
                   'Approve to send them a code now.',
                   style: McTextStyles.body(
-                    fontSize: 14,
+                    fontSize: 13,
                     color: McColors.bodyText,
                   ),
                 ),
@@ -335,7 +335,7 @@ class _StaffList extends StatelessWidget {
                       child: Text(
                         initialsOf(s['name'] as String),
                         style: McTextStyles.heading(
-                          fontSize: 17,
+                          fontSize: 16,
                           color: McColors.accent2,
                         ),
                       ),
@@ -348,7 +348,7 @@ class _StaffList extends StatelessWidget {
                       children: [
                         Text(
                           s['name'] as String,
-                          style: McTextStyles.heading(fontSize: 17),
+                          style: McTextStyles.heading(fontSize: 16),
                         ),
                         _line(DomesticIcon.whatsapp, s['phone'] as String),
                         _line(
@@ -411,7 +411,7 @@ class DomesticRequestBanner extends ConsumerWidget {
               '$name is asking for an entry code$more.',
               style: McTextStyles.body(
                 height: 1.6,
-                fontSize: 13,
+                fontSize: 12,
                 color: McColors.text,
               ),
             ),

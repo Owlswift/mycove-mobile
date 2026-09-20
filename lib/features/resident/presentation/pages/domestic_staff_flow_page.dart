@@ -218,17 +218,17 @@ class _DomesticStaffFlowPageState extends ConsumerState<DomesticStaffFlowPage> {
 
   static const _pad = 20.0;
 
-  TextStyle get _title => McTextStyles.heading(fontSize: 20);
+  TextStyle get _title => McTextStyles.heading(fontSize: 19);
   TextStyle get _subtitle =>
-      McTextStyles.body(fontSize: 14, color: McColors.bodyText, height: 1.5);
-  TextStyle get _value => McTextStyles.inputValue();
+      McTextStyles.body(fontSize: 13, color: McColors.bodyText, height: 1.5);
+  TextStyle get _value => McTextStyles.inputValue(fontSize: 14);
 
   Widget _label(String text) => Padding(
     padding: const EdgeInsets.only(bottom: 8),
     child: Text(
       text,
       style: McTextStyles.body(
-        fontSize: 13,
+        fontSize: 12,
         fontWeight: FontWeight.w500,
         color: McColors.text,
       ),
@@ -406,7 +406,7 @@ class _DomesticStaffFlowPageState extends ConsumerState<DomesticStaffFlowPage> {
         Text(
           'Use the number they will message MyCove with.',
           style: McTextStyles.body(
-            fontSize: 13,
+            fontSize: 12,
             color: McColors.bodyText,
             height: 1.5,
           ),
@@ -442,7 +442,7 @@ class _DomesticStaffFlowPageState extends ConsumerState<DomesticStaffFlowPage> {
                     child: Text(
                       _dayLetters[d],
                       style: McTextStyles.body(
-                        fontSize: 15,
+                        fontSize: 14,
                         fontWeight: FontWeight.w600,
                         color: _days.contains(d) ? Colors.white : McColors.text,
                       ),
@@ -497,7 +497,7 @@ class _DomesticStaffFlowPageState extends ConsumerState<DomesticStaffFlowPage> {
             children: [
               Text(
                 start ? 'From what time?' : 'Until what time?',
-                style: McTextStyles.heading(fontSize: 18),
+                style: McTextStyles.heading(fontSize: 17),
               ),
               SizedBox(
                 height: 190,
@@ -505,7 +505,7 @@ class _DomesticStaffFlowPageState extends ConsumerState<DomesticStaffFlowPage> {
                   data: CupertinoThemeData(
                     textTheme: CupertinoTextThemeData(
                       dateTimePickerTextStyle: McTextStyles.body(
-                        fontSize: 20,
+                        fontSize: 19,
                         color: McColors.text,
                       ),
                     ),
@@ -554,7 +554,7 @@ class _DomesticStaffFlowPageState extends ConsumerState<DomesticStaffFlowPage> {
                 Text(
                   label,
                   style: McTextStyles.body(
-                    fontSize: 12,
+                    fontSize: 11,
                     color: McColors.bodyText,
                   ),
                 ),
@@ -570,7 +570,7 @@ class _DomesticStaffFlowPageState extends ConsumerState<DomesticStaffFlowPage> {
                     Text(
                       timeLabelPadded(value),
                       style: McTextStyles.body(
-                        fontSize: 16,
+                        fontSize: 15,
                         fontWeight: FontWeight.w600,
                         color: McColors.text,
                       ),
@@ -607,13 +607,13 @@ class _DomesticStaffFlowPageState extends ConsumerState<DomesticStaffFlowPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(title, style: McTextStyles.heading(fontSize: 16)),
+              Text(title, style: McTextStyles.heading(fontSize: 15)),
               if (subtitle != null) ...[
                 const SizedBox(height: 6),
                 Text(
                   subtitle,
                   style: McTextStyles.body(
-                    fontSize: 13,
+                    fontSize: 12,
                     color: McColors.bodyText,
                     height: 1.5,
                   ),
@@ -657,7 +657,7 @@ class _DomesticStaffFlowPageState extends ConsumerState<DomesticStaffFlowPage> {
                 Text(
                   'They can ask for a code from 15 minutes before the start time until the end time.',
                   style: McTextStyles.body(
-                    fontSize: 13,
+                    fontSize: 12,
                     color: McColors.bodyText,
                     height: 1.5,
                   ),
@@ -667,7 +667,7 @@ class _DomesticStaffFlowPageState extends ConsumerState<DomesticStaffFlowPage> {
                 Text(
                   'Off: they can ask for a code at any time on their days.',
                   style: McTextStyles.body(
-                    fontSize: 13,
+                    fontSize: 12,
                     color: McColors.bodyText,
                     height: 1.5,
                   ),
@@ -713,12 +713,12 @@ class _DomesticStaffFlowPageState extends ConsumerState<DomesticStaffFlowPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(title, style: McTextStyles.heading(fontSize: 16)),
+              Text(title, style: McTextStyles.heading(fontSize: 15)),
               const SizedBox(height: 6),
               Text(
                 value,
                 style: McTextStyles.body(
-                  fontSize: 14,
+                  fontSize: 13,
                   color: McColors.bodyText,
                   height: 1.5,
                 ),
@@ -814,12 +814,12 @@ class _DomesticStaffFlowPageState extends ConsumerState<DomesticStaffFlowPage> {
                 Text(
                   label,
                   style: McTextStyles.body(
-                    fontSize: 13,
+                    fontSize: 12,
                     color: McColors.bodyText,
                   ),
                 ),
                 const SizedBox(height: 3),
-                Text(value, style: McTextStyles.heading(fontSize: 16)),
+                Text(value, style: McTextStyles.heading(fontSize: 15)),
               ],
             ),
           ),
@@ -862,14 +862,14 @@ class _DomesticStaffFlowPageState extends ConsumerState<DomesticStaffFlowPage> {
               Text(
                 'Domestic staff added',
                 textAlign: TextAlign.center,
-                style: McTextStyles.heading(fontSize: 24),
+                style: McTextStyles.heading(fontSize: 23),
               ),
               const SizedBox(height: 10),
               Text(
                 '${_name.text.trim()} can now request gate access through WhatsApp.',
                 textAlign: TextAlign.center,
                 style: McTextStyles.body(
-                  fontSize: 15,
+                  fontSize: 14,
                   color: McColors.bodyText,
                   height: 1.6,
                 ),
@@ -902,7 +902,7 @@ class _DomesticStaffFlowPageState extends ConsumerState<DomesticStaffFlowPage> {
                           const SizedBox(width: 12),
                           Text(
                             'Access summary',
-                            style: McTextStyles.heading(fontSize: 16),
+                            style: McTextStyles.heading(fontSize: 15),
                           ),
                         ],
                       ),
