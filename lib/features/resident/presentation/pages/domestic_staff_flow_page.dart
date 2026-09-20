@@ -819,7 +819,7 @@ class _DomesticStaffFlowPageState extends ConsumerState<DomesticStaffFlowPage> {
                   ),
                 ),
                 const SizedBox(height: 3),
-                Text(value, style: McTextStyles.heading(fontSize: 15)),
+                Text(value, style: McTextStyles.heading(fontSize: 14)),
               ],
             ),
           ),
@@ -862,7 +862,7 @@ class _DomesticStaffFlowPageState extends ConsumerState<DomesticStaffFlowPage> {
               Text(
                 'Domestic staff added',
                 textAlign: TextAlign.center,
-                style: McTextStyles.heading(fontSize: 23),
+                style: McTextStyles.heading(fontSize: 20),
               ),
               const SizedBox(height: 10),
               Text(
@@ -902,7 +902,7 @@ class _DomesticStaffFlowPageState extends ConsumerState<DomesticStaffFlowPage> {
                           const SizedBox(width: 12),
                           Text(
                             'Access summary',
-                            style: McTextStyles.heading(fontSize: 15),
+                            style: McTextStyles.heading(fontSize: 14),
                           ),
                         ],
                       ),

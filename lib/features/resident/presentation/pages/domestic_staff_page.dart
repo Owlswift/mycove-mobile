@@ -281,7 +281,7 @@ class _StaffList extends StatelessWidget {
               children: [
                 Text(
                   '${r['staffName']} is asking for an entry code',
-                  style: McTextStyles.heading(fontSize: 15),
+                  style: McTextStyles.heading(fontSize: 14),
                 ),
                 const SizedBox(height: 6),
                 Text(
@@ -335,7 +335,7 @@ class _StaffList extends StatelessWidget {
                       child: Text(
                         initialsOf(s['name'] as String),
                         style: McTextStyles.heading(
-                          fontSize: 16,
+                          fontSize: 14,
                           color: McColors.accent2,
                         ),
                       ),
@@ -348,7 +348,7 @@ class _StaffList extends StatelessWidget {
                       children: [
                         Text(
                           s['name'] as String,
-                          style: McTextStyles.heading(fontSize: 16),
+                          style: McTextStyles.heading(fontSize: 14),
                         ),
                         _line(DomesticIcon.whatsapp, s['phone'] as String),
                         _line(
