@@ -10,8 +10,9 @@ String daysLabel(List<int> days) {
   if (sorted.isEmpty || sorted.length == 7) return 'Any day';
   final contiguous =
       sorted.length >= 3 && sorted.last - sorted.first == sorted.length - 1;
-  if (contiguous)
+  if (contiguous) {
     return '${_shortDays[sorted.first]}–${_shortDays[sorted.last]}';
+  }
   return sorted.map((d) => _shortDays[d]).join(', ');
 }
 
