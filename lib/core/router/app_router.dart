@@ -55,6 +55,7 @@ import '../../features/resident/presentation/pages/visitor_detail_page.dart';
 import '../../features/resident/presentation/pages/visitor_page.dart';
 import '../../features/resident/presentation/pages/voice_settings_page.dart';
 import '../../features/resident/presentation/pages/wallet_page.dart';
+import '../../features/resident/presentation/pages/domestic_staff_flow_page.dart';
 import '../../features/resident/presentation/pages/domestic_staff_page.dart';
 import '../../features/resident/presentation/widgets/resident_shell.dart';
 import '../../state/app_notifier.dart';
@@ -185,7 +186,17 @@ final routerProvider = Provider<GoRouter>((ref) {
                   GoRoute(path: 'rules', builder: (_, _) => const RulesPage()),
                   GoRoute(path: 'sos', builder: (_, _) => const SosPage()),
                   GoRoute(path: 'wallet', builder: (_, _) => const WalletPage()),
-                  GoRoute(path: 'domestic-staff', builder: (_, _) => const DomesticStaffPage()),
+                  GoRoute(
+                    path: 'domestic-staff',
+                    builder: (_, _) => const DomesticStaffPage(),
+                    routes: [
+                      GoRoute(
+                        path: 'add',
+                        builder: (_, state) =>
+                            DomesticStaffFlowPage(existing: state.extra as Map<String, dynamic>?),
+                      ),
+                    ],
+                  ),
                   GoRoute(
                     path: 'complaint',
                     builder: (_, _) => const ComplaintPage(),
