@@ -340,7 +340,7 @@ class _BirthdaySheetState extends State<_BirthdaySheet> {
               style: McTextStyles.body(fontSize: 13, color: McColors.bodyText),
             ),
             SizedBox(
-              height: context.rs(180),
+              height: context.rs(150),
               child: Row(
                 children: [
                   Expanded(
