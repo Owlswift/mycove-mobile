@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/theme/mc_colors.dart';
 import '../../../../core/theme/mc_text_styles.dart';
 import '../../../../core/widgets/mc_button.dart';
+import '../../../../core/widgets/mc_sheet.dart';
 import '../../../../core/widgets/mc_generic_header.dart';
 import '../../../../core/widgets/mc_text_field.dart';
 import '../../../../state/app_notifier.dart';
@@ -97,32 +98,19 @@ class VisitorCreatePage extends ConsumerWidget {
 }
 
 Future<bool?> _confirmExtraToken(BuildContext context, String message, int price) {
-  return showDialog<bool>(
-    context: context,
-    builder: (dialogContext) => AlertDialog(
-      title: const Text('Extra visitor token'),
-      content: Text(message),
-      actions: [
-        TextButton(onPressed: () => Navigator.of(dialogContext).pop(false), child: const Text('Cancel')),
-        TextButton(
-          onPressed: () => Navigator.of(dialogContext).pop(true),
-          child: Text('Pay ₦$price and continue'),
-        ),
-      ],
-    ),
+  return showMcConfirmSheet(
+    context,
+    title: 'Extra visitor token',
+    message: message,
+    confirmLabel: 'Pay ₦$price and continue',
   );
 }
 
 Future<bool?> _needWalletTopUp(BuildContext context, String message) {
-  return showDialog<bool>(
-    context: context,
-    builder: (dialogContext) => AlertDialog(
-      title: const Text('Not enough in your wallet'),
-      content: Text(message),
-      actions: [
-        TextButton(onPressed: () => Navigator.of(dialogContext).pop(false), child: const Text('Cancel')),
-        TextButton(onPressed: () => Navigator.of(dialogContext).pop(true), child: const Text('Top up wallet')),
-      ],
-    ),
+  return showMcConfirmSheet(
+    context,
+    title: 'Not enough in your wallet',
+    message: message,
+    confirmLabel: 'Top up wallet',
   );
 }

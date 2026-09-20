@@ -21,7 +21,13 @@ Widget _scaleText(BuildContext context, Widget? child) {
     data: mediaQuery.copyWith(
       textScaler: TextScaler.linear(composedScale),
     ),
-    child: child!,
+    // Tapping anywhere that isn't a field closes the keyboard. Needed on
+    // iPhone, where the phone/number keypad has no Done key at all.
+    child: GestureDetector(
+      behavior: HitTestBehavior.translucent,
+      onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
+      child: child!,
+    ),
   );
 }
 

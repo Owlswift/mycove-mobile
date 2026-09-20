@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
+import 'package:flutter/cupertino.dart' show CupertinoPicker;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
@@ -11,6 +12,7 @@ import '../../../../core/theme/mc_spacing.dart';
 import '../../../../core/theme/mc_text_styles.dart';
 import '../../../../core/widgets/mc_button.dart';
 import '../../../../core/widgets/mc_generic_header.dart';
+import '../../../../core/widgets/mc_sheet.dart';
 import '../../../../data/models/birthday.dart';
 import '../../../../state/detail_providers.dart';
 
@@ -280,65 +282,109 @@ class _BirthdayCelebrationPageState extends ConsumerState<BirthdayCelebrationPag
   }
 }
 
-/// Asks for day and month (no year) and saves it. Returns true when saved.
+/// Asks for day and month (no year) in a sheet that slides up from the
+/// bottom, and saves it. Returns true when saved.
 Future<bool> showBirthdayPickerDialog(
   BuildContext context,
   WidgetRef ref, {
   int? month,
   int? day,
 }) async {
-  var m = month ?? 1;
-  var d = day ?? 1;
-  final saved = await showDialog<bool>(
-    context: context,
-    builder: (dialogContext) => StatefulBuilder(
-      builder: (context, setLocal) {
-        // Days in the chosen month; 29 Feb is allowed.
-        final maxDay = const [31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31][m - 1];
-        if (d > maxDay) d = maxDay;
-        return AlertDialog(
-          title: const Text('When is your birthday?'),
-          content: Row(
-            children: [
-              Expanded(
-                flex: 3,
-                child: DropdownButton<int>(
-                  isExpanded: true,
-                  value: m,
-                  items: [
-                    for (var i = 1; i <= 12; i++)
-                      DropdownMenuItem(value: i, child: Text(MyBirthday.monthNames[i - 1])),
-                  ],
-                  onChanged: (v) => setLocal(() => m = v ?? m),
-                ),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                flex: 2,
-                child: DropdownButton<int>(
-                  isExpanded: true,
-                  value: d,
-                  items: [for (var i = 1; i <= maxDay; i++) DropdownMenuItem(value: i, child: Text('$i'))],
-                  onChanged: (v) => setLocal(() => d = v ?? d),
-                ),
-              ),
-            ],
-          ),
-          actions: [
-            TextButton(onPressed: () => Navigator.of(dialogContext).pop(false), child: const Text('Cancel')),
-            TextButton(onPressed: () => Navigator.of(dialogContext).pop(true), child: const Text('Save')),
-          ],
-        );
-      },
-    ),
+  final picked = await showMcSheet<(int, int)>(
+    context,
+    builder: (_) => _BirthdaySheet(initialMonth: month ?? 1, initialDay: day ?? 1),
   );
-  if (saved != true) return false;
+  if (picked == null) return false;
   try {
-    await ref.read(myCoveApiProvider).setMyBirthday(month: m, day: d);
+    await ref.read(myCoveApiProvider).setMyBirthday(month: picked.$1, day: picked.$2);
     ref.invalidate(myBirthdayProvider);
     return true;
   } catch (_) {
     return false;
+  }
+}
+
+class _BirthdaySheet extends StatefulWidget {
+  const _BirthdaySheet({required this.initialMonth, required this.initialDay});
+
+  final int initialMonth;
+  final int initialDay;
+
+  @override
+  State<_BirthdaySheet> createState() => _BirthdaySheetState();
+}
+
+class _BirthdaySheetState extends State<_BirthdaySheet> {
+  static const _daysIn = [31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+
+  late int _month = widget.initialMonth;
+  late int _day = widget.initialDay;
+  late final FixedExtentScrollController _dayController =
+      FixedExtentScrollController(initialItem: widget.initialDay - 1);
+
+  @override
+  void dispose() {
+    _dayController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final maxDay = _daysIn[_month - 1];
+    return SafeArea(
+      child: Padding(
+        padding: EdgeInsets.fromLTRB(context.rs(24), 0, context.rs(24), context.rs(16)),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('When is your birthday?', style: McTextStyles.heading(fontSize: 18)),
+            SizedBox(height: context.rs(4)),
+            Text(
+              'Day and month only. Your neighbours will celebrate with you.',
+              style: McTextStyles.body(fontSize: 13, color: McColors.text),
+            ),
+            SizedBox(
+              height: context.rs(180),
+              child: Row(
+                children: [
+                  Expanded(
+                    flex: 3,
+                    child: CupertinoPicker(
+                      itemExtent: 40,
+                      scrollController: FixedExtentScrollController(initialItem: widget.initialMonth - 1),
+                      onSelectedItemChanged: (i) => setState(() {
+                        _month = i + 1;
+                        final limit = _daysIn[_month - 1];
+                        if (_day > limit) {
+                          _day = limit;
+                          _dayController.jumpToItem(limit - 1);
+                        }
+                      }),
+                      children: [
+                        for (final name in MyBirthday.monthNames) Center(child: Text(name)),
+                      ],
+                    ),
+                  ),
+                  Expanded(
+                    flex: 2,
+                    child: CupertinoPicker(
+                      key: ValueKey(maxDay),
+                      itemExtent: 40,
+                      scrollController: _dayController,
+                      onSelectedItemChanged: (i) => _day = i + 1,
+                      children: [for (var d = 1; d <= maxDay; d++) Center(child: Text('$d'))],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            SizedBox(height: context.rs(8)),
+            McButton(label: 'Save birthday', onPressed: () => Navigator.of(context).pop((_month, _day))),
+          ],
+        ),
+      ),
+    );
   }
 }
 

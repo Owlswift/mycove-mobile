@@ -9,6 +9,7 @@ import '../../../../core/theme/mc_spacing.dart';
 import '../../../../core/theme/mc_text_styles.dart';
 import '../../../../core/widgets/mc_button.dart';
 import '../../../../core/widgets/mc_generic_header.dart';
+import '../../../../core/widgets/mc_sheet.dart';
 import '../../../../state/detail_providers.dart';
 
 const _dayLetters = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
@@ -138,11 +139,7 @@ class DomesticStaffPage extends ConsumerWidget {
   }
 
   Future<void> _openForm(BuildContext context, WidgetRef ref, {Map<String, dynamic>? existing}) async {
-    final saved = await showModalBottomSheet<bool>(
-      context: context,
-      isScrollControlled: true,
-      builder: (_) => _StaffForm(existing: existing),
-    );
+    final saved = await showMcSheet<bool>(context, builder: (_) => _StaffForm(existing: existing));
     if (saved == true) ref.invalidate(domesticStaffProvider);
   }
 }
@@ -247,16 +244,12 @@ class _StaffFormState extends ConsumerState<_StaffForm> {
   }
 
   Future<void> _remove() async {
-    final sure = await showDialog<bool>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: Text('Remove ${widget.existing!['name']}?'),
-        content: const Text('They will no longer be able to get an entry code.'),
-        actions: [
-          TextButton(onPressed: () => Navigator.of(dialogContext).pop(false), child: const Text('Cancel')),
-          TextButton(onPressed: () => Navigator.of(dialogContext).pop(true), child: const Text('Remove')),
-        ],
-      ),
+    final sure = await showMcConfirmSheet(
+      context,
+      title: 'Remove ${widget.existing!['name']}?',
+      message: 'They will no longer be able to get an entry code.',
+      confirmLabel: 'Remove',
+      destructive: true,
     );
     if (sure != true) return;
     try {
@@ -273,6 +266,9 @@ class _StaffFormState extends ConsumerState<_StaffForm> {
       padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
       child: SafeArea(
         child: SingleChildScrollView(
+          // The phone keypad on iPhone has no Done key, so dragging or
+          // tapping outside a field has to be able to close it.
+          keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
           padding: const EdgeInsets.all(20),
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -282,6 +278,8 @@ class _StaffFormState extends ConsumerState<_StaffForm> {
               const SizedBox(height: 14),
               TextField(
                 controller: _name,
+                textInputAction: TextInputAction.next,
+                onTapOutside: (_) => FocusScope.of(context).unfocus(),
                 decoration: const InputDecoration(labelText: 'Name', border: OutlineInputBorder()),
               ),
               const SizedBox(height: 12),
@@ -289,6 +287,7 @@ class _StaffFormState extends ConsumerState<_StaffForm> {
                 controller: _phone,
                 enabled: !_editing,
                 keyboardType: TextInputType.phone,
+                onTapOutside: (_) => FocusScope.of(context).unfocus(),
                 decoration: const InputDecoration(
                   labelText: 'WhatsApp number',
                   helperText: 'It must be a number they use on WhatsApp.',
