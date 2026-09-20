@@ -25,9 +25,34 @@ class DomesticIllustration extends StatelessWidget {
           child: Stack(
             children: [
               SvgPicture.string(_svg, width: width, height: _viewHeight * s),
-              _text('ACCESS CODE', 311, 101.5, 9.5, FontWeight.w600, const Color(0xFF68756E), s),
-              _text('465297', 286, 129, 20, FontWeight.w700, const Color(0xFF075C38), s, spacing: 1.5),
-              _text('Valid for 10 minutes', 286, 144, 8.5, FontWeight.w400, const Color(0xFF8A958F), s),
+              _text(
+                'ACCESS CODE',
+                311,
+                101.5,
+                9.5,
+                FontWeight.w600,
+                const Color(0xFF68756E),
+                s,
+              ),
+              _text(
+                '465297',
+                286,
+                129,
+                20,
+                FontWeight.w700,
+                const Color(0xFF075C38),
+                s,
+                spacing: 1.5,
+              ),
+              _text(
+                'Valid for 10 minutes',
+                286,
+                144,
+                8.5,
+                FontWeight.w400,
+                const Color(0xFF8A958F),
+                s,
+              ),
             ],
           ),
         );
@@ -36,7 +61,16 @@ class DomesticIllustration extends StatelessWidget {
   }
 
   /// [x], [y] are the SVG's text origin (left edge, baseline) in its 420×240 space.
-  Widget _text(String value, double x, double y, double size, FontWeight weight, Color color, double s, {double spacing = 0}) {
+  Widget _text(
+    String value,
+    double x,
+    double y,
+    double size,
+    FontWeight weight,
+    Color color,
+    double s, {
+    double spacing = 0,
+  }) {
     return Positioned(
       left: x * s,
       top: (y - size * 0.92) * s,

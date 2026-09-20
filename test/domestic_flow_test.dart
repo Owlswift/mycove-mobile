@@ -47,8 +47,8 @@ void main() {
 
     await tester.tap(find.byType(Switch).first);
     await tester.pumpAndSettle();
-    expect(find.text('8:00 AM'), findsOneWidget);
-    expect(find.text('2:00 PM'), findsOneWidget);
+    expect(find.text('08:00 AM'), findsOneWidget);
+    expect(find.text('02:00 PM'), findsOneWidget);
     await tester.tap(find.byType(Switch).last);
     await tester.tap(find.text('Save'));
     await tester.pumpAndSettle();

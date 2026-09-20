@@ -5,7 +5,8 @@ import '../theme/mc_responsive.dart';
 import '../theme/mc_spacing.dart';
 import '../theme/mc_text_styles.dart';
 
-enum ChButtonVariant { primary, secondary, danger }
+/// [outlined] is the white, bordered button (Cancel, Allow any day, Decline).
+enum ChButtonVariant { primary, secondary, danger, outlined }
 
 class McButton extends StatelessWidget {
   const McButton({
@@ -16,6 +17,8 @@ class McButton extends StatelessWidget {
     this.expand = true,
     this.isLoading = false,
     this.verticalPadding = 14,
+    this.leading,
+    this.selected = false,
   });
 
   final String label;
@@ -26,6 +29,12 @@ class McButton extends StatelessWidget {
 
   /// The onboarding screens' main buttons (Get Started, Continue) are 15–16 tall; forms use 14.
   final double verticalPadding;
+
+  /// An icon shown before the label.
+  final Widget? leading;
+
+  /// For [ChButtonVariant.outlined]: shows the button as chosen (green border and text).
+  final bool selected;
 
   @override
   Widget build(BuildContext context) {
@@ -41,20 +50,35 @@ class McButton extends StatelessWidget {
       case ChButtonVariant.danger:
         fill = McColors.danger;
         foreground = Colors.white;
+      case ChButtonVariant.outlined:
+        fill = McColors.surface;
+        foreground = selected ? McColors.accent2 : McColors.text;
     }
 
     final child = Container(
       width: expand ? double.infinity : null,
       padding: EdgeInsets.symmetric(vertical: context.rs(verticalPadding)),
       alignment: Alignment.center,
-      decoration: BoxDecoration(color: fill, borderRadius: BorderRadius.circular(McRadii.button)),
+      decoration: BoxDecoration(
+        color: fill,
+        borderRadius: BorderRadius.circular(McRadii.button),
+        border: variant == ChButtonVariant.outlined
+            ? Border.all(color: selected ? McColors.accent2 : McColors.neutralN(300), width: selected ? 1.5 : 1)
+            : null,
+      ),
       child: isLoading
           ? SizedBox(
               height: context.rs(20),
               width: context.rs(20),
               child: CircularProgressIndicator(strokeWidth: 2, valueColor: AlwaysStoppedAnimation<Color>(foreground)),
             )
-          : Text(label, style: McTextStyles.body(fontSize: 15, fontWeight: FontWeight.w600, color: foreground)),
+          : Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (leading != null) ...[leading!, SizedBox(width: context.rs(8))],
+                Text(label, style: McTextStyles.body(fontSize: 15, fontWeight: FontWeight.w600, color: foreground)),
+              ],
+            ),
     );
 
     return GestureDetector(

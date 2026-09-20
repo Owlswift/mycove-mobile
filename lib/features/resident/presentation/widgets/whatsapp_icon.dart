@@ -1,21 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
-/// The WhatsApp glyph (24×24 viewBox), drawn in [color].
+/// The WhatsApp logo as a line icon (speech bubble outline with the handset),
+/// drawn in [color] on a 24×24 grid.
 class WhatsappIcon extends StatelessWidget {
-  const WhatsappIcon({super.key, this.size = 20, this.color = Colors.white});
+  const WhatsappIcon({super.key, this.size = 22, this.color = Colors.white});
 
   final double size;
   final Color color;
-
-  static const _path =
-      'M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.3-.15-1.263-.465-2.403-1.485-.888-.795-1.484-1.77-1.66-2.07-.174-.3-.019-.465.13-.615.136-.135.301-.345.451-.523.146-.181.194-.301.297-.496.1-.21.049-.375-.025-.524-.075-.15-.672-1.62-.922-2.206-.24-.584-.487-.51-.672-.51-.172-.015-.371-.015-.571-.015-.2 0-.523.074-.797.359-.273.3-1.045 1.02-1.045 2.475s1.07 2.865 1.219 3.075c.149.18 2.095 3.195 5.076 4.483.709.315 1.262.494 1.694.634.712.224 1.36.195 1.871.12.571-.09 1.758-.72 2.006-1.41.244-.689.244-1.275.169-1.41-.075-.135-.271-.209-.57-.36m-5.446 7.443h-.016c-1.77 0-3.524-.48-5.055-1.38l-.36-.214-3.75.975 1.005-3.645-.239-.375c-.99-1.576-1.516-3.391-1.516-5.26 0-5.445 4.455-9.885 9.942-9.885 2.654 0 5.145 1.035 7.021 2.91 1.875 1.859 2.909 4.35 2.909 6.99-.004 5.444-4.46 9.885-9.935 9.885M20.52 3.449C18.24 1.245 15.24 0 12.045 0 5.463 0 .104 5.334.101 11.893c0 2.096.549 4.14 1.595 5.945L0 24l6.335-1.652c1.746.943 3.71 1.444 5.71 1.447h.006c6.585 0 11.946-5.336 11.949-11.896 0-3.176-1.24-6.165-3.495-8.411';
 
   @override
   Widget build(BuildContext context) {
     final hex = color.toARGB32().toRadixString(16).padLeft(8, '0').substring(2);
     return SvgPicture.string(
-      '<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path fill="#$hex" d="$_path"/></svg>',
+      '<svg viewBox="0 0 24 24" fill="none" stroke="#$hex" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg">'
+      '<path d="M3 21l1.65-3.8a9 9 0 1 1 3.4 2.9L3 21"/>'
+      '<path d="M9 10a.5.5 0 0 0 1 0V9a.5.5 0 0 0-1 0v1a5 5 0 0 0 5 5h1a.5.5 0 0 0 0-1h-1a.5.5 0 0 0 0 1"/>'
+      '</svg>',
       width: size,
       height: size,
     );

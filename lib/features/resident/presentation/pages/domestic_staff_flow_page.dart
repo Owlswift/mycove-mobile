@@ -1,11 +1,15 @@
 import 'package:flutter/cupertino.dart'
-    show CupertinoDatePicker, CupertinoDatePickerMode, CupertinoTextThemeData, CupertinoTheme, CupertinoThemeData;
+    show
+        CupertinoDatePicker,
+        CupertinoDatePickerMode,
+        CupertinoTextThemeData,
+        CupertinoTheme,
+        CupertinoThemeData;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/network/api_exception.dart';
 import '../../../../core/theme/mc_colors.dart';
-import '../../../../core/theme/mc_responsive.dart';
 import '../../../../core/theme/mc_spacing.dart';
 import '../../../../core/theme/mc_text_styles.dart';
 import '../../../../core/widgets/mc_button.dart';
@@ -15,11 +19,20 @@ import '../../../../core/widgets/mc_text_button.dart';
 import '../../../../core/widgets/mc_toast.dart';
 import '../../../../state/detail_providers.dart';
 import '../widgets/domestic_format.dart';
+import '../widgets/domestic_parts.dart';
 
 enum _Step { basics, hours, review, success }
 
 const _dayLetters = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
-const _dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+const _dayNames = [
+  'Sunday',
+  'Monday',
+  'Tuesday',
+  'Wednesday',
+  'Thursday',
+  'Friday',
+  'Saturday',
+];
 
 /// Adding (or editing) a domestic staff member as a short flow of full pages:
 /// basic details → access hours → review → done. Editing starts at the
@@ -30,7 +43,8 @@ class DomesticStaffFlowPage extends ConsumerStatefulWidget {
   final Map<String, dynamic>? existing;
 
   @override
-  ConsumerState<DomesticStaffFlowPage> createState() => _DomesticStaffFlowPageState();
+  ConsumerState<DomesticStaffFlowPage> createState() =>
+      _DomesticStaffFlowPageState();
 }
 
 class _DomesticStaffFlowPageState extends ConsumerState<DomesticStaffFlowPage> {
@@ -43,7 +57,8 @@ class _DomesticStaffFlowPageState extends ConsumerState<DomesticStaffFlowPage> {
   bool _approval = false;
 
   _Step _step = _Step.basics;
-  bool _fromReview = false; // an Edit link was used — go back to the review afterwards
+  bool _fromReview =
+      false; // an Edit link was used — go back to the review afterwards
   bool _busy = false;
 
   bool get _editing => widget.existing != null;
@@ -137,7 +152,8 @@ class _DomesticStaffFlowPageState extends ConsumerState<DomesticStaffFlowPage> {
     _go(_Step.review);
   }
 
-  int _minutes(String t) => int.parse(t.substring(0, 2)) * 60 + int.parse(t.substring(3, 5));
+  int _minutes(String t) =>
+      int.parse(t.substring(0, 2)) * 60 + int.parse(t.substring(3, 5));
 
   Future<void> _submit() async {
     setState(() => _busy = true);
@@ -188,7 +204,9 @@ class _DomesticStaffFlowPageState extends ConsumerState<DomesticStaffFlowPage> {
     );
     if (sure != true) return;
     try {
-      await ref.read(myCoveApiProvider).removeDomesticStaff(widget.existing!['id'] as String);
+      await ref
+          .read(myCoveApiProvider)
+          .removeDomesticStaff(widget.existing!['id'] as String);
       ref.invalidate(domesticStaffProvider);
       if (mounted) Navigator.of(context).pop();
     } catch (e) {
@@ -196,51 +214,65 @@ class _DomesticStaffFlowPageState extends ConsumerState<DomesticStaffFlowPage> {
     }
   }
 
-  // ── Shared pieces (same spacing, type and controls as the rest of the app) ──
+  // ── Shared pieces ──────────────────────────────────────────────────────
 
   static const _pad = 20.0;
 
+  TextStyle get _title => McTextStyles.heading(fontSize: 20);
+  TextStyle get _subtitle =>
+      McTextStyles.body(fontSize: 14, color: McColors.bodyText, height: 1.5);
+  TextStyle get _value => McTextStyles.inputValue();
+
   Widget _label(String text) => Padding(
-        padding: const EdgeInsets.only(bottom: 5),
-        child: Text(text, style: McTextStyles.body(height: 1.6, fontSize: 12, color: McColors.text.withValues(alpha: 0.7))),
-      );
+    padding: const EdgeInsets.only(bottom: 8),
+    child: Text(
+      text,
+      style: McTextStyles.body(
+        fontSize: 13,
+        fontWeight: FontWeight.w500,
+        color: McColors.text,
+      ),
+    ),
+  );
 
   static final _border = OutlineInputBorder(
     borderRadius: BorderRadius.circular(McRadii.button),
     borderSide: BorderSide(color: McColors.neutralN(300)),
   );
 
-  /// Bordered, white fields for this flow (the theme's default is a borderless grey fill).
+  /// Bordered, white fields (the theme's default is a borderless grey fill).
   InputDecoration _decoration(String hint) => InputDecoration(
-        hintText: hint,
-        counterText: '',
-        fillColor: McColors.surface,
-        enabledBorder: _border,
-      );
+    hintText: hint,
+    counterText: '',
+    fillColor: McColors.surface,
+    enabledBorder: _border,
+    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+  );
 
   BoxDecoration get _boxField => BoxDecoration(
-        color: McColors.surface,
-        borderRadius: BorderRadius.circular(McRadii.button),
-        border: Border.all(color: McColors.neutralN(300)),
-      );
+    color: McColors.surface,
+    borderRadius: BorderRadius.circular(McRadii.button),
+    border: Border.all(color: McColors.neutralN(300)),
+  );
 
-  TextStyle get _value => McTextStyles.inputValue();
+  /// White card with the app's soft shadow.
+  Widget _card({
+    required Widget child,
+    EdgeInsets? padding,
+    double bottom = 16,
+  }) => Container(
+    width: double.infinity,
+    margin: EdgeInsets.only(bottom: bottom),
+    padding: padding ?? const EdgeInsets.all(20),
+    decoration: BoxDecoration(
+      color: McColors.surface,
+      borderRadius: BorderRadius.circular(McRadii.card),
+      boxShadow: McColors.cardShadow,
+    ),
+    child: child,
+  );
 
-  /// White card with the app's soft shadow — same as the visitor and profile cards.
-  Widget _card({required Widget child, EdgeInsets? padding, double bottom = 14}) => Container(
-        width: double.infinity,
-        margin: EdgeInsets.only(bottom: bottom),
-        padding: padding ?? const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: McColors.surface,
-          borderRadius: BorderRadius.circular(McRadii.card),
-          boxShadow: McColors.cardShadow,
-        ),
-        child: child,
-      );
-
-  /// A page: header, then a scrolling body with the action buttons directly
-  /// under the content, as on the visitor-pass and complaint forms.
+  /// Header, scrolling content, and the action buttons pinned at the bottom.
   Widget _page({
     required String title,
     required List<Widget> children,
@@ -253,27 +285,27 @@ class _DomesticStaffFlowPageState extends ConsumerState<DomesticStaffFlowPage> {
           child: ListView(
             // The phone keypad on iPhone has no Done key: dragging the page closes it.
             keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-            padding: const EdgeInsets.fromLTRB(_pad, 0, _pad, 24),
-            children: [
-              ...children,
-              const SizedBox(height: 8),
-              ...actions,
-            ],
+            padding: const EdgeInsets.fromLTRB(_pad, 8, _pad, 24),
+            children: children,
           ),
+        ),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(_pad, 8, _pad, 20),
+          child: Column(mainAxisSize: MainAxisSize.min, children: actions),
         ),
       ],
     );
   }
 
   Widget _sectionTitle(String title, String subtitle) => Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(title, style: McTextStyles.heading(height: 1.35, fontSize: 16, fontWeight: FontWeight.w600)),
-          const SizedBox(height: 4),
-          Text(subtitle, style: McTextStyles.body(height: 1.6, fontSize: 12, color: McColors.bodyText)),
-          const SizedBox(height: 16),
-        ],
-      );
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      Text(title, style: _title),
+      const SizedBox(height: 6),
+      Text(subtitle, style: _subtitle),
+      const SizedBox(height: 24),
+    ],
+  );
 
   // ── Pages ──────────────────────────────────────────────────────────────
 
@@ -282,7 +314,10 @@ class _DomesticStaffFlowPageState extends ConsumerState<DomesticStaffFlowPage> {
     return _page(
       title: _editing ? 'Edit domestic staff' : 'Add domestic staff',
       children: [
-        _sectionTitle('Basic details', "Provide the staff member's name and WhatsApp number."),
+        _sectionTitle(
+          'Basic details',
+          "Provide the staff member's name and WhatsApp number.",
+        ),
         _label('Name'),
         TextField(
           controller: _name,
@@ -291,31 +326,52 @@ class _DomesticStaffFlowPageState extends ConsumerState<DomesticStaffFlowPage> {
           style: _value,
           decoration: _decoration('e.g. Mary Johnson'),
         ),
-        const SizedBox(height: 14),
+        const SizedBox(height: 24),
         _label('WhatsApp number'),
         Row(
           children: [
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 13),
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 16),
               decoration: _boxField,
               child: Row(
                 children: [
                   ClipRRect(
                     borderRadius: BorderRadius.circular(3),
                     child: SizedBox(
-                      width: 24,
-                      height: 16,
+                      width: 26,
+                      height: 18,
                       child: Row(
                         children: const [
-                          Expanded(child: ColoredBox(color: Color(0xFF008751), child: SizedBox.expand())),
-                          Expanded(child: ColoredBox(color: Colors.white, child: SizedBox.expand())),
-                          Expanded(child: ColoredBox(color: Color(0xFF008751), child: SizedBox.expand())),
+                          Expanded(
+                            child: ColoredBox(
+                              color: Color(0xFF008751),
+                              child: SizedBox.expand(),
+                            ),
+                          ),
+                          Expanded(
+                            child: ColoredBox(
+                              color: Colors.white,
+                              child: SizedBox.expand(),
+                            ),
+                          ),
+                          Expanded(
+                            child: ColoredBox(
+                              color: Color(0xFF008751),
+                              child: SizedBox.expand(),
+                            ),
+                          ),
                         ],
                       ),
                     ),
                   ),
-                  const SizedBox(width: 8),
+                  const SizedBox(width: 10),
                   Text('+234', style: _value),
+                  const SizedBox(width: 6),
+                  const Icon(
+                    Icons.keyboard_arrow_down,
+                    size: 22,
+                    color: McColors.bodyText,
+                  ),
                 ],
               ),
             ),
@@ -323,9 +379,18 @@ class _DomesticStaffFlowPageState extends ConsumerState<DomesticStaffFlowPage> {
             Expanded(
               child: _editing
                   ? Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 13),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 16,
+                      ),
                       decoration: _boxField,
-                      child: Text((widget.existing!['phone'] as String).replaceFirst('+234', ''), style: _value),
+                      child: Text(
+                        (widget.existing!['phone'] as String).replaceFirst(
+                          '+234',
+                          '',
+                        ),
+                        style: _value,
+                      ),
                     )
                   : TextField(
                       controller: _phone,
@@ -337,10 +402,20 @@ class _DomesticStaffFlowPageState extends ConsumerState<DomesticStaffFlowPage> {
             ),
           ],
         ),
-        const SizedBox(height: 6),
-        Text('Use the number they will message MyCove with.', style: McTextStyles.body(height: 1.6, fontSize: 11.5, color: McColors.bodyText)),
-        const SizedBox(height: 22),
-        _sectionTitle('When can they come?', 'Select the days they normally visit.'),
+        const SizedBox(height: 10),
+        Text(
+          'Use the number they will message MyCove with.',
+          style: McTextStyles.body(
+            fontSize: 13,
+            color: McColors.bodyText,
+            height: 1.5,
+          ),
+        ),
+        const SizedBox(height: 40),
+        _sectionTitle(
+          'When can they come?',
+          'Select the days they normally visit.',
+        ),
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
@@ -348,22 +423,28 @@ class _DomesticStaffFlowPageState extends ConsumerState<DomesticStaffFlowPage> {
               Semantics(
                 label: _dayNames[d],
                 child: GestureDetector(
-                  onTap: () => setState(() => _days.contains(d) ? _days.remove(d) : _days.add(d)),
+                  onTap: () => setState(
+                    () => _days.contains(d) ? _days.remove(d) : _days.add(d),
+                  ),
                   child: Container(
-                    width: 40,
-                    height: 40,
+                    width: 44,
+                    height: 44,
                     alignment: Alignment.center,
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(McRadii.button),
-                      color: _days.contains(d) ? McColors.accent2 : McColors.surface,
-                      border: _days.contains(d) ? null : Border.all(color: McColors.neutralN(300)),
+                      color: _days.contains(d)
+                          ? McColors.accent2
+                          : McColors.surface,
+                      border: _days.contains(d)
+                          ? null
+                          : Border.all(color: McColors.neutralN(300)),
                     ),
                     child: Text(
                       _dayLetters[d],
-                      style: McTextStyles.body(height: 1.6, 
-                        fontSize: 13,
+                      style: McTextStyles.body(
+                        fontSize: 15,
                         fontWeight: FontWeight.w600,
-                        color: _days.contains(d) ? Colors.white : McColors.bodyText,
+                        color: _days.contains(d) ? Colors.white : McColors.text,
                       ),
                     ),
                   ),
@@ -371,43 +452,40 @@ class _DomesticStaffFlowPageState extends ConsumerState<DomesticStaffFlowPage> {
               ),
           ],
         ),
-        const SizedBox(height: 12),
-        GestureDetector(
-          onTap: () => setState(_days.clear),
-          child: Container(
-            width: double.infinity,
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 11),
-            decoration: BoxDecoration(
-              color: anyDay ? McColors.accent2N(100) : McColors.surface,
-              borderRadius: BorderRadius.circular(McRadii.button),
-              border: anyDay ? null : Border.all(color: McColors.neutralN(300)),
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(Icons.calendar_today_outlined, size: 16, color: anyDay ? McColors.accent2N(700) : McColors.bodyText),
-                const SizedBox(width: 8),
-                Text(
-                  anyDay ? 'Allow any day' : '${daysLabel(_days.toList())} · tap to allow any day',
-                  style: McTextStyles.body(height: 1.6, 
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                    color: anyDay ? McColors.accent2N(700) : McColors.bodyText,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
         const SizedBox(height: 20),
+        McButton(
+          label: 'Allow any day',
+          variant: ChButtonVariant.outlined,
+          selected: anyDay,
+          verticalPadding: 15,
+          leading: Icon(
+            Icons.calendar_today_outlined,
+            size: 20,
+            color: anyDay ? McColors.accent2 : McColors.text,
+          ),
+          onPressed: () => setState(_days.clear),
+        ),
+        const SizedBox(height: 8),
       ],
-      actions: [McButton(verticalPadding: 15, label: _fromReview ? 'Done' : 'Next', onPressed: _basicsNext)],
+      actions: [
+        McButton(
+          verticalPadding: 15,
+          label: _fromReview ? 'Done' : 'Next',
+          onPressed: _basicsNext,
+        ),
+      ],
     );
   }
 
   Future<void> _pickTime(bool start) async {
     final current = start ? _start : _end;
-    var picked = DateTime(2000, 1, 1, int.parse(current.substring(0, 2)), int.parse(current.substring(3, 5)));
+    var picked = DateTime(
+      2000,
+      1,
+      1,
+      int.parse(current.substring(0, 2)),
+      int.parse(current.substring(3, 5)),
+    );
     final confirmed = await showMcSheet<bool>(
       context,
       builder: (sheetContext) => SafeArea(
@@ -417,13 +495,19 @@ class _DomesticStaffFlowPageState extends ConsumerState<DomesticStaffFlowPage> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(start ? 'From what time?' : 'Until what time?', style: McTextStyles.heading(height: 1.35, fontSize: 18, fontWeight: FontWeight.w600)),
+              Text(
+                start ? 'From what time?' : 'Until what time?',
+                style: McTextStyles.heading(fontSize: 18),
+              ),
               SizedBox(
                 height: 190,
                 child: CupertinoTheme(
                   data: CupertinoThemeData(
                     textTheme: CupertinoTextThemeData(
-                      dateTimePickerTextStyle: McTextStyles.body(height: 1.6, fontSize: 20, color: McColors.text),
+                      dateTimePickerTextStyle: McTextStyles.body(
+                        fontSize: 20,
+                        color: McColors.text,
+                      ),
                     ),
                   ),
                   child: CupertinoDatePicker(
@@ -434,102 +518,167 @@ class _DomesticStaffFlowPageState extends ConsumerState<DomesticStaffFlowPage> {
                   ),
                 ),
               ),
-              McButton(verticalPadding: 15, label: 'Done', onPressed: () => Navigator.of(sheetContext).pop(true)),
+              McButton(
+                verticalPadding: 15,
+                label: 'Done',
+                onPressed: () => Navigator.of(sheetContext).pop(true),
+              ),
             ],
           ),
         ),
       ),
     );
     if (confirmed != true) return;
-    final value = '${picked.hour.toString().padLeft(2, '0')}:${picked.minute.toString().padLeft(2, '0')}';
+    final value =
+        '${picked.hour.toString().padLeft(2, '0')}:${picked.minute.toString().padLeft(2, '0')}';
     setState(() => start ? _start = value : _end = value);
   }
 
+  /// A time box: small label, then a clock icon and the time, with a chevron.
   Widget _timeTile(String label, String value, bool start) => GestureDetector(
-        onTap: () => _pickTime(start),
-        child: Container(
-          width: double.infinity,
-          margin: const EdgeInsets.only(top: 12),
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-          decoration: _boxField,
-          child: Row(
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(label, style: McTextStyles.body(height: 1.6, fontSize: 11.5, color: McColors.bodyText)),
-                    const SizedBox(height: 2),
-                    Text(timeLabel(value), style: _value),
-                  ],
-                ),
-              ),
-              const Icon(Icons.keyboard_arrow_down, color: McColors.bodyText),
-            ],
-          ),
-        ),
-      );
-
-  Widget _switchRow(IconData icon, String title, String? subtitle, bool value, ValueChanged<bool> onChanged) => Row(
+    onTap: () => _pickTime(start),
+    child: Container(
+      width: double.infinity,
+      margin: const EdgeInsets.only(top: 14),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      decoration: BoxDecoration(
+        color: McColors.inputFill,
+        borderRadius: BorderRadius.circular(McRadii.button),
+      ),
+      child: Row(
         children: [
-          _iconCircle(icon),
-          const SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(title, style: McTextStyles.body(height: 1.6, fontSize: 14, color: McColors.text)),
-                if (subtitle != null) ...[
-                  const SizedBox(height: 2),
-                  Text(subtitle, style: McTextStyles.body(height: 1.6, fontSize: 11.5, color: McColors.bodyText)),
-                ],
+                Text(
+                  label,
+                  style: McTextStyles.body(
+                    fontSize: 12,
+                    color: McColors.bodyText,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Row(
+                  children: [
+                    const Icon(
+                      Icons.access_time,
+                      size: 22,
+                      color: McColors.bodyText,
+                    ),
+                    const SizedBox(width: 10),
+                    Text(
+                      timeLabelPadded(value),
+                      style: McTextStyles.body(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: McColors.text,
+                      ),
+                    ),
+                  ],
+                ),
               ],
             ),
           ),
-          Switch(
-            value: value,
-            onChanged: onChanged,
-            activeThumbColor: McColors.accent2,
+          const Icon(
+            Icons.keyboard_arrow_down,
+            size: 26,
+            color: McColors.bodyText,
           ),
         ],
-      );
+      ),
+    ),
+  );
 
-  Widget _iconCircle(IconData icon) => Container(
-        width: 36,
-        height: 36,
-        decoration: BoxDecoration(color: McColors.accent2N(100), shape: BoxShape.circle),
-        child: Icon(icon, size: 18, color: McColors.accent2N(700)),
-      );
+  Widget _switchRow(
+    DomesticIcon icon,
+    String title,
+    String? subtitle,
+    bool value,
+    ValueChanged<bool> onChanged,
+  ) => Row(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      DomesticGlyph(icon, size: 24, color: McColors.text),
+      const SizedBox(width: 14),
+      Expanded(
+        child: Padding(
+          padding: const EdgeInsets.only(top: 2),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(title, style: McTextStyles.heading(fontSize: 16)),
+              if (subtitle != null) ...[
+                const SizedBox(height: 6),
+                Text(
+                  subtitle,
+                  style: McTextStyles.body(
+                    fontSize: 13,
+                    color: McColors.bodyText,
+                    height: 1.5,
+                  ),
+                ),
+              ],
+            ],
+          ),
+        ),
+      ),
+      Switch(
+        value: value,
+        onChanged: onChanged,
+        activeThumbColor: McColors.accent2,
+      ),
+    ],
+  );
 
   Widget _hours() {
     return _page(
       title: _editing ? 'Edit domestic staff' : 'Add domestic staff',
       children: [
-        _sectionTitle('Access hours', 'Limit access to specific hours (optional).'),
+        _sectionTitle(
+          'Access hours',
+          'Limit access to specific hours (optional).',
+        ),
         _card(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _switchRow(Icons.access_time, 'Set access hours', null, _setHours, (v) => setState(() => _setHours = v)),
+              _switchRow(
+                DomesticIcon.hours,
+                'Set access hours',
+                null,
+                _setHours,
+                (v) => setState(() => _setHours = v),
+              ),
               if (_setHours) ...[
                 _timeTile('From', _start, true),
                 _timeTile('Until', _end, false),
-                const SizedBox(height: 10),
+                const SizedBox(height: 14),
                 Text(
                   'They can ask for a code from 15 minutes before the start time until the end time.',
-                  style: McTextStyles.body(height: 1.6, fontSize: 11.5, color: McColors.bodyText),
+                  style: McTextStyles.body(
+                    fontSize: 13,
+                    color: McColors.bodyText,
+                    height: 1.5,
+                  ),
                 ),
               ] else ...[
-                const SizedBox(height: 8),
-                Text('Off: they can ask for a code at any time on their days.', style: McTextStyles.body(height: 1.6, fontSize: 11.5, color: McColors.bodyText)),
+                const SizedBox(height: 10),
+                Text(
+                  'Off: they can ask for a code at any time on their days.',
+                  style: McTextStyles.body(
+                    fontSize: 13,
+                    color: McColors.bodyText,
+                    height: 1.5,
+                  ),
+                ),
               ],
             ],
           ),
         ),
         _card(
-          bottom: 20,
           child: _switchRow(
-            Icons.shield_outlined,
+            DomesticIcon.approval,
             'Approve each request',
             'You will get a notification and must approve before they receive a code.',
             _approval,
@@ -537,31 +686,50 @@ class _DomesticStaffFlowPageState extends ConsumerState<DomesticStaffFlowPage> {
           ),
         ),
       ],
-      actions: [McButton(verticalPadding: 15, label: 'Save', onPressed: _hoursSave)],
+      actions: [
+        McButton(verticalPadding: 15, label: 'Save', onPressed: _hoursSave),
+      ],
     );
   }
 
-  Widget _reviewRow(IconData icon, String title, String value, {VoidCallback? onEdit, bool last = false}) => Container(
-        padding: const EdgeInsets.symmetric(vertical: 12),
-        decoration: last ? null : const BoxDecoration(border: Border(bottom: BorderSide(color: McColors.divider))),
-        child: Row(
-          children: [
-            _iconCircle(icon),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(title, style: McTextStyles.body(height: 1.6, fontSize: 13, fontWeight: FontWeight.w500, color: McColors.text)),
-                  const SizedBox(height: 2),
-                  Text(value, style: McTextStyles.body(height: 1.6, fontSize: 11.5, color: McColors.bodyText)),
-                ],
+  Widget _reviewRow(
+    DomesticIcon icon,
+    String title,
+    String value, {
+    VoidCallback? onEdit,
+    bool last = false,
+  }) => Container(
+    padding: const EdgeInsets.symmetric(vertical: 22),
+    decoration: last
+        ? null
+        : const BoxDecoration(
+            border: Border(bottom: BorderSide(color: McColors.divider)),
+          ),
+    child: Row(
+      children: [
+        DomesticIconCircle(icon),
+        const SizedBox(width: 16),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(title, style: McTextStyles.heading(fontSize: 16)),
+              const SizedBox(height: 6),
+              Text(
+                value,
+                style: McTextStyles.body(
+                  fontSize: 14,
+                  color: McColors.bodyText,
+                  height: 1.5,
+                ),
               ),
-            ),
-            if (onEdit != null) McTextButton(label: 'Edit', onPressed: onEdit),
-          ],
+            ],
+          ),
         ),
-      );
+        if (onEdit != null) McTextButton(label: 'Edit', onPressed: onEdit),
+      ],
+    ),
+  );
 
   Widget _review() {
     final days = _days.toList()..sort();
@@ -569,17 +737,33 @@ class _DomesticStaffFlowPageState extends ConsumerState<DomesticStaffFlowPage> {
       title: 'Review details',
       children: [
         _card(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-          bottom: 20,
+          padding: const EdgeInsets.symmetric(horizontal: 18),
           child: Column(
             children: [
-              _reviewRow(Icons.person_outline, _name.text.trim(), _fullPhone ?? '', onEdit: () => _editFromReview(_Step.basics)),
-              _reviewRow(Icons.calendar_today_outlined, 'Access days', daysLabel(days), onEdit: () => _editFromReview(_Step.basics)),
-              _reviewRow(Icons.access_time, 'Access hours', hoursLabel(_startTime, _endTime), onEdit: () => _editFromReview(_Step.hours)),
               _reviewRow(
-                Icons.shield_outlined,
+                DomesticIcon.person,
+                _name.text.trim(),
+                _fullPhone ?? '',
+                onEdit: () => _editFromReview(_Step.basics),
+              ),
+              _reviewRow(
+                DomesticIcon.days,
+                'Access days',
+                daysLabel(days),
+                onEdit: () => _editFromReview(_Step.basics),
+              ),
+              _reviewRow(
+                DomesticIcon.hours,
+                'Access hours',
+                hoursLabel(_startTime, _endTime),
+                onEdit: () => _editFromReview(_Step.hours),
+              ),
+              _reviewRow(
+                DomesticIcon.approval,
                 'Approval',
-                _approval ? 'Require approval for each request' : 'No approval needed',
+                _approval
+                    ? 'Require approval for each request'
+                    : 'No approval needed',
                 onEdit: () => _editFromReview(_Step.hours),
                 last: true,
               ),
@@ -588,74 +772,179 @@ class _DomesticStaffFlowPageState extends ConsumerState<DomesticStaffFlowPage> {
         ),
       ],
       actions: [
-        McButton(verticalPadding: 15, label: _editing ? 'Save changes' : 'Add domestic staff', onPressed: _busy ? null : _submit, isLoading: _busy),
-        const SizedBox(height: 10),
+        McButton(
+          verticalPadding: 15,
+          label: _editing ? 'Save changes' : 'Add domestic staff',
+          onPressed: _busy ? null : _submit,
+          isLoading: _busy,
+        ),
+        const SizedBox(height: 12),
         if (_editing) ...[
-          McButton(verticalPadding: 15, label: 'Remove domestic staff', variant: ChButtonVariant.danger, onPressed: _remove),
-          const SizedBox(height: 10),
+          McButton(
+            verticalPadding: 15,
+            label: 'Remove domestic staff',
+            variant: ChButtonVariant.danger,
+            onPressed: _remove,
+          ),
+          const SizedBox(height: 12),
         ],
-        McButton(verticalPadding: 15, label: 'Cancel', variant: ChButtonVariant.secondary, onPressed: () => Navigator.of(context).pop()),
+        McButton(
+          verticalPadding: 15,
+          label: 'Cancel',
+          variant: ChButtonVariant.outlined,
+          onPressed: () => Navigator.of(context).pop(),
+        ),
       ],
     );
   }
 
-  /// Laid out like the complaint-submitted page: green tick, title, one line, then the buttons.
+  /// The "Domestic staff added" page: tick in a soft ring, a summary card, Done at the bottom.
   Widget _success() {
     final days = _days.toList()..sort();
-    Widget row(String label, String value, {bool last = false}) => Container(
-          padding: const EdgeInsets.symmetric(vertical: 12),
-          decoration: last ? null : const BoxDecoration(border: Border(bottom: BorderSide(color: McColors.divider))),
-          child: Row(
+    Widget row(DomesticIcon icon, String label, String value) => Padding(
+      padding: const EdgeInsets.symmetric(vertical: 12),
+      child: Row(
+        children: [
+          DomesticGlyph(icon, size: 26, color: McColors.accent2),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  label,
+                  style: McTextStyles.body(
+                    fontSize: 13,
+                    color: McColors.bodyText,
+                  ),
+                ),
+                const SizedBox(height: 3),
+                Text(value, style: McTextStyles.heading(fontSize: 16)),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+
+    return Column(
+      children: [
+        Expanded(
+          child: ListView(
+            padding: const EdgeInsets.fromLTRB(_pad, 56, _pad, 24),
             children: [
-              Text(label, style: McTextStyles.body(height: 1.6, fontSize: 13, color: McColors.bodyText)),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Text(
-                  value,
-                  textAlign: TextAlign.right,
-                  style: McTextStyles.body(height: 1.6, fontSize: 13, fontWeight: FontWeight.w500, color: McColors.text),
+              Center(
+                child: Container(
+                  width: 112,
+                  height: 112,
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: McColors.accent2N(100).withValues(alpha: 0.6),
+                    border: Border.all(color: McColors.accent2N(100), width: 2),
+                  ),
+                  child: Container(
+                    width: 72,
+                    height: 72,
+                    decoration: const BoxDecoration(
+                      color: McColors.accent2,
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.check,
+                      color: Colors.white,
+                      size: 40,
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 28),
+              Text(
+                'Domestic staff added',
+                textAlign: TextAlign.center,
+                style: McTextStyles.heading(fontSize: 24),
+              ),
+              const SizedBox(height: 10),
+              Text(
+                '${_name.text.trim()} can now request gate access through WhatsApp.',
+                textAlign: TextAlign.center,
+                style: McTextStyles.body(
+                  fontSize: 15,
+                  color: McColors.bodyText,
+                  height: 1.6,
+                ),
+              ),
+              const SizedBox(height: 32),
+              Container(
+                decoration: BoxDecoration(
+                  color: McColors.surface,
+                  borderRadius: BorderRadius.circular(McRadii.card),
+                  boxShadow: McColors.cardShadow,
+                ),
+                clipBehavior: Clip.antiAlias,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 20,
+                        vertical: 16,
+                      ),
+                      color: McColors.accent2N(100),
+                      child: Row(
+                        children: [
+                          const Icon(
+                            Icons.event_note_outlined,
+                            size: 22,
+                            color: McColors.accent2,
+                          ),
+                          const SizedBox(width: 12),
+                          Text(
+                            'Access summary',
+                            style: McTextStyles.heading(fontSize: 16),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(20, 8, 20, 12),
+                      child: Column(
+                        children: [
+                          row(
+                            DomesticIcon.whatsapp,
+                            'WhatsApp number',
+                            _fullPhone ?? '',
+                          ),
+                          row(DomesticIcon.days, 'Days', daysLabel(days)),
+                          row(
+                            DomesticIcon.hours,
+                            'Hours',
+                            hoursLabel(_startTime, _endTime),
+                          ),
+                          row(
+                            DomesticIcon.approval,
+                            'Approval',
+                            _approval ? 'Required' : 'Not required',
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ],
           ),
-        );
-
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(_pad, 44, _pad, _pad),
-      child: ListView(
-        children: [
-          Center(
-            child: Container(
-              width: context.rs(64),
-              height: context.rs(64),
-              decoration: const BoxDecoration(color: McColors.accent2, shape: BoxShape.circle),
-              child: Icon(Icons.check, color: Colors.white, size: context.rs(30)),
-            ),
+        ),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(_pad, 8, _pad, 20),
+          child: McButton(
+            verticalPadding: 15,
+            label: 'Done',
+            onPressed: () => Navigator.of(context).pop(),
           ),
-          const SizedBox(height: 18),
-          Text('Domestic staff added', textAlign: TextAlign.center, style: McTextStyles.heading(height: 1.35, fontSize: 18)),
-          const SizedBox(height: 6),
-          Text(
-            '${_name.text.trim()} can now request gate access through WhatsApp.',
-            textAlign: TextAlign.center,
-            style: McTextStyles.body(height: 1.6, fontSize: 13, color: McColors.bodyText),
-          ),
-          const SizedBox(height: 22),
-          _card(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-            bottom: 22,
-            child: Column(
-              children: [
-                row('WhatsApp number', _fullPhone ?? ''),
-                row('Days', daysLabel(days)),
-                row('Hours', hoursLabel(_startTime, _endTime)),
-                row('Approval', _approval ? 'Required' : 'Not required', last: true),
-              ],
-            ),
-          ),
-          McButton(verticalPadding: 15, label: 'Done', onPressed: () => Navigator.of(context).pop()),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
@@ -668,13 +957,17 @@ class _DomesticStaffFlowPageState extends ConsumerState<DomesticStaffFlowPage> {
       _Step.success => _success(),
     };
     return PopScope(
-      canPop: _step == _Step.success ||
+      canPop:
+          _step == _Step.success ||
           (_step == _Step.basics && !_fromReview) ||
           (_step == _Step.review && (_editing || _fromReview)),
       onPopInvokedWithResult: (didPop, _) {
         if (!didPop) _back();
       },
-      child: Scaffold(backgroundColor: McColors.bg, body: SafeArea(child: body)),
+      child: Scaffold(
+        backgroundColor: McColors.bg,
+        body: SafeArea(child: body),
+      ),
     );
   }
 }
