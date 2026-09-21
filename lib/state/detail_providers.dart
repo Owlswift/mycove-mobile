@@ -14,6 +14,12 @@ final domesticStaffProvider = FutureProvider.autoDispose<List<Map<String, dynami
   (ref) async => (await ref.watch(myCoveApiProvider).domesticStaff()).cast<Map<String, dynamic>>(),
 );
 
+/// The gate log for one staff member (or, with a null id, all of them).
+final domesticLogProvider = FutureProvider.autoDispose.family<List<Map<String, dynamic>>, String?>(
+  (ref, staffId) async =>
+      (await ref.watch(myCoveApiProvider).domesticLog(staffId: staffId)).cast<Map<String, dynamic>>(),
+);
+
 final domesticRequestsProvider = FutureProvider.autoDispose<List<Map<String, dynamic>>>(
   (ref) async => (await ref.watch(myCoveApiProvider).domesticRequests()).cast<Map<String, dynamic>>(),
 );

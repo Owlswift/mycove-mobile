@@ -273,6 +273,18 @@ class _StaffList extends StatelessWidget {
           leading: const Icon(Icons.add, size: 22, color: Colors.white),
           onPressed: onAdd,
         ),
+        const SizedBox(height: 12),
+        McButton(
+          verticalPadding: 15,
+          label: 'Entry & exit log',
+          variant: ChButtonVariant.outlined,
+          leading: const Icon(
+            Icons.login_rounded,
+            size: 20,
+            color: McColors.text,
+          ),
+          onPressed: () => context.push('/resident/domestic-staff/log'),
+        ),
         const SizedBox(height: 22),
         for (final r in requests)
           _card(
@@ -346,9 +358,16 @@ class _StaffList extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          s['name'] as String,
-                          style: McTextStyles.heading(fontSize: 14),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                s['name'] as String,
+                                style: McTextStyles.heading(fontSize: 14),
+                              ),
+                            ),
+                            if (s['insideNow'] == true) const _InsidePill(),
+                          ],
                         ),
                         _line(DomesticIcon.whatsapp, s['phone'] as String),
                         _line(
@@ -379,6 +398,30 @@ class _StaffList extends StatelessWidget {
             ),
           ),
       ],
+    );
+  }
+}
+
+/// Shown on a staff card while a guard has let them in and not yet out.
+class _InsidePill extends StatelessWidget {
+  const _InsidePill();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+      decoration: BoxDecoration(
+        color: McColors.accent2N(100),
+        borderRadius: BorderRadius.circular(McRadii.pill),
+      ),
+      child: Text(
+        'INSIDE NOW',
+        style: McTextStyles.body(
+          fontSize: 10,
+          fontWeight: FontWeight.w700,
+          color: McColors.accent2N(700),
+        ),
+      ),
     );
   }
 }

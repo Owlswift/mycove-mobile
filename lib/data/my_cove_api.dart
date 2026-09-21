@@ -283,6 +283,10 @@ class MyCoveApi {
 
   Future<void> removeDomesticStaff(String id) => _dio.delete('/domestic-staff/$id');
 
+  /// Entries and exits the guards recorded for the resident's staff — one person's, or everyone's.
+  Future<List<dynamic>> domesticLog({String? staffId}) async =>
+      _list(await _dio.get(staffId == null ? '/domestic-staff/log' : '/domestic-staff/$staffId/log'));
+
   Future<List<dynamic>> domesticRequests() async => _list(await _dio.get('/domestic-staff/requests'));
 
   Future<void> decideDomesticRequest(String id, {required bool approve}) =>

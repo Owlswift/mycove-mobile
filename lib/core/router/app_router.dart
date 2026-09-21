@@ -55,6 +55,7 @@ import '../../features/resident/presentation/pages/visitor_detail_page.dart';
 import '../../features/resident/presentation/pages/visitor_page.dart';
 import '../../features/resident/presentation/pages/voice_settings_page.dart';
 import '../../features/resident/presentation/pages/wallet_page.dart';
+import '../../features/resident/presentation/pages/domestic_log_page.dart';
 import '../../features/resident/presentation/pages/domestic_staff_flow_page.dart';
 import '../../features/resident/presentation/pages/domestic_staff_page.dart';
 import '../../features/resident/presentation/widgets/resident_shell.dart';
@@ -190,6 +191,16 @@ final routerProvider = Provider<GoRouter>((ref) {
                     path: 'domestic-staff',
                     builder: (_, _) => const DomesticStaffPage(),
                     routes: [
+                      GoRoute(
+                        path: 'log',
+                        builder: (_, state) {
+                          final extra = state.extra as Map<String, dynamic>?;
+                          return DomesticLogPage(
+                            staffId: extra?['id'] as String?,
+                            staffName: extra?['name'] as String?,
+                          );
+                        },
+                      ),
                       GoRoute(
                         path: 'add',
                         builder: (_, state) =>

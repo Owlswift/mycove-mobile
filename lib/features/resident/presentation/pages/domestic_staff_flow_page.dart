@@ -7,6 +7,7 @@ import 'package:flutter/cupertino.dart'
         CupertinoThemeData;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../../core/network/api_exception.dart';
 import '../../../../core/theme/mc_colors.dart';
@@ -780,6 +781,24 @@ class _DomesticStaffFlowPageState extends ConsumerState<DomesticStaffFlowPage> {
         ),
         const SizedBox(height: 12),
         if (_editing) ...[
+          McButton(
+            verticalPadding: 15,
+            label: 'Entry & exit log',
+            variant: ChButtonVariant.outlined,
+            leading: const Icon(
+              Icons.login_rounded,
+              size: 20,
+              color: McColors.text,
+            ),
+            onPressed: () => context.push(
+              '/resident/domestic-staff/log',
+              extra: {
+                'id': widget.existing!['id'],
+                'name': widget.existing!['name'],
+              },
+            ),
+          ),
+          const SizedBox(height: 12),
           McButton(
             verticalPadding: 15,
             label: 'Remove domestic staff',
