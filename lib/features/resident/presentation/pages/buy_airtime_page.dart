@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../../core/theme/mc_colors.dart';
 import '../../../../core/theme/mc_responsive.dart';
@@ -7,6 +8,7 @@ import '../../../../core/theme/mc_spacing.dart';
 import '../../../../core/theme/mc_text_styles.dart';
 import '../../../../core/widgets/mc_button.dart';
 import '../../../../core/widgets/mc_generic_header.dart';
+import '../../../../core/widgets/mc_payment_method_tile.dart';
 import '../../../../state/app_notifier.dart';
 
 const _networks = [
@@ -133,6 +135,27 @@ class _BuyAirtimePageState extends ConsumerState<BuyAirtimePage> {
                   ],
                 ),
                 SizedBox(height: context.rs(18)),
+                Text(
+                  'Pay With',
+                  style: McTextStyles.body(fontSize: 12, color: McColors.bodyText),
+                ),
+                SizedBox(height: context.rs(8)),
+                McPaymentMethodTile(
+                  icon: Icons.account_balance_wallet_rounded,
+                  label: 'Wallet Balance',
+                  subtitle: s.walletBalanceLabel,
+                  selected: s.utilityPaymentMethod == 'WALLET',
+                  onTap: () => notifier.selectUtilityPaymentMethod('WALLET'),
+                ),
+                SizedBox(height: context.rs(10)),
+                McPaymentMethodTile(
+                  icon: Icons.credit_card_rounded,
+                  label: 'Pay via Paystack',
+                  subtitle: 'Card, bank transfer or USSD',
+                  selected: s.utilityPaymentMethod == 'PAYSTACK',
+                  onTap: () => notifier.selectUtilityPaymentMethod('PAYSTACK'),
+                ),
+                SizedBox(height: context.rs(18)),
                 if (s.utilityError.isNotEmpty) ...[
                   Text(
                     s.utilityError,
@@ -145,7 +168,11 @@ class _BuyAirtimePageState extends ConsumerState<BuyAirtimePage> {
                   isLoading: s.utilityLoading,
                   onPressed: s.utilityLoading
                       ? null
-                      : () => notifier.requestAuthorization('airtime'),
+                      : () => s.utilityPaymentMethod == 'PAYSTACK'
+                          ? notifier.buyAirtime().then((ok) {
+                              if (ok && context.mounted) context.go('/resident/airtime/success');
+                            })
+                          : notifier.requestAuthorization('airtime'),
                 ),
               ],
             ),

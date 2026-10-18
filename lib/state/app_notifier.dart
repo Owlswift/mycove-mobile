@@ -1351,6 +1351,7 @@ class AppNotifier extends StateNotifier<AppState> {
     paymentStep: PaymentStep.idle,
     paymentReference: null,
     pendingPaymentAmount: state.duesBalance,
+    pendingPaymentAmountEditable: true,
     pendingPaymentPurpose: 'DUES',
     pendingPaymentLevyId: null,
     paymentMethod: 'PAYSTACK',
@@ -1362,6 +1363,7 @@ class AppNotifier extends StateNotifier<AppState> {
     paymentStep: PaymentStep.idle,
     paymentReference: null,
     pendingPaymentAmount: levy.amount,
+    pendingPaymentAmountEditable: false,
     pendingPaymentPurpose: 'LEVY',
     pendingPaymentLevyId: levy.id,
     paymentMethod: 'PAYSTACK',
@@ -1371,6 +1373,11 @@ class AppNotifier extends StateNotifier<AppState> {
   /// 'PAYSTACK' or 'WALLET'.
   void selectPaymentMethod(String method) =>
       state = state.copyWith(paymentMethod: method);
+
+  /// Lets a resident type how much of the dues balance to pay — only used
+  /// when [AppState.pendingPaymentAmountEditable] is true.
+  void setPendingPaymentAmount(int amount) =>
+      state = state.copyWith(pendingPaymentAmount: amount);
 
   Future<void> confirmPayment() async {
     state = state.copyWith(paymentStep: PaymentStep.processing);
@@ -1877,11 +1884,27 @@ class AppNotifier extends StateNotifier<AppState> {
       airtimePhone: '',
       airtimeAmount: '',
       utilityError: '',
+      utilityPaymentMethod: 'PAYSTACK',
     );
   }
   void onAirtimeNetwork(String v) => state = state.copyWith(airtimeNetwork: v);
   void onAirtimePhone(String v) => state = state.copyWith(airtimePhone: v);
   void onAirtimeAmount(String v) => state = state.copyWith(airtimeAmount: v);
+
+  /// Shared by airtime and electricity — 'PAYSTACK' or 'WALLET'.
+  void selectUtilityPaymentMethod(String method) =>
+      state = state.copyWith(utilityPaymentMethod: method);
+
+  /// For a PAYSTACK-funded utility purchase: tops the wallet up by exactly
+  /// the purchase amount via a real Paystack checkout, then the caller
+  /// proceeds with the normal wallet-debiting purchase call below. Reuses
+  /// [fundWallet] rather than duplicating its checkout-launch/poll logic —
+  /// if the vendor purchase then somehow fails, the money is simply sitting
+  /// in the wallet rather than lost in a refund limbo.
+  Future<bool> _topUpForUtilityPurchase(int amount) async {
+    await fundWallet(amount);
+    return state.walletTopUpStep == WalletTopUpStep.idle && _walletTopUpError.isEmpty;
+  }
 
   Future<bool> buyAirtime() async {
     final amount = int.tryParse(state.airtimeAmount.trim());
@@ -1895,13 +1918,30 @@ class AppNotifier extends StateNotifier<AppState> {
       );
       return false;
     }
+    final method = state.utilityPaymentMethod;
     state = state.copyWith(utilityLoading: true, utilityError: '');
     _analytics.track('airtime_purchase_started', {
       'amount': amount,
       'network': state.airtimeNetwork,
-      'payment_method': 'wallet',
+      'payment_method': method.toLowerCase(),
       'entry_point': 'manual',
     });
+    if (method == 'PAYSTACK') {
+      final funded = await _topUpForUtilityPurchase(amount);
+      if (!funded) {
+        _analytics.track('airtime_purchase_failed', {
+          'amount': amount,
+          'network': state.airtimeNetwork,
+          'payment_method': 'paystack',
+          'failure_reason': 'payment_not_completed',
+        });
+        state = state.copyWith(
+          utilityLoading: false,
+          utilityError: _walletTopUpError.isNotEmpty ? _walletTopUpError : 'Payment was not completed.',
+        );
+        return false;
+      }
+    }
     try {
       final json = await _api.buyAirtime(
         network: state.airtimeNetwork,
@@ -1922,7 +1962,7 @@ class AppNotifier extends StateNotifier<AppState> {
         {
           'amount': amount,
           'network': state.airtimeNetwork,
-          'payment_method': 'wallet',
+          'payment_method': method.toLowerCase(),
           if (!success && purchase.failureReason != null)
             'failure_reason': purchase.failureReason,
         },
@@ -1938,7 +1978,7 @@ class AppNotifier extends StateNotifier<AppState> {
       _analytics.track('airtime_purchase_failed', {
         'amount': amount,
         'network': state.airtimeNetwork,
-        'payment_method': 'wallet',
+        'payment_method': method.toLowerCase(),
         'failure_reason': extractMessage(e),
       });
       state = state.copyWith(utilityLoading: false, utilityError: extractMessage(e));
@@ -1970,6 +2010,7 @@ class AppNotifier extends StateNotifier<AppState> {
       elecVerifiedName: null,
       elecVerifiedAddress: null,
       utilityError: '',
+      utilityPaymentMethod: 'PAYSTACK',
     );
   }
 
@@ -2115,14 +2156,31 @@ class AppNotifier extends StateNotifier<AppState> {
       );
       return false;
     }
+    final method = state.utilityPaymentMethod;
     state = state.copyWith(utilityLoading: true, utilityError: '');
     _analytics.track('electricity_purchase_started', {
       'amount': amount,
       'disco': state.elecDiscoCode,
       'meter_type': state.elecMeterType,
-      'payment_method': 'wallet',
+      'payment_method': method.toLowerCase(),
       'entry_point': 'manual',
     });
+    if (method == 'PAYSTACK') {
+      final funded = await _topUpForUtilityPurchase(amount);
+      if (!funded) {
+        _analytics.track('electricity_purchase_failed', {
+          'amount': amount,
+          'disco': state.elecDiscoCode,
+          'payment_method': 'paystack',
+          'failure_reason': 'payment_not_completed',
+        });
+        state = state.copyWith(
+          utilityLoading: false,
+          utilityError: _walletTopUpError.isNotEmpty ? _walletTopUpError : 'Payment was not completed.',
+        );
+        return false;
+      }
+    }
     try {
       final meterJson = await _api.saveMeter(
         discoCode: state.elecDiscoCode,
@@ -2147,7 +2205,7 @@ class AppNotifier extends StateNotifier<AppState> {
         {
           'amount': amount,
           'disco': state.elecDiscoCode,
-          'payment_method': 'wallet',
+          'payment_method': method.toLowerCase(),
           if (!success && purchase.failureReason != null)
             'failure_reason': purchase.failureReason,
         },
@@ -2169,7 +2227,7 @@ class AppNotifier extends StateNotifier<AppState> {
       _analytics.track('electricity_purchase_failed', {
         'amount': amount,
         'disco': state.elecDiscoCode,
-        'payment_method': 'wallet',
+        'payment_method': method.toLowerCase(),
         'failure_reason': extractMessage(e),
       });
       state = state.copyWith(utilityLoading: false, utilityError: extractMessage(e));

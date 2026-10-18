@@ -4,10 +4,10 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../core/theme/mc_colors.dart';
 import '../../../../core/theme/mc_responsive.dart';
-import '../../../../core/theme/mc_spacing.dart';
 import '../../../../core/theme/mc_text_styles.dart';
 import '../../../../core/widgets/mc_button.dart';
 import '../../../../core/widgets/mc_generic_header.dart';
+import '../../../../core/widgets/mc_payment_method_tile.dart';
 import '../../../../data/models/utility_meter.dart';
 import '../../../../state/app_notifier.dart';
 import '../../../../state/app_state.dart';
@@ -24,6 +24,7 @@ class ElectricityPaymentPage extends ConsumerWidget {
     final amount = int.tryParse(s.elecAmount.trim()) ?? 0;
     final total = amount + _transactionFee;
     final hasSufficientBalance = s.walletBalance >= total;
+    final isPaystack = s.utilityPaymentMethod == 'PAYSTACK';
 
     return Column(
       children: [
@@ -58,33 +59,23 @@ class ElectricityPaymentPage extends ConsumerWidget {
                 SizedBox(height: context.rs(24)),
                 Text('Select Payment Method', style: McTextStyles.heading(fontSize: 16)),
                 SizedBox(height: context.rs(14)),
-                _PaymentMethodTile(
+                McPaymentMethodTile(
                   icon: Icons.account_balance_wallet_rounded,
                   label: 'Wallet Balance',
-                  subtitle: s.walletBalanceLabel,
-                  selected: true,
-                  insufficientBalance: !hasSufficientBalance,
+                  subtitle: hasSufficientBalance ? s.walletBalanceLabel : '${s.walletBalanceLabel} · Insufficient',
+                  selected: !isPaystack,
+                  enabled: hasSufficientBalance,
+                  onTap: () => notifier.selectUtilityPaymentMethod('WALLET'),
                 ),
                 SizedBox(height: context.rs(10)),
-                const _PaymentMethodTile(
+                McPaymentMethodTile(
                   icon: Icons.credit_card_rounded,
-                  label: 'Card Payment',
-                  comingSoon: true,
-                ),
-                SizedBox(height: context.rs(10)),
-                const _PaymentMethodTile(
-                  icon: Icons.account_balance_rounded,
-                  label: 'Bank Transfer',
-                  comingSoon: true,
+                  label: 'Pay via Paystack',
+                  subtitle: 'Card, bank transfer or USSD',
+                  selected: isPaystack,
+                  onTap: () => notifier.selectUtilityPaymentMethod('PAYSTACK'),
                 ),
                 SizedBox(height: context.rs(24)),
-                if (!hasSufficientBalance) ...[
-                  Text(
-                    'Your wallet balance is too low for this purchase.',
-                    style: McTextStyles.body(fontSize: 13, color: McColors.danger),
-                  ),
-                  SizedBox(height: context.rs(12)),
-                ],
                 if (s.utilityError.isNotEmpty) ...[
                   Text(s.utilityError, style: McTextStyles.body(fontSize: 13, color: McColors.danger)),
                   SizedBox(height: context.rs(12)),
@@ -92,9 +83,13 @@ class ElectricityPaymentPage extends ConsumerWidget {
                 McButton(
                   label: 'Pay ${formatNaira(total)}',
                   isLoading: s.utilityLoading,
-                  onPressed: (s.utilityLoading || !hasSufficientBalance)
+                  onPressed: (s.utilityLoading || (!isPaystack && !hasSufficientBalance))
                       ? null
-                      : () => notifier.requestAuthorization('electricity'),
+                      : () => isPaystack
+                          ? notifier.buyElectricity().then((ok) {
+                              if (ok && context.mounted) context.go('/resident/electricity/success');
+                            })
+                          : notifier.requestAuthorization('electricity'),
                 ),
               ],
             ),
@@ -138,93 +133,3 @@ class _SummaryRow extends StatelessWidget {
   }
 }
 
-class _PaymentMethodTile extends StatelessWidget {
-  const _PaymentMethodTile({
-    required this.icon,
-    required this.label,
-    this.subtitle,
-    this.selected = false,
-    this.comingSoon = false,
-    this.insufficientBalance = false,
-  });
-
-  final IconData icon;
-  final String label;
-  final String? subtitle;
-  final bool selected;
-  final bool comingSoon;
-  final bool insufficientBalance;
-
-  @override
-  Widget build(BuildContext context) {
-    final accentColor = insufficientBalance ? McColors.danger : McColors.accent2;
-    return Opacity(
-      opacity: comingSoon ? 0.5 : 1,
-      child: GestureDetector(
-        onTap: comingSoon
-            ? () => ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('This payment method is coming soon.')),
-              )
-            : null,
-        child: Container(
-          padding: EdgeInsets.symmetric(horizontal: context.rs(14), vertical: context.rs(12)),
-          decoration: BoxDecoration(
-            color: selected ? accentColor.withValues(alpha: 0.08) : McColors.surface,
-            borderRadius: BorderRadius.circular(McRadii.md),
-            border: Border.all(color: selected ? accentColor : McColors.divider),
-          ),
-          child: Row(
-            children: [
-              Icon(icon, color: McColors.bodyText, size: context.rs(20)),
-              SizedBox(width: context.rs(10)),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Text(
-                          label,
-                          style: McTextStyles.body(fontSize: 14, fontWeight: FontWeight.w600, color: McColors.text),
-                        ),
-                        if (comingSoon) ...[
-                          SizedBox(width: context.rs(8)),
-                          Container(
-                            padding: EdgeInsets.symmetric(horizontal: context.rs(8), vertical: context.rs(3)),
-                            decoration: BoxDecoration(
-                              color: McColors.surfaceSunken,
-                              borderRadius: BorderRadius.circular(McRadii.pill),
-                            ),
-                            child: Text(
-                              'Coming soon',
-                              style: McTextStyles.body(fontSize: 10.5, fontWeight: FontWeight.w600, color: McColors.bodyText),
-                            ),
-                          ),
-                        ],
-                      ],
-                    ),
-                    if (subtitle != null) ...[
-                      SizedBox(height: context.rs(2)),
-                      Text(
-                        insufficientBalance ? '$subtitle · Insufficient' : subtitle!,
-                        style: McTextStyles.body(
-                          fontSize: 12,
-                          color: insufficientBalance ? McColors.danger : McColors.bodyText,
-                        ),
-                      ),
-                    ],
-                  ],
-                ),
-              ),
-              Icon(
-                selected ? Icons.check_circle_rounded : Icons.circle_outlined,
-                color: selected ? accentColor : McColors.divider,
-                size: context.rs(20),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}

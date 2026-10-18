@@ -122,11 +122,15 @@ class _OtpBox extends StatelessWidget {
           builder: (context, child) => Container(
             alignment: Alignment.center,
             decoration: BoxDecoration(
-              color: const Color(0xfffdfbf9),
+              // Filled, same as every other text field in the app — a
+              // near-page-color box with only a faint border (as this used
+              // to be) is invisible enough that it reads as empty space
+              // rather than a field to tap into.
+              color: McColors.inputFill,
               borderRadius: BorderRadius.circular(McRadii.button),
               border: Border.all(
-                color: focusNode.hasFocus ? McColors.accent2 : McColors.neutralN(300),
-                width: focusNode.hasFocus ? 2 : 1,
+                color: focusNode.hasFocus ? McColors.accent2 : Colors.transparent,
+                width: 2,
               ),
             ),
             child: child,

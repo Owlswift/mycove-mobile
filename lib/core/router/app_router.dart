@@ -161,7 +161,10 @@ final routerProvider = Provider<GoRouter>((ref) {
                       ),
                       GoRoute(
                         path: 'pin',
-                        builder: (_, _) => const SetPinPage(),
+                        // `extra: true` is how "Forgot PIN?" (in the
+                        // purchase-authorization sheet) jumps straight to
+                        // choosing a new PIN — see SetPinPage's doc comment.
+                        builder: (_, state) => SetPinPage(skipCurrentVerification: state.extra == true),
                       ),
                       GoRoute(
                         path: 'voice',

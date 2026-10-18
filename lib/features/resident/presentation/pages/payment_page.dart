@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart';
 
 import '../../../../core/theme/mc_colors.dart';
 import '../../../../core/theme/mc_responsive.dart';
@@ -10,6 +12,25 @@ import '../../../../core/widgets/mc_button.dart';
 import '../../../../core/widgets/mc_generic_header.dart';
 import '../../../../state/app_notifier.dart';
 import '../../../../state/app_state.dart';
+
+/// Formats the dues amount field live as "10,000" instead of raw digits —
+/// keeps the cursor pinned to the end since the field is only ever edited
+/// by typing/deleting the last digit, never by inserting into the middle.
+class _ThousandsFormatter extends TextInputFormatter {
+  @override
+  TextEditingValue formatEditUpdate(
+    TextEditingValue oldValue,
+    TextEditingValue newValue,
+  ) {
+    final digits = newValue.text.replaceAll(RegExp(r'[^\d]'), '');
+    if (digits.isEmpty) return const TextEditingValue(text: '');
+    final formatted = NumberFormat('#,##0').format(int.parse(digits));
+    return TextEditingValue(
+      text: formatted,
+      selection: TextSelection.collapsed(offset: formatted.length),
+    );
+  }
+}
 
 class PaymentPage extends ConsumerWidget {
   const PaymentPage({super.key});
@@ -27,15 +48,25 @@ class PaymentPage extends ConsumerWidget {
             padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
             child: switch (s.paymentStep) {
               PaymentStep.idle => _Idle(
-                  balanceLabel: s.pendingPaymentAmountLabel,
+                  amount: s.pendingPaymentAmount,
+                  amountEditable: s.pendingPaymentAmountEditable,
+                  onAmountChanged: notifier.setPendingPaymentAmount,
                   walletBalanceLabel: s.walletBalanceLabel,
                   hasSufficientWalletBalance:
                       s.walletBalance >= s.pendingPaymentAmount,
                   selectedMethod: s.paymentMethod,
                   onSelectMethod: notifier.selectPaymentMethod,
-                  onConfirm: () => notifier.requestAuthorization(
-                    s.pendingPaymentPurpose == 'LEVY' ? 'levy' : 'dues',
-                  ),
+                  // A Paystack payment is authenticated by Paystack itself
+                  // (card/bank/USSD), so it goes straight to checkout —
+                  // same as wallet funding. Only paying from the resident's
+                  // own stored wallet balance needs the local PIN/biometric
+                  // gate, since that's spending money with nothing else to
+                  // confirm the resident's identity.
+                  onConfirm: () => s.paymentMethod == 'PAYSTACK'
+                      ? notifier.confirmPayment()
+                      : notifier.requestAuthorization(
+                          s.pendingPaymentPurpose == 'LEVY' ? 'levy' : 'dues',
+                        ),
                 ),
               PaymentStep.processing => _Processing(
                   isWallet: s.paymentMethod == 'WALLET',
@@ -53,9 +84,11 @@ class PaymentPage extends ConsumerWidget {
   }
 }
 
-class _Idle extends StatelessWidget {
+class _Idle extends StatefulWidget {
   const _Idle({
-    required this.balanceLabel,
+    required this.amount,
+    required this.amountEditable,
+    required this.onAmountChanged,
     required this.walletBalanceLabel,
     required this.hasSufficientWalletBalance,
     required this.selectedMethod,
@@ -63,12 +96,44 @@ class _Idle extends StatelessWidget {
     required this.onConfirm,
   });
 
-  final String balanceLabel;
+  final int amount;
+  final bool amountEditable;
+  final ValueChanged<int> onAmountChanged;
   final String walletBalanceLabel;
   final bool hasSufficientWalletBalance;
   final String selectedMethod;
   final ValueChanged<String> onSelectMethod;
   final VoidCallback onConfirm;
+
+  @override
+  State<_Idle> createState() => _IdleState();
+}
+
+class _IdleState extends State<_Idle> {
+  late final _amountController = TextEditingController(
+    text: NumberFormat('#,##0').format(widget.amount),
+  );
+  String? _error;
+
+  @override
+  void dispose() {
+    _amountController.dispose();
+    super.dispose();
+  }
+
+  void _confirm() {
+    if (widget.amountEditable) {
+      final digits = _amountController.text.replaceAll(RegExp(r'[^\d]'), '');
+      final parsed = int.tryParse(digits);
+      if (parsed == null || parsed <= 0) {
+        setState(() => _error = 'Enter a valid amount.');
+        return;
+      }
+      widget.onAmountChanged(parsed);
+    }
+    setState(() => _error = null);
+    widget.onConfirm();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -82,8 +147,46 @@ class _Idle extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text('Amount to pay', style: McTextStyles.body(fontSize: 13, color: McColors.bodyText)),
+              const SizedBox(height: 4),
+              if (widget.amountEditable)
+                IntrinsicWidth(
+                  child: TextField(
+                    controller: _amountController,
+                    onChanged: (v) {
+                      setState(() => _error = null);
+                      // Pushed live (not just at confirm) so things that
+                      // depend on the typed amount elsewhere on this
+                      // screen — the wallet-balance option's
+                      // enabled/disabled state — update as you type
+                      // instead of only after the next rebuild.
+                      final digits = v.replaceAll(RegExp(r'[^\d]'), '');
+                      widget.onAmountChanged(int.tryParse(digits) ?? 0);
+                    },
+                    keyboardType: TextInputType.number,
+                    inputFormatters: [_ThousandsFormatter()],
+                    style: McTextStyles.heading(fontSize: 26),
+                    decoration: InputDecoration(
+                      isDense: true,
+                      filled: false,
+                      contentPadding: EdgeInsets.zero,
+                      border: InputBorder.none,
+                      enabledBorder: InputBorder.none,
+                      focusedBorder: InputBorder.none,
+                      prefixText: '₦ ',
+                      prefixStyle: McTextStyles.heading(fontSize: 26, color: McColors.bodyText),
+                      hintText: '0',
+                      hintStyle: McTextStyles.heading(fontSize: 26, color: McColors.bodyText),
+                    ),
+                  ),
+                )
+              else
+                Text(formatNaira(widget.amount), style: McTextStyles.heading(fontSize: 24)),
               const SizedBox(height: 6),
-              Text(balanceLabel, style: McTextStyles.heading(fontSize: 24)),
+              Container(height: 1.5, color: McColors.divider),
+              if (_error != null) ...[
+                const SizedBox(height: 8),
+                Text(_error!, style: McTextStyles.body(fontSize: 12.5, color: McColors.danger)),
+              ],
             ],
           ),
         ),
@@ -97,24 +200,24 @@ class _Idle extends StatelessWidget {
         _PaymentMethodOption(
           icon: Icons.account_balance_wallet_rounded,
           title: 'Wallet Balance',
-          subtitle: hasSufficientWalletBalance
-              ? 'Available: $walletBalanceLabel'
-              : 'Insufficient balance — $walletBalanceLabel available',
-          selected: selectedMethod == 'WALLET',
-          enabled: hasSufficientWalletBalance,
-          onTap: () => onSelectMethod('WALLET'),
+          subtitle: widget.hasSufficientWalletBalance
+              ? 'Available: ${widget.walletBalanceLabel}'
+              : 'Insufficient balance — ${widget.walletBalanceLabel} available',
+          selected: widget.selectedMethod == 'WALLET',
+          enabled: widget.hasSufficientWalletBalance,
+          onTap: () => widget.onSelectMethod('WALLET'),
         ),
         const SizedBox(height: 10),
         _PaymentMethodOption(
           icon: Icons.credit_card_rounded,
           title: 'Pay via Paystack',
           subtitle: 'Card, bank transfer or USSD',
-          selected: selectedMethod == 'PAYSTACK',
+          selected: widget.selectedMethod == 'PAYSTACK',
           enabled: true,
-          onTap: () => onSelectMethod('PAYSTACK'),
+          onTap: () => widget.onSelectMethod('PAYSTACK'),
         ),
         const SizedBox(height: 20),
-        McButton(label: 'Confirm Payment', onPressed: onConfirm),
+        McButton(label: 'Confirm Payment', onPressed: _confirm),
       ],
     );
   }
@@ -143,11 +246,13 @@ class _PaymentMethodOption extends StatelessWidget {
       opacity: enabled ? 1 : 0.5,
       child: GestureDetector(
         onTap: enabled ? onTap : null,
-        child: Container(
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 150),
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
           decoration: BoxDecoration(
-            color: McColors.surface,
+            color: selected ? McColors.accent2N(100) : McColors.surface,
             borderRadius: BorderRadius.circular(McRadii.md),
+            boxShadow: selected ? null : McColors.cardShadow,
             border: Border.all(
               color: selected ? McColors.accent2 : Colors.transparent,
               width: 1.5,
@@ -155,12 +260,16 @@ class _PaymentMethodOption extends StatelessWidget {
           ),
           child: Row(
             children: [
-              Container(
+              AnimatedContainer(
+                duration: const Duration(milliseconds: 150),
                 width: context.rs(36),
                 height: context.rs(36),
                 alignment: Alignment.center,
-                decoration: BoxDecoration(color: McColors.accent2N(100), borderRadius: BorderRadius.circular(McRadii.sm)),
-                child: Icon(icon, size: context.rs(18), color: McColors.accent2N(700)),
+                decoration: BoxDecoration(
+                  color: selected ? McColors.accent2 : McColors.accent2N(100),
+                  borderRadius: BorderRadius.circular(McRadii.sm),
+                ),
+                child: Icon(icon, size: context.rs(18), color: selected ? Colors.white : McColors.accent2N(700)),
               ),
               SizedBox(width: context.rs(12)),
               Expanded(
@@ -183,9 +292,9 @@ class _PaymentMethodOption extends StatelessWidget {
               ),
               SizedBox(width: context.rs(8)),
               Icon(
-                selected ? Icons.radio_button_checked_rounded : Icons.radio_button_off_rounded,
+                selected ? Icons.check_circle_rounded : Icons.radio_button_off_rounded,
                 size: context.rs(20),
-                color: selected ? McColors.accent2 : McColors.bodyText,
+                color: selected ? McColors.accent2 : McColors.bodyText.withValues(alpha: 0.4),
               ),
             ],
           ),

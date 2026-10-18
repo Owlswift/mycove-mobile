@@ -165,11 +165,11 @@ class ApiClient {
           // *other* /auth/* endpoint (complete-force-reset, logout,
           // sessions, pin/set, pin/verify) DOES require a valid access
           // token and can go just as stale as any non-auth endpoint — e.g.
-          // a resident who spends a few minutes filling out the force-reset
-          // profile form past the 15-minute access-token lifetime must
-          // still get the same silent-refresh-and-retry treatment,
-          // otherwise "Save & Continue" fails with a raw "Invalid token"
-          // instead of quietly refreshing and succeeding.
+          // a resident who's had the app installed for close to a year
+          // past the access token's lifetime must still get the same
+          // silent-refresh-and-retry treatment, otherwise "Save & Continue"
+          // fails with a raw "Invalid token" instead of quietly refreshing
+          // and succeeding.
           const noRetryPaths = {
             '/auth/login',
             '/auth/forgot-password',

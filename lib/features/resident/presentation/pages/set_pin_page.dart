@@ -14,7 +14,17 @@ const _pinLength = 4;
 enum _Step { verifyCurrent, enterNew, confirmNew }
 
 class SetPinPage extends ConsumerStatefulWidget {
-  const SetPinPage({super.key});
+  const SetPinPage({super.key, this.skipCurrentVerification = false});
+
+  /// True when reached via "Forgot PIN?" — the resident can't verify a PIN
+  /// they don't remember, so this skips straight to choosing a new one.
+  /// Safe to do: the backend's `setPin` endpoint only requires a valid
+  /// session (see AuthService.setPin), not the old PIN — verifying it first
+  /// is a client-side speed bump against someone grabbing an unlocked phone
+  /// and silently changing the PIN, not a real server-side gate, so a
+  /// resident who's forgotten theirs isn't actually missing any security
+  /// check by skipping it.
+  final bool skipCurrentVerification;
 
   @override
   ConsumerState<SetPinPage> createState() => _SetPinPageState();
@@ -32,7 +42,7 @@ class _SetPinPageState extends ConsumerState<SetPinPage> {
   void initState() {
     super.initState();
     final hasPin = ref.read(appStateProvider).currentUser?.hasPin ?? false;
-    _step = hasPin ? _Step.verifyCurrent : _Step.enterNew;
+    _step = (hasPin && !widget.skipCurrentVerification) ? _Step.verifyCurrent : _Step.enterNew;
   }
 
   Future<void> _submitCurrentPin() async {

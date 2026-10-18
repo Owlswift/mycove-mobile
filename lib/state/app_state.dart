@@ -123,6 +123,7 @@ class AppState {
     this.paymentStep = PaymentStep.idle,
     this.paymentReference,
     this.pendingPaymentAmount = 0,
+    this.pendingPaymentAmountEditable = false,
     this.pendingPaymentPurpose = 'DUES',
     this.pendingPaymentLevyId,
     this.paymentMethod = 'PAYSTACK',
@@ -169,6 +170,7 @@ class AppState {
     this.spotlights = const [],
     this.utilityLoading = false,
     this.utilityError = '',
+    this.utilityPaymentMethod = 'PAYSTACK',
     this.airtimeNetwork = '',
     this.airtimePhone = '',
     this.airtimeAmount = '',
@@ -314,6 +316,12 @@ class AppState {
   /// levy row's "Pay") before the push, read by `confirmPayment()` instead
   /// of that method hardcoding dues' own balance/purpose.
   final int pendingPaymentAmount;
+
+  /// True for the overall dues balance ([resetPayment]) — a resident can
+  /// pay any amount toward it, including less than the full balance.
+  /// False for a specific levy ([startLevyPayment]), which has a fixed
+  /// charge and isn't partially payable.
+  final bool pendingPaymentAmountEditable;
   final String pendingPaymentPurpose; // 'DUES' | 'LEVY'
   final String? pendingPaymentLevyId;
 
@@ -400,6 +408,13 @@ class AppState {
 
   final bool utilityLoading;
   final String utilityError;
+
+  /// 'PAYSTACK' or 'WALLET' — which option is selected on the airtime/
+  /// electricity payment screens. For PAYSTACK, the purchase amount is
+  /// collected via a real Paystack checkout (topping up the wallet by
+  /// exactly that amount) and the purchase then fires automatically from
+  /// that balance — see AppNotifier.buyAirtime/buyElectricity.
+  final String utilityPaymentMethod;
   final List<UtilityMeter> utilityMeters;
   final List<UtilityPurchase> utilityPurchases;
   final UtilityPurchase? lastUtilityPurchase;
@@ -493,6 +508,7 @@ class AppState {
     PaymentStep? paymentStep,
     Object? paymentReference = _sentinel,
     int? pendingPaymentAmount,
+    bool? pendingPaymentAmountEditable,
     String? pendingPaymentPurpose,
     Object? pendingPaymentLevyId = _sentinel,
     String? paymentMethod,
@@ -539,6 +555,7 @@ class AppState {
     List<Spotlight>? spotlights,
     bool? utilityLoading,
     String? utilityError,
+    String? utilityPaymentMethod,
     List<UtilityMeter>? utilityMeters,
     List<UtilityPurchase>? utilityPurchases,
     Object? lastUtilityPurchase = _sentinel,
@@ -643,6 +660,8 @@ class AppState {
           ? this.paymentReference
           : paymentReference as String?,
       pendingPaymentAmount: pendingPaymentAmount ?? this.pendingPaymentAmount,
+      pendingPaymentAmountEditable:
+          pendingPaymentAmountEditable ?? this.pendingPaymentAmountEditable,
       pendingPaymentPurpose:
           pendingPaymentPurpose ?? this.pendingPaymentPurpose,
       pendingPaymentLevyId: identical(pendingPaymentLevyId, _sentinel)
@@ -708,6 +727,7 @@ class AppState {
       spotlights: spotlights ?? this.spotlights,
       utilityLoading: utilityLoading ?? this.utilityLoading,
       utilityError: utilityError ?? this.utilityError,
+      utilityPaymentMethod: utilityPaymentMethod ?? this.utilityPaymentMethod,
       utilityMeters: utilityMeters ?? this.utilityMeters,
       utilityPurchases: utilityPurchases ?? this.utilityPurchases,
       lastUtilityPurchase: identical(lastUtilityPurchase, _sentinel)
