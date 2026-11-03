@@ -4,11 +4,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
+import '../../../../core/feature_flags.dart';
 import '../../../../core/theme/mc_colors.dart';
 import '../../../../core/theme/mc_responsive.dart';
 import '../../../../core/theme/mc_spacing.dart';
 import '../../../../core/theme/mc_text_styles.dart';
 import '../../../../core/widgets/mc_button.dart';
+import '../../../../core/widgets/mc_feature_unavailable_banner.dart';
 import '../../../../core/widgets/mc_generic_header.dart';
 import '../../../../state/app_notifier.dart';
 import '../../../../state/app_state.dart';
@@ -56,6 +58,7 @@ class PaymentPage extends ConsumerWidget {
                       s.walletBalance >= s.pendingPaymentAmount,
                   selectedMethod: s.paymentMethod,
                   onSelectMethod: notifier.selectPaymentMethod,
+                  featureEnabled: s.featureEnabled(FeatureFlagKeys.duesPayments),
                   // A Paystack payment is authenticated by Paystack itself
                   // (card/bank/USSD), so it goes straight to checkout —
                   // same as wallet funding. Only paying from the resident's
@@ -94,6 +97,7 @@ class _Idle extends StatefulWidget {
     required this.selectedMethod,
     required this.onSelectMethod,
     required this.onConfirm,
+    required this.featureEnabled,
   });
 
   final int amount;
@@ -104,6 +108,7 @@ class _Idle extends StatefulWidget {
   final String selectedMethod;
   final ValueChanged<String> onSelectMethod;
   final VoidCallback onConfirm;
+  final bool featureEnabled;
 
   @override
   State<_Idle> createState() => _IdleState();
@@ -122,6 +127,7 @@ class _IdleState extends State<_Idle> {
   }
 
   void _confirm() {
+    if (!widget.featureEnabled) return;
     if (widget.amountEditable) {
       final digits = _amountController.text.replaceAll(RegExp(r'[^\d]'), '');
       final parsed = int.tryParse(digits);
@@ -217,7 +223,14 @@ class _IdleState extends State<_Idle> {
           onTap: () => widget.onSelectMethod('PAYSTACK'),
         ),
         const SizedBox(height: 20),
-        McButton(label: 'Confirm Payment', onPressed: _confirm),
+        if (!widget.featureEnabled)
+          const McFeatureUnavailableBanner(
+            message: 'Your estate is not subscribed to this feature.',
+          ),
+        McButton(
+          label: 'Confirm Payment',
+          onPressed: widget.featureEnabled ? _confirm : null,
+        ),
       ],
     );
   }

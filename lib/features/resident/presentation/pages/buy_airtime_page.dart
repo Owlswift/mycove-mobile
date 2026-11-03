@@ -2,11 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../core/feature_flags.dart';
 import '../../../../core/theme/mc_colors.dart';
 import '../../../../core/theme/mc_responsive.dart';
 import '../../../../core/theme/mc_spacing.dart';
 import '../../../../core/theme/mc_text_styles.dart';
 import '../../../../core/widgets/mc_button.dart';
+import '../../../../core/widgets/mc_feature_unavailable_banner.dart';
 import '../../../../core/widgets/mc_generic_header.dart';
 import '../../../../core/widgets/mc_payment_method_tile.dart';
 import '../../../../state/app_notifier.dart';
@@ -156,6 +158,10 @@ class _BuyAirtimePageState extends ConsumerState<BuyAirtimePage> {
                   onTap: () => notifier.selectUtilityPaymentMethod('PAYSTACK'),
                 ),
                 SizedBox(height: context.rs(18)),
+                if (!s.featureEnabled(FeatureFlagKeys.utilityPayments))
+                  const McFeatureUnavailableBanner(
+                    message: 'Your estate is not subscribed to this feature.',
+                  ),
                 if (s.utilityError.isNotEmpty) ...[
                   Text(
                     s.utilityError,
@@ -166,7 +172,7 @@ class _BuyAirtimePageState extends ConsumerState<BuyAirtimePage> {
                 McButton(
                   label: 'Buy Airtime',
                   isLoading: s.utilityLoading,
-                  onPressed: s.utilityLoading
+                  onPressed: s.utilityLoading || !s.featureEnabled(FeatureFlagKeys.utilityPayments)
                       ? null
                       : () => s.utilityPaymentMethod == 'PAYSTACK'
                           ? notifier.buyAirtime().then((ok) {

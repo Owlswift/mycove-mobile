@@ -3,10 +3,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
+import '../../../../core/feature_flags.dart';
 import '../../../../core/theme/mc_colors.dart';
 import '../../../../core/theme/mc_responsive.dart';
 import '../../../../core/theme/mc_spacing.dart';
 import '../../../../core/theme/mc_text_styles.dart';
+import '../../../../core/widgets/mc_feature_unavailable_banner.dart';
 import '../../../../core/widgets/mc_generic_header.dart';
 import '../../../../core/widgets/mc_underline_tabs.dart';
 import '../../../../data/models/visitor_pass.dart';
@@ -30,6 +32,7 @@ class _VisitorPageState extends ConsumerState<VisitorPage> {
     final active = passes.where((p) => p.status == VisitorPassStatus.active).toList();
     final history = passes.where((p) => p.status != VisitorPassStatus.active).toList();
     final shown = _showActive ? active : history;
+    final canCreatePasses = s.featureEnabled(FeatureFlagKeys.visitorPasses);
 
     return Column(
       children: [
@@ -38,17 +41,33 @@ class _VisitorPageState extends ConsumerState<VisitorPage> {
           showBack: false,
           trailing: GestureDetector(
             onTap: () {
+              if (!canCreatePasses) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Your estate is not subscribed to this feature.')),
+                );
+                return;
+              }
               notifier.resetVisitorForm();
               context.push('/resident/visitor/new');
             },
             child: Container(
               width: context.rs(32),
               height: context.rs(32),
-              decoration: const BoxDecoration(color: McColors.accent2, shape: BoxShape.circle),
+              decoration: BoxDecoration(
+                color: canCreatePasses ? McColors.accent2 : McColors.bodyText.withValues(alpha: 0.4),
+                shape: BoxShape.circle,
+              ),
               child: Icon(Icons.add, size: context.rs(18), color: Colors.white),
             ),
           ),
         ),
+        if (!canCreatePasses)
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
+            child: McFeatureUnavailableBanner(
+              message: 'Your estate is not subscribed to this feature. Existing passes still work at the gate.',
+            ),
+          ),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 20),
           child: McUnderlineTabs(

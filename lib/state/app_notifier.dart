@@ -170,6 +170,7 @@ class AppNotifier extends StateNotifier<AppState> {
   /// launches (see submitEstateCode).
   Future<void> _bootstrap() async {
     unawaited(_checkBiometricAvailability());
+    unawaited(_loadFeatureFlags());
     final estateName = await _estateStorage.readName();
     if (estateName == null) {
       state = state.copyWith(authStage: AuthStage.welcome);
@@ -185,6 +186,19 @@ class AppNotifier extends StateNotifier<AppState> {
       estateLocked: estateLocked,
     );
     await _tryAutoLogin();
+  }
+
+  /// Fire-and-forget: a flags fetch failure must never block login or
+  /// estate bootstrap — [AppState.featureEnabled] already fails open for
+  /// any key not present in the map, so simply not updating state here is
+  /// the correct failure behavior.
+  Future<void> _loadFeatureFlags() async {
+    try {
+      final flags = await _api.featureFlags();
+      state = state.copyWith(featureFlags: flags);
+    } catch (_) {
+      // Fail open — see doc comment above.
+    }
   }
 
   /// From the welcome screen — "Find Your Estate" and "Log In" both need an

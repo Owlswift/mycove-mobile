@@ -80,6 +80,7 @@ class AppState {
     this.estateAdminPhone,
     this.estateImage,
     this.estateLocked = false,
+    this.featureFlags = const {},
     this.estateCodeInput = '',
     this.estateCodeError = '',
     this.estateCodeLoading = false,
@@ -245,6 +246,14 @@ class AppState {
   /// this device is considered bound to that estate and the "Change"
   /// option on the login screen stops being offered.
   final bool estateLocked;
+
+  /// Platform-wide kill switches from the super admin dashboard — see
+  /// FeatureFlagsService on the backend. Keys absent from this map (not
+  /// yet fetched, or a flag the client doesn't know about) are treated as
+  /// enabled by [AppState.featureEnabled] — fail open, same as the server.
+  final Map<String, bool> featureFlags;
+  bool featureEnabled(String key) => featureFlags[key] ?? true;
+
   final String estateCodeInput;
   final String estateCodeError;
   final bool estateCodeLoading;
@@ -465,6 +474,7 @@ class AppState {
     Object? estateAdminPhone = _sentinel,
     Object? estateImage = _sentinel,
     bool? estateLocked,
+    Map<String, bool>? featureFlags,
     String? estateCodeInput,
     String? estateCodeError,
     bool? estateCodeLoading,
@@ -598,6 +608,7 @@ class AppState {
           ? this.estateImage
           : estateImage as String?,
       estateLocked: estateLocked ?? this.estateLocked,
+      featureFlags: featureFlags ?? this.featureFlags,
       estateCodeInput: estateCodeInput ?? this.estateCodeInput,
       estateCodeError: estateCodeError ?? this.estateCodeError,
       estateCodeLoading: estateCodeLoading ?? this.estateCodeLoading,

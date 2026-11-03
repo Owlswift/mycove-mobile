@@ -15,6 +15,18 @@ class MyCoveApi {
   Future<Map<String, dynamic>> lookupEstate(String code) async =>
       _map(await _dio.get('/estates/$code'));
 
+  /// Platform-wide kill switches (see FeatureFlagsService on the backend).
+  /// Public endpoint — no auth needed, so this can be fetched before login
+  /// too. The server-side check on each gated endpoint is the one that
+  /// actually enforces this; the app only uses it to hide UI.
+  Future<Map<String, bool>> featureFlags() async {
+    final rows = _list(await _dio.get('/platform/feature-flags'));
+    return {
+      for (final row in rows)
+        (row as Map<String, dynamic>)['key'] as String: row['enabled'] as bool,
+    };
+  }
+
   // ── Auth ──────────────────────────────────────────────────────────────
   Future<Map<String, dynamic>> login({
     required String phone,

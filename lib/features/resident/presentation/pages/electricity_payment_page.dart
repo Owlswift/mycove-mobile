@@ -2,10 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../core/feature_flags.dart';
 import '../../../../core/theme/mc_colors.dart';
 import '../../../../core/theme/mc_responsive.dart';
 import '../../../../core/theme/mc_text_styles.dart';
 import '../../../../core/widgets/mc_button.dart';
+import '../../../../core/widgets/mc_feature_unavailable_banner.dart';
 import '../../../../core/widgets/mc_generic_header.dart';
 import '../../../../core/widgets/mc_payment_method_tile.dart';
 import '../../../../data/models/utility_meter.dart';
@@ -76,6 +78,10 @@ class ElectricityPaymentPage extends ConsumerWidget {
                   onTap: () => notifier.selectUtilityPaymentMethod('PAYSTACK'),
                 ),
                 SizedBox(height: context.rs(24)),
+                if (!s.featureEnabled(FeatureFlagKeys.utilityPayments))
+                  const McFeatureUnavailableBanner(
+                    message: 'Your estate is not subscribed to this feature.',
+                  ),
                 if (s.utilityError.isNotEmpty) ...[
                   Text(s.utilityError, style: McTextStyles.body(fontSize: 13, color: McColors.danger)),
                   SizedBox(height: context.rs(12)),
@@ -83,7 +89,9 @@ class ElectricityPaymentPage extends ConsumerWidget {
                 McButton(
                   label: 'Pay ${formatNaira(total)}',
                   isLoading: s.utilityLoading,
-                  onPressed: (s.utilityLoading || (!isPaystack && !hasSufficientBalance))
+                  onPressed: (s.utilityLoading ||
+                          !s.featureEnabled(FeatureFlagKeys.utilityPayments) ||
+                          (!isPaystack && !hasSufficientBalance))
                       ? null
                       : () => isPaystack
                           ? notifier.buyElectricity().then((ok) {
