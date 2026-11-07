@@ -56,6 +56,9 @@ class UtilityHistoryPage extends ConsumerWidget {
     final title = switch (type) {
       'ELECTRICITY' => 'Electricity History',
       'AIRTIME' => 'Airtime History',
+      'DATA' => 'Data History',
+      'TV' => 'TV Subscription History',
+      'EDUCATION' => 'WAEC PIN History',
       _ => 'Transactions',
     };
 

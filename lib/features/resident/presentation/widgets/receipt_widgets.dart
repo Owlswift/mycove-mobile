@@ -40,7 +40,7 @@ Widget receiptSection(
   );
 }
 
-Widget tokenCard(BuildContext context, String token) {
+Widget tokenCard(BuildContext context, String token, {String label = 'PREPAID TOKEN'}) {
   return Container(
     width: double.infinity,
     padding: EdgeInsets.all(context.rs(16)),
@@ -56,7 +56,7 @@ Widget tokenCard(BuildContext context, String token) {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
-              'PREPAID TOKEN',
+              label,
               style: McTextStyles.body(
                 fontSize: 10.5,
                 fontWeight: FontWeight.w700,
@@ -68,7 +68,7 @@ Widget tokenCard(BuildContext context, String token) {
                 Clipboard.setData(ClipboardData(text: token));
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
-                    content: Text('Token copied.',
+                    content: Text('Copied.',
                         style: McTextStyles.body(
                             fontSize: 13, color: Colors.white)),
                   ),

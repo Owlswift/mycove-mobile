@@ -18,8 +18,10 @@ import '../data/models/rules_section.dart';
 import '../data/models/session_info.dart';
 import '../data/models/spotlight.dart';
 import '../data/models/tts_voice_option.dart';
+import '../data/models/tv_smartcard.dart';
 import '../data/models/utility_meter.dart';
 import '../data/models/utility_purchase.dart';
+import '../data/models/variation_code.dart';
 import '../data/models/visitor_pass.dart';
 import '../data/models/wallet_transaction.dart';
 
@@ -188,6 +190,25 @@ class AppState {
     List<UtilityPurchase>? utilityPurchases,
     this.lastUtilityPurchase,
     List<Disco>? discos,
+    this.dataNetwork = '',
+    this.dataPhone = '',
+    List<VariationCode>? dataPlans,
+    this.dataSelectedPlanCode,
+    this.tvProvider = '',
+    this.tvSmartcardNumber = '',
+    this.tvVerifiedCustomerName,
+    this.tvVerifiedCurrentBouquet,
+    this.tvVerifiedDueDate,
+    List<TvSmartcard>? tvSmartcards,
+    this.tvSelectedSmartcardId,
+    this.tvPhone = '',
+    List<VariationCode>? tvPackages,
+    this.tvSelectedPackageCode,
+    this.tvSubscriptionType = 'change',
+    this.educationPhone = '',
+    this.educationQuantity = 1,
+    List<VariationCode>? educationVariations,
+    this.educationSelectedCode,
   }) : visitorPasses = visitorPasses ?? [],
        sessions = sessions ?? [],
        duesHistory = duesHistory ?? [],
@@ -207,6 +228,10 @@ class AppState {
        utilityMeters = utilityMeters ?? [],
        utilityPurchases = utilityPurchases ?? [],
        discos = discos ?? [],
+       dataPlans = dataPlans ?? [],
+       tvSmartcards = tvSmartcards ?? [],
+       tvPackages = tvPackages ?? [],
+       educationVariations = educationVariations ?? [],
        walletTransactions = walletTransactions ?? [],
        availableVoices = availableVoices ?? [];
 
@@ -447,6 +472,30 @@ class AppState {
   final String? elecVerifiedName;
   final String? elecVerifiedAddress;
 
+  final String dataNetwork;
+  final String dataPhone;
+  final List<VariationCode> dataPlans;
+  final String? dataSelectedPlanCode;
+
+  final String tvProvider;
+  final String tvSmartcardNumber;
+  final String? tvVerifiedCustomerName;
+  final String? tvVerifiedCurrentBouquet;
+  final String? tvVerifiedDueDate;
+  final List<TvSmartcard> tvSmartcards;
+  final String? tvSelectedSmartcardId;
+  final String tvPhone;
+  final List<VariationCode> tvPackages;
+  final String? tvSelectedPackageCode;
+
+  /// "change" (new/change bouquet) or "renew" — VTpass's subscription_type.
+  final String tvSubscriptionType;
+
+  final String educationPhone;
+  final int educationQuantity;
+  final List<VariationCode> educationVariations;
+  final String? educationSelectedCode;
+
   DuesEntry? get lastPayment {
     for (final h in duesHistory) {
       if (h.type == DuesEntryType.payment) return h;
@@ -582,6 +631,25 @@ class AppState {
     bool? elecAmountPrefilled,
     Object? elecVerifiedName = _sentinel,
     Object? elecVerifiedAddress = _sentinel,
+    String? dataNetwork,
+    String? dataPhone,
+    List<VariationCode>? dataPlans,
+    Object? dataSelectedPlanCode = _sentinel,
+    String? tvProvider,
+    String? tvSmartcardNumber,
+    Object? tvVerifiedCustomerName = _sentinel,
+    Object? tvVerifiedCurrentBouquet = _sentinel,
+    Object? tvVerifiedDueDate = _sentinel,
+    List<TvSmartcard>? tvSmartcards,
+    Object? tvSelectedSmartcardId = _sentinel,
+    String? tvPhone,
+    List<VariationCode>? tvPackages,
+    Object? tvSelectedPackageCode = _sentinel,
+    String? tvSubscriptionType,
+    String? educationPhone,
+    int? educationQuantity,
+    List<VariationCode>? educationVariations,
+    Object? educationSelectedCode = _sentinel,
   }) {
     return AppState(
       authStage: authStage ?? this.authStage,
@@ -761,6 +829,39 @@ class AppState {
       elecVerifiedAddress: identical(elecVerifiedAddress, _sentinel)
           ? this.elecVerifiedAddress
           : elecVerifiedAddress as String?,
+      dataNetwork: dataNetwork ?? this.dataNetwork,
+      dataPhone: dataPhone ?? this.dataPhone,
+      dataPlans: dataPlans ?? this.dataPlans,
+      dataSelectedPlanCode: identical(dataSelectedPlanCode, _sentinel)
+          ? this.dataSelectedPlanCode
+          : dataSelectedPlanCode as String?,
+      tvProvider: tvProvider ?? this.tvProvider,
+      tvSmartcardNumber: tvSmartcardNumber ?? this.tvSmartcardNumber,
+      tvVerifiedCustomerName: identical(tvVerifiedCustomerName, _sentinel)
+          ? this.tvVerifiedCustomerName
+          : tvVerifiedCustomerName as String?,
+      tvVerifiedCurrentBouquet: identical(tvVerifiedCurrentBouquet, _sentinel)
+          ? this.tvVerifiedCurrentBouquet
+          : tvVerifiedCurrentBouquet as String?,
+      tvVerifiedDueDate: identical(tvVerifiedDueDate, _sentinel)
+          ? this.tvVerifiedDueDate
+          : tvVerifiedDueDate as String?,
+      tvSmartcards: tvSmartcards ?? this.tvSmartcards,
+      tvSelectedSmartcardId: identical(tvSelectedSmartcardId, _sentinel)
+          ? this.tvSelectedSmartcardId
+          : tvSelectedSmartcardId as String?,
+      tvPhone: tvPhone ?? this.tvPhone,
+      tvPackages: tvPackages ?? this.tvPackages,
+      tvSelectedPackageCode: identical(tvSelectedPackageCode, _sentinel)
+          ? this.tvSelectedPackageCode
+          : tvSelectedPackageCode as String?,
+      tvSubscriptionType: tvSubscriptionType ?? this.tvSubscriptionType,
+      educationPhone: educationPhone ?? this.educationPhone,
+      educationQuantity: educationQuantity ?? this.educationQuantity,
+      educationVariations: educationVariations ?? this.educationVariations,
+      educationSelectedCode: identical(educationSelectedCode, _sentinel)
+          ? this.educationSelectedCode
+          : educationSelectedCode as String?,
     );
   }
 }

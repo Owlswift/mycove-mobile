@@ -523,6 +523,58 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
               ),
             ),
             SizedBox(height: context.rs(10)),
+            Text('More Bills', style: McTextStyles.heading(fontSize: 13)),
+            SizedBox(height: context.rs(8)),
+            Row(
+              children: [
+                Expanded(
+                  child: _BillChip(
+                    icon: Icons.wifi_rounded,
+                    iconBg: const Color(0xffd3e9e1),
+                    iconColor: McColors.accent2,
+                    label: 'Data',
+                    onTap: () {
+                      notifier.resetDataForm();
+                      context.push('/resident/data');
+                    },
+                  ),
+                ),
+                SizedBox(width: context.rs(8)),
+                Expanded(
+                  child: _BillChip(
+                    icon: Icons.live_tv_rounded,
+                    iconBg: const Color(0xffece7f6),
+                    iconColor: const Color(0xff6b5b95),
+                    label: 'TV',
+                    onTap: () {
+                      if (s.tvSmartcards.length > 1) {
+                        context.push('/resident/tv/select-smartcard');
+                      } else if (s.tvSmartcards.isNotEmpty) {
+                        notifier.useExistingSmartcard(s.tvSmartcards.first);
+                        context.push('/resident/tv/confirm');
+                      } else {
+                        notifier.resetTvForm();
+                        context.push('/resident/tv');
+                      }
+                    },
+                  ),
+                ),
+                SizedBox(width: context.rs(8)),
+                Expanded(
+                  child: _BillChip(
+                    icon: Icons.school_rounded,
+                    iconBg: const Color(0xfffae3c6),
+                    iconColor: const Color(0xffb5791a),
+                    label: 'WAEC',
+                    onTap: () {
+                      notifier.resetEducationForm();
+                      context.push('/resident/education');
+                    },
+                  ),
+                ),
+              ],
+            ),
+            SizedBox(height: context.rs(10)),
 
             // Stat tiles: next meeting, visitor passes, active poll, complaints
             Row(
@@ -1187,6 +1239,56 @@ class _UtilityCard extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _BillChip extends StatelessWidget {
+  const _BillChip({
+    required this.icon,
+    required this.iconBg,
+    required this.iconColor,
+    required this.label,
+    required this.onTap,
+  });
+
+  final IconData icon;
+  final Color iconBg;
+  final Color iconColor;
+  final String label;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: EdgeInsets.symmetric(vertical: context.rs(10)),
+        decoration: BoxDecoration(
+          color: McColors.surface,
+          borderRadius: BorderRadius.circular(McRadii.md),
+          boxShadow: McColors.cardShadow,
+        ),
+        child: Column(
+          children: [
+            Container(
+              width: context.rs(38),
+              height: context.rs(38),
+              decoration: BoxDecoration(color: iconBg, shape: BoxShape.circle),
+              child: Icon(icon, size: context.rs(19), color: iconColor),
+            ),
+            SizedBox(height: context.rs(6)),
+            Text(
+              label,
+              style: McTextStyles.body(
+                fontSize: 11.5,
+                fontWeight: FontWeight.w600,
+                color: McColors.text,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

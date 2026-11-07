@@ -21,6 +21,8 @@ import '../../features/guard/presentation/widgets/guard_shell.dart';
 import '../../features/resident/presentation/pages/announcement_detail_page.dart';
 import '../../features/resident/presentation/pages/announcements_page.dart';
 import '../../features/resident/presentation/pages/buy_airtime_page.dart';
+import '../../features/resident/presentation/pages/buy_data_page.dart';
+import '../../features/resident/presentation/pages/buy_education_page.dart';
 import '../../features/resident/presentation/pages/complaint_log_page.dart';
 import '../../features/resident/presentation/pages/complaint_page.dart';
 import '../../features/resident/presentation/pages/complaint_success_page.dart';
@@ -46,6 +48,12 @@ import '../../features/resident/presentation/pages/projects_page.dart';
 import '../../features/resident/presentation/pages/receipt_page.dart';
 import '../../features/resident/presentation/pages/rules_page.dart';
 import '../../features/resident/presentation/pages/sos_page.dart';
+import '../../features/resident/presentation/pages/tv_confirm_smartcard_page.dart';
+import '../../features/resident/presentation/pages/tv_enter_smartcard_page.dart';
+import '../../features/resident/presentation/pages/tv_payment_page.dart';
+import '../../features/resident/presentation/pages/tv_select_package_page.dart';
+import '../../features/resident/presentation/pages/tv_select_provider_page.dart';
+import '../../features/resident/presentation/pages/tv_select_smartcard_page.dart';
 import '../../features/resident/presentation/pages/utility_history_page.dart';
 import '../../features/resident/presentation/pages/utility_purchase_success_page.dart';
 import '../../features/resident/presentation/pages/utility_receipt_page.dart';
@@ -270,6 +278,56 @@ final routerProvider = Provider<GoRouter>((ref) {
                         path: 'payment',
                         builder: (_, _) => const ElectricityPaymentPage(),
                       ),
+                      GoRoute(
+                        path: 'success',
+                        builder: (_, _) => const UtilityPurchaseSuccessPage(),
+                      ),
+                    ],
+                  ),
+                  GoRoute(
+                    path: 'data',
+                    builder: (_, _) => const BuyDataPage(),
+                    routes: [
+                      GoRoute(
+                        path: 'success',
+                        builder: (_, _) => const UtilityPurchaseSuccessPage(),
+                      ),
+                    ],
+                  ),
+                  GoRoute(
+                    path: 'tv',
+                    builder: (_, _) => const TvSelectProviderPage(),
+                    routes: [
+                      GoRoute(
+                        path: 'select-smartcard',
+                        builder: (_, _) => const TvSelectSmartcardPage(),
+                      ),
+                      GoRoute(
+                        path: 'smartcard',
+                        builder: (_, _) => const TvEnterSmartcardPage(),
+                      ),
+                      GoRoute(
+                        path: 'confirm',
+                        builder: (_, _) => const TvConfirmSmartcardPage(),
+                      ),
+                      GoRoute(
+                        path: 'package',
+                        builder: (_, _) => const TvSelectPackagePage(),
+                      ),
+                      GoRoute(
+                        path: 'payment',
+                        builder: (_, _) => const TvPaymentPage(),
+                      ),
+                      GoRoute(
+                        path: 'success',
+                        builder: (_, _) => const UtilityPurchaseSuccessPage(),
+                      ),
+                    ],
+                  ),
+                  GoRoute(
+                    path: 'education',
+                    builder: (_, _) => const BuyEducationPage(),
+                    routes: [
                       GoRoute(
                         path: 'success',
                         builder: (_, _) => const UtilityPurchaseSuccessPage(),

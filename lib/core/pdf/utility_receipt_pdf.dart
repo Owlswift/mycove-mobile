@@ -56,7 +56,6 @@ Future<Uint8List> buildUtilityReceiptPdf({
   required String house,
   String? phone,
 }) {
-  final isElectricity = purchase.type == 'ELECTRICITY';
   final statusLabel = switch (purchase.status) {
     UtilityPurchaseStatus.successful => 'SUCCESSFUL',
     UtilityPurchaseStatus.failed => 'FAILED',
@@ -91,9 +90,13 @@ Future<Uint8List> buildUtilityReceiptPdf({
                 ),
                 pw.SizedBox(height: 2),
                 pw.Text(
-                  isElectricity
-                      ? 'Electricity Purchase Receipt'
-                      : 'Airtime Purchase Receipt',
+                  switch (purchase.type) {
+                    'ELECTRICITY' => 'Electricity Purchase Receipt',
+                    'DATA' => 'Data Purchase Receipt',
+                    'TV' => 'TV Subscription Receipt',
+                    'EDUCATION' => 'WAEC PIN Purchase Receipt',
+                    _ => 'Airtime Purchase Receipt',
+                  },
                   style: pw.TextStyle(fontSize: 11, color: PdfColors.white),
                 ),
               ],
@@ -119,22 +122,47 @@ Future<Uint8List> buildUtilityReceiptPdf({
             style: pw.TextStyle(fontSize: 9, color: PdfColors.grey600),
           ),
           pw.Divider(),
-          if (isElectricity) ...[
-            if (purchase.meter != null) ...[
-              _row('DISCO', purchase.meter!.discoName),
-              _row('Meter number', purchase.meter!.meterNumber),
-              _row(
-                'Meter type',
-                purchase.meter!.meterType.replaceAll('_', ' ').toUpperCase(),
-              ),
-            ],
-            if ((purchase.phone ?? '').isNotEmpty)
-              _row('Contact phone', purchase.phone!),
-          ] else ...[
-            if ((purchase.network ?? '').isNotEmpty)
-              _row('Network', purchase.network!.toUpperCase()),
-            _row('Recipient', phone ?? ''),
-          ],
+          ...switch (purchase.type) {
+            'ELECTRICITY' => [
+                if (purchase.meter != null) ...[
+                  _row('DISCO', purchase.meter!.discoName),
+                  _row('Meter number', purchase.meter!.meterNumber),
+                  _row(
+                    'Meter type',
+                    purchase.meter!.meterType.replaceAll('_', ' ').toUpperCase(),
+                  ),
+                ],
+                if ((purchase.phone ?? '').isNotEmpty)
+                  _row('Contact phone', purchase.phone!),
+              ],
+            'DATA' => [
+                if ((purchase.network ?? '').isNotEmpty)
+                  _row('Network', purchase.network!.toUpperCase()),
+                if ((purchase.variationCode ?? '').isNotEmpty)
+                  _row('Plan', purchase.variationCode!),
+                _row('Recipient', phone ?? ''),
+              ],
+            'TV' => [
+                if (purchase.smartcard != null) ...[
+                  _row('Provider', purchase.smartcard!.providerName),
+                  _row('Smartcard number', purchase.smartcard!.smartcardNumber),
+                ],
+                if ((purchase.variationCode ?? '').isNotEmpty)
+                  _row('Bouquet', purchase.variationCode!),
+              ],
+            'EDUCATION' => [
+                if ((purchase.variationCode ?? '').isNotEmpty)
+                  _row('Exam type', purchase.variationCode!.toUpperCase()),
+                if (purchase.quantity != null)
+                  _row('Quantity', '${purchase.quantity} PIN(s)'),
+                _row('Recipient', phone ?? ''),
+              ],
+            _ => [
+                if ((purchase.network ?? '').isNotEmpty)
+                  _row('Network', purchase.network!.toUpperCase()),
+                _row('Recipient', phone ?? ''),
+              ],
+          },
           _row('Amount paid', _naira(purchase.amount), bold: true),
           if ((purchase.provider ?? '').isNotEmpty)
             _row('Vend provider', purchase.provider!),
@@ -175,6 +203,36 @@ Future<Uint8List> buildUtilityReceiptPdf({
                           pw.TextStyle(fontSize: 10, color: PdfColors.grey600),
                     ),
                   ],
+                ],
+              ),
+            ),
+          ],
+          if (purchase.type == 'EDUCATION' &&
+              (purchase.purchasedCode ?? '').isNotEmpty) ...[
+            pw.SizedBox(height: 14),
+            pw.Container(
+              width: double.infinity,
+              padding: pw.EdgeInsets.all(14),
+              decoration: pw.BoxDecoration(
+                border: pw.Border.all(
+                  color: PdfColor.fromInt(0xFF1B4332),
+                  width: 1.2,
+                ),
+                borderRadius: pw.BorderRadius.circular(6),
+              ),
+              child: pw.Column(
+                crossAxisAlignment: pw.CrossAxisAlignment.start,
+                children: [
+                  pw.Text(
+                    'PIN(S)',
+                    style: pw.TextStyle(fontSize: 9, color: PdfColors.grey600),
+                  ),
+                  pw.SizedBox(height: 4),
+                  for (final line in purchase.purchasedCode!.split('||'))
+                    pw.Text(
+                      line.trim(),
+                      style: pw.TextStyle(fontSize: 12, font: pw.Font.courierBold()),
+                    ),
                 ],
               ),
             ),

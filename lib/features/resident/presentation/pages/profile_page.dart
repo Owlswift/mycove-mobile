@@ -231,14 +231,6 @@ class ProfilePage extends ConsumerWidget {
                                   'Biometric Login',
                                   style: McTextStyles.body(fontSize: 14, color: McColors.text),
                                 ),
-                                if (!(s.currentUser?.hasPin ?? false))
-                                  Text(
-                                    'Also requires a transaction PIN',
-                                    style: McTextStyles.body(
-                                      fontSize: 11.5,
-                                      color: McColors.text,
-                                    ),
-                                  ),
                               ],
                             ),
                           ),
@@ -247,18 +239,7 @@ class ProfilePage extends ConsumerWidget {
                             activeThumbColor: McColors.accent2,
                             onChanged: (value) async {
                               if (value) {
-                                final ok = await notifier.enableBiometrics();
-                                if (ok &&
-                                    !(s.currentUser?.hasPin ?? false) &&
-                                    context.mounted) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                      content: Text(
-                                        'Set a transaction PIN too so the lock screen can use both.',
-                                      ),
-                                    ),
-                                  );
-                                }
+                                await notifier.enableBiometrics();
                               } else {
                                 await notifier.disableBiometrics();
                               }

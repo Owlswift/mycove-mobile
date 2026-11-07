@@ -41,6 +41,32 @@ class UtilityPurchaseMeter {
       };
 }
 
+class UtilityPurchaseSmartcard {
+  const UtilityPurchaseSmartcard({
+    required this.smartcardNumber,
+    required this.providerName,
+    required this.provider,
+  });
+
+  factory UtilityPurchaseSmartcard.fromJson(Map<String, dynamic> json) {
+    return UtilityPurchaseSmartcard(
+      smartcardNumber: json['smartcardNumber'] as String? ?? '',
+      providerName: json['providerName'] as String? ?? '',
+      provider: json['provider'] as String? ?? '',
+    );
+  }
+
+  final String smartcardNumber;
+  final String providerName;
+  final String provider;
+
+  Map<String, dynamic> toJson() => {
+        'smartcardNumber': smartcardNumber,
+        'providerName': providerName,
+        'provider': provider,
+      };
+}
+
 class UtilityPurchase {
   const UtilityPurchase({
     required this.id,
@@ -56,10 +82,16 @@ class UtilityPurchase {
     this.meter,
     this.network,
     this.phone,
+    this.variationCode,
+    this.subscriptionType,
+    this.quantity,
+    this.purchasedCode,
+    this.smartcard,
   });
 
   factory UtilityPurchase.fromJson(Map<String, dynamic> json) {
     final meterJson = json['meter'] as Map<String, dynamic>?;
+    final smartcardJson = json['smartcard'] as Map<String, dynamic>?;
     return UtilityPurchase(
       id: json['id'] as String,
       type: json['type'] as String,
@@ -75,11 +107,18 @@ class UtilityPurchase {
           meterJson == null ? null : UtilityPurchaseMeter.fromJson(meterJson),
       network: json['network'] as String?,
       phone: json['phone'] as String?,
+      variationCode: json['variationCode'] as String?,
+      subscriptionType: json['subscriptionType'] as String?,
+      quantity: json['quantity'] as int?,
+      purchasedCode: json['purchasedCode'] as String?,
+      smartcard: smartcardJson == null
+          ? null
+          : UtilityPurchaseSmartcard.fromJson(smartcardJson),
     );
   }
 
   final String id;
-  final String type; // ELECTRICITY | AIRTIME
+  final String type; // ELECTRICITY | AIRTIME | DATA | TV | EDUCATION
   final int amount;
   final UtilityPurchaseStatus status;
   final DateTime createdAt;
@@ -93,11 +132,26 @@ class UtilityPurchase {
   /// show which meter/DISCO a token belongs to without another lookup.
   final UtilityPurchaseMeter? meter;
 
-  /// AIRTIME only: mtn / airtel / glo / etisalat.
+  /// AIRTIME/DATA only: mtn / airtel / glo / etisalat.
   final String? network;
 
-  /// AIRTIME recipient, or electricity contact phone.
+  /// Recipient/contact phone — every type.
   final String? phone;
+
+  /// DATA plan / TV bouquet / EDUCATION exam type — VTpass's variation_code.
+  final String? variationCode;
+
+  /// TV only: "change" (new/change bouquet) or "renew".
+  final String? subscriptionType;
+
+  /// EDUCATION only: number of result-checker PINs bought.
+  final int? quantity;
+
+  /// EDUCATION: the PIN(s)/serial VTpass hands back.
+  final String? purchasedCode;
+
+  /// Smartcard details (TV only).
+  final UtilityPurchaseSmartcard? smartcard;
 
   Map<String, dynamic> toJson() => {
         'id': id,
@@ -113,5 +167,10 @@ class UtilityPurchase {
         'meter': meter?.toJson(),
         'network': network,
         'phone': phone,
+        'variationCode': variationCode,
+        'subscriptionType': subscriptionType,
+        'quantity': quantity,
+        'purchasedCode': purchasedCode,
+        'smartcard': smartcard?.toJson(),
       };
 }

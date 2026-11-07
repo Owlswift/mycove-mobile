@@ -10,12 +10,12 @@ import '../../../../state/app_notifier.dart';
 const _pinLength = 4;
 
 /// Shown whenever a session is being restored silently (cold start, or
-/// resuming from the background) while both biometric unlock AND a
-/// transaction PIN are set — see AppNotifier._enterApp/refreshOnResume,
-/// which only route here when both are true, so the keypad below always
-/// has a PIN to check against. Logging in with a password is never routed
-/// through here, since typing the password already was the authentication
-/// event.
+/// resuming from the background) while biometric unlock is enabled — see
+/// AppNotifier._enterApp/refreshOnResume. The PIN keypad is an optional
+/// fallback shown only when the resident also has a transaction PIN set;
+/// without one, this is just the fingerprint button plus Log Out. Logging
+/// in with a password is never routed through here, since typing the
+/// password already was the authentication event.
 class BiometricUnlockPage extends ConsumerStatefulWidget {
   const BiometricUnlockPage({super.key});
 
@@ -75,10 +75,12 @@ class _BiometricUnlockPageState extends ConsumerState<BiometricUnlockPage> {
 
   @override
   Widget build(BuildContext context) {
+    final hasPin = ref.watch(appStateProvider.select((s) => s.currentUser?.hasPin ?? false));
     return Scaffold(
       backgroundColor: McColors.bg,
       body: SafeArea(
         child: _PinKeypadBody(
+          showPinKeypad: hasPin,
           pin: _pin,
           pinLength: _pinLength,
           error: _pinError,
@@ -96,6 +98,7 @@ class _BiometricUnlockPageState extends ConsumerState<BiometricUnlockPage> {
 
 class _PinKeypadBody extends StatelessWidget {
   const _PinKeypadBody({
+    required this.showPinKeypad,
     required this.pin,
     required this.pinLength,
     required this.error,
@@ -107,6 +110,7 @@ class _PinKeypadBody extends StatelessWidget {
     required this.onLogout,
   });
 
+  final bool showPinKeypad;
   final String pin;
   final int pinLength;
   final String? error;
@@ -144,71 +148,84 @@ class _PinKeypadBody extends StatelessWidget {
           Text('Welcome back', style: McTextStyles.heading(fontSize: 20)),
           const SizedBox(height: 6),
           Text(
-            'Enter your PIN or use biometrics to continue',
+            showPinKeypad ? 'Enter your PIN or use biometrics to continue' : 'Use biometrics to continue',
             textAlign: TextAlign.center,
             style: McTextStyles.body(fontSize: 14, color: McColors.bodyText),
           ),
           const SizedBox(height: 28),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              for (var i = 0; i < pinLength; i++) ...[
-                if (i > 0) const SizedBox(width: 14),
-                _PinDot(filled: i < pin.length),
+          if (showPinKeypad) ...[
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                for (var i = 0; i < pinLength; i++) ...[
+                  if (i > 0) const SizedBox(width: 14),
+                  _PinDot(filled: i < pin.length),
+                ],
               ],
-            ],
-          ),
-          SizedBox(
-            height: 28,
-            child: error != null
-                ? Padding(
-                    padding: const EdgeInsets.only(top: 10),
-                    child: Text(
-                      error!,
-                      style: McTextStyles.body(fontSize: 13, color: McColors.danger),
-                      textAlign: TextAlign.center,
+            ),
+            SizedBox(
+              height: 28,
+              child: error != null
+                  ? Padding(
+                      padding: const EdgeInsets.only(top: 10),
+                      child: Text(
+                        error!,
+                        style: McTextStyles.body(fontSize: 13, color: McColors.danger),
+                        textAlign: TextAlign.center,
+                      ),
+                    )
+                  : null,
+            ),
+            const SizedBox(height: 8),
+            for (final row in _rows) ...[
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  for (final (digit, letters) in row)
+                    _KeypadKey(
+                      onTap: busy ? null : () => onDigit(digit),
+                      child: _DigitLabel(digit: digit, letters: letters),
                     ),
-                  )
-                : null,
-          ),
-          const SizedBox(height: 8),
-          for (final row in _rows) ...[
+                ],
+              ),
+              const SizedBox(height: 6),
+            ],
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
-                for (final (digit, letters) in row)
-                  _KeypadKey(
-                    onTap: busy ? null : () => onDigit(digit),
-                    child: _DigitLabel(digit: digit, letters: letters),
-                  ),
+                _KeypadKey(
+                  onTap: busy ? null : onBiometric,
+                  background: McColors.accent2N(100),
+                  child: biometricBusy
+                      ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(strokeWidth: 2, color: McColors.accent2),
+                        )
+                      : Icon(Icons.fingerprint, size: context.rs(28), color: McColors.accent2),
+                ),
+                _KeypadKey(
+                  onTap: busy ? null : () => onDigit('0'),
+                  child: const _DigitLabel(digit: '0', letters: ''),
+                ),
+                _KeypadKey(
+                  onTap: busy ? null : onBackspace,
+                  child: Icon(Icons.backspace_outlined, size: context.rs(22), color: McColors.text),
+                ),
               ],
             ),
-            const SizedBox(height: 6),
-          ],
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              _KeypadKey(
-                onTap: busy ? null : onBiometric,
-                background: McColors.accent2N(100),
-                child: biometricBusy
-                    ? const SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: CircularProgressIndicator(strokeWidth: 2, color: McColors.accent2),
-                      )
-                    : Icon(Icons.fingerprint, size: context.rs(28), color: McColors.accent2),
-              ),
-              _KeypadKey(
-                onTap: busy ? null : () => onDigit('0'),
-                child: const _DigitLabel(digit: '0', letters: ''),
-              ),
-              _KeypadKey(
-                onTap: busy ? null : onBackspace,
-                child: Icon(Icons.backspace_outlined, size: context.rs(22), color: McColors.text),
-              ),
-            ],
-          ),
+          ] else
+            _KeypadKey(
+              onTap: onBiometric,
+              background: McColors.accent2N(100),
+              child: biometricBusy
+                  ? const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(strokeWidth: 2, color: McColors.accent2),
+                    )
+                  : Icon(Icons.fingerprint, size: context.rs(28), color: McColors.accent2),
+            ),
           const SizedBox(height: 20),
           TextButton(
             onPressed: onLogout,

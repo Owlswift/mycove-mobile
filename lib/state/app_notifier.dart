@@ -44,8 +44,10 @@ import '../data/models/rules_section.dart';
 import '../data/models/session_info.dart';
 import '../data/models/spotlight.dart';
 import '../data/models/tts_voice_option.dart';
+import '../data/models/tv_smartcard.dart';
 import '../data/models/utility_meter.dart';
 import '../data/models/utility_purchase.dart';
+import '../data/models/variation_code.dart';
 import '../data/models/visitor_pass.dart';
 import 'app_state.dart';
 
@@ -356,14 +358,12 @@ class AppNotifier extends StateNotifier<AppState> {
       // comes back as a real HTTP response, e.response != null, and falls
       // through to the catch-all below unchanged. With cached data on
       // hand, enter the app off it instead of forcing a login the device
-      // can't even attempt right now; _enterApp's identityUnconfirmed
-      // fail-safes the biometric-lock decision since currentUser can't be
-      // confirmed this way.
+      // can't even attempt right now.
       if (e.response == null) {
         final cached = await _stateCache.read();
         if (cached != null) {
           await _hydrateFromCache();
-          await _enterApp(identityUnconfirmed: true);
+          await _enterApp();
           unawaited(
             _bootstrapResidentDeduped().catchError((_) {
               // Swallow — will retry on the next refresh trigger (resume,
@@ -432,20 +432,10 @@ class AppNotifier extends StateNotifier<AppState> {
   /// — biometric lock, when enabled, sits in front of an already-ready app
   /// rather than blocking the data fetch behind it.
   ///
-  /// [identityUnconfirmed] is set when entering the app off a cached
-  /// snapshot because the identity check ([_api.me]) couldn't reach the
-  /// server at all — [state.currentUser] is whatever it was before (often
-  /// null), so its `hasPin` can't be trusted either way. Fail safe in that
-  /// case: if biometric unlock is enabled at all, lock regardless of
-  /// `hasPin`, rather than risk skipping a lock screen the resident
-  /// actually has configured just because we couldn't confirm it.
-  Future<void> _enterApp({bool identityUnconfirmed = false}) async {
+  Future<void> _enterApp() async {
     final biometricEnabled = await _biometricStorage.readEnabled();
-    final hasPin = identityUnconfirmed
-        ? biometricEnabled
-        : (state.currentUser?.hasPin ?? false);
     state = state.copyWith(
-      authStage: biometricEnabled && hasPin ? AuthStage.locked : AuthStage.app,
+      authStage: biometricEnabled ? AuthStage.locked : AuthStage.app,
       biometricEnabled: biometricEnabled,
     );
   }
@@ -736,19 +726,25 @@ class AppNotifier extends StateNotifier<AppState> {
       state = state.copyWith(resetMsg: 'Full name is required.');
       return;
     }
+    // A household-invited member inherits their address from whoever invited
+    // them — this step only ever shows them an emergency contact field, so
+    // there's no street/house UI for them to fill in here.
+    final isHouseholdMember = state.currentUser?.invitedByName != null;
     final usesStreets = state.estateStreets.isNotEmpty;
-    if (usesStreets) {
-      if (state.setupStreet.trim().isEmpty) {
-        state = state.copyWith(resetMsg: 'Please select your street.');
+    if (!isHouseholdMember) {
+      if (usesStreets) {
+        if (state.setupStreet.trim().isEmpty) {
+          state = state.copyWith(resetMsg: 'Please select your street.');
+          return;
+        }
+        if (state.setupHouseNumber.trim().isEmpty) {
+          state = state.copyWith(resetMsg: 'House number is required.');
+          return;
+        }
+      } else if (state.setupHouse.trim().isEmpty) {
+        state = state.copyWith(resetMsg: 'House address is required.');
         return;
       }
-      if (state.setupHouseNumber.trim().isEmpty) {
-        state = state.copyWith(resetMsg: 'House number is required.');
-        return;
-      }
-    } else if (state.setupHouse.trim().isEmpty) {
-      state = state.copyWith(resetMsg: 'House address is required.');
-      return;
     }
     state = state.copyWith(isLoading: true, resetMsg: '');
     developer.log('completeForceReset: starting', name: 'AppNotifier');
@@ -761,9 +757,9 @@ class AppNotifier extends StateNotifier<AppState> {
       await _api.completeForceReset(
         newPassword: state.newPass1,
         fullName: state.setupFullName.trim(),
-        house: usesStreets ? null : state.setupHouse.trim(),
-        street: usesStreets ? state.setupStreet.trim() : null,
-        houseNumber: usesStreets ? state.setupHouseNumber.trim() : null,
+        house: (isHouseholdMember || usesStreets) ? null : state.setupHouse.trim(),
+        street: (isHouseholdMember || !usesStreets) ? null : state.setupStreet.trim(),
+        houseNumber: (isHouseholdMember || !usesStreets) ? null : state.setupHouseNumber.trim(),
         email: state.setupEmail.trim().isEmpty ? null : state.setupEmail.trim(),
         emergencyContactName: state.setupEmergencyContactName.trim().isEmpty
             ? null
@@ -923,7 +919,7 @@ class AppNotifier extends StateNotifier<AppState> {
     // "unlock, instantly locks again" loop).
     if (_biometricPromptActive) return;
     if (state.authStage != AuthStage.app) return;
-    if (state.biometricEnabled && (state.currentUser?.hasPin ?? false)) {
+    if (state.biometricEnabled) {
       state = state.copyWith(authStage: AuthStage.locked);
       return;
     }
@@ -1194,6 +1190,7 @@ class AppNotifier extends StateNotifier<AppState> {
       _api.utilityPurchases(),
       _api.householdMembers(),
       _api.householdInvites(),
+      _api.smartcards(),
     ]);
     // Fetched outside the batch above on purpose: an admin who hasn't set
     // estate emergency numbers yet (or an older API without them) must not
@@ -1263,6 +1260,9 @@ class AppNotifier extends StateNotifier<AppState> {
     final householdInvites = (results[16] as List)
         .map((j) => HouseholdInvite.fromJson(j as Map<String, dynamic>))
         .toList();
+    final tvSmartcards = (results[17] as List)
+        .map((j) => TvSmartcard.fromJson(j as Map<String, dynamic>))
+        .toList();
 
     state = state.copyWith(
       announcements: announcements,
@@ -1290,6 +1290,7 @@ class AppNotifier extends StateNotifier<AppState> {
       utilityPurchases: utilityPurchases,
       householdMembers: householdMembers,
       householdInvites: householdInvites,
+      tvSmartcards: tvSmartcards,
     );
     _persistCache();
   }
@@ -2241,6 +2242,425 @@ class AppNotifier extends StateNotifier<AppState> {
       _analytics.track('electricity_purchase_failed', {
         'amount': amount,
         'disco': state.elecDiscoCode,
+        'payment_method': method.toLowerCase(),
+        'failure_reason': extractMessage(e),
+      });
+      state = state.copyWith(utilityLoading: false, utilityError: extractMessage(e));
+      return false;
+    }
+  }
+
+  // ── Utilities: data ──────────────────────────────────────────────────
+
+  void resetDataForm() {
+    state = state.copyWith(
+      dataNetwork: '',
+      dataPhone: '',
+      dataPlans: [],
+      dataSelectedPlanCode: null,
+      utilityError: '',
+      utilityPaymentMethod: 'PAYSTACK',
+    );
+  }
+
+  void onDataPhone(String v) => state = state.copyWith(dataPhone: v);
+
+  /// Picking a network fetches that network's live plan list — VTpass's
+  /// bundles/prices change often enough that caching this isn't worth the
+  /// staleness risk (same reasoning as UtilitiesService.getVariationCodes
+  /// on the backend not caching it either).
+  Future<void> onDataNetwork(String network) async {
+    state = state.copyWith(
+      dataNetwork: network,
+      dataSelectedPlanCode: null,
+      dataPlans: [],
+      utilityLoading: true,
+      utilityError: '',
+    );
+    try {
+      final json = await _api.utilityVariations('$network-data');
+      final plans = json
+          .map((e) => VariationCode.fromJson(e as Map<String, dynamic>))
+          .toList();
+      state = state.copyWith(utilityLoading: false, dataPlans: plans);
+    } catch (e) {
+      state = state.copyWith(utilityLoading: false, utilityError: extractMessage(e));
+    }
+  }
+
+  void selectDataPlan(String code) => state = state.copyWith(dataSelectedPlanCode: code);
+
+  Future<bool> buyData() async {
+    final plan = state.dataPlans.where((p) => p.code == state.dataSelectedPlanCode).firstOrNull;
+    if (state.dataNetwork.isEmpty || state.dataPhone.trim().isEmpty || plan == null) {
+      state = state.copyWith(
+        utilityError: 'Select a network, a plan and enter a valid phone number.',
+      );
+      return false;
+    }
+    final amount = plan.amount;
+    final method = state.utilityPaymentMethod;
+    state = state.copyWith(utilityLoading: true, utilityError: '');
+    _analytics.track('data_purchase_started', {
+      'amount': amount,
+      'network': state.dataNetwork,
+      'plan': plan.code,
+      'payment_method': method.toLowerCase(),
+    });
+    if (method == 'PAYSTACK') {
+      final funded = await _topUpForUtilityPurchase(amount);
+      if (!funded) {
+        _analytics.track('data_purchase_failed', {
+          'amount': amount,
+          'network': state.dataNetwork,
+          'payment_method': 'paystack',
+          'failure_reason': 'payment_not_completed',
+        });
+        state = state.copyWith(
+          utilityLoading: false,
+          utilityError: _walletTopUpError.isNotEmpty ? _walletTopUpError : 'Payment was not completed.',
+        );
+        return false;
+      }
+    }
+    try {
+      final json = await _api.buyData(
+        network: state.dataNetwork,
+        variationCode: plan.code,
+        phone: state.dataPhone.trim(),
+        amount: amount,
+      );
+      final purchase = UtilityPurchase.fromJson(json);
+      final walletBalance = await _api.walletBalance();
+      final success =
+          purchase.status == UtilityPurchaseStatus.successful ||
+          purchase.status == UtilityPurchaseStatus.pending;
+      _analytics.track(
+        success ? 'data_purchase_success' : 'data_purchase_failed',
+        {
+          'amount': amount,
+          'network': state.dataNetwork,
+          'plan': plan.code,
+          'payment_method': method.toLowerCase(),
+          if (!success && purchase.failureReason != null)
+            'failure_reason': purchase.failureReason,
+        },
+      );
+      state = state.copyWith(
+        utilityLoading: false,
+        lastUtilityPurchase: purchase,
+        utilityPurchases: [purchase, ...state.utilityPurchases],
+        walletBalance: walletBalance,
+      );
+      return true;
+    } catch (e) {
+      _analytics.track('data_purchase_failed', {
+        'amount': amount,
+        'network': state.dataNetwork,
+        'plan': plan.code,
+        'payment_method': method.toLowerCase(),
+        'failure_reason': extractMessage(e),
+      });
+      state = state.copyWith(utilityLoading: false, utilityError: extractMessage(e));
+      return false;
+    }
+  }
+
+  // ── Utilities: TV ────────────────────────────────────────────────────
+
+  void resetTvForm() {
+    state = state.copyWith(
+      tvProvider: '',
+      tvSmartcardNumber: '',
+      tvVerifiedCustomerName: null,
+      tvVerifiedCurrentBouquet: null,
+      tvVerifiedDueDate: null,
+      tvSelectedSmartcardId: null,
+      tvPhone: '',
+      tvPackages: [],
+      tvSelectedPackageCode: null,
+      tvSubscriptionType: 'change',
+      utilityError: '',
+      utilityPaymentMethod: 'PAYSTACK',
+    );
+  }
+
+  void onTvProvider(String provider) => state = state.copyWith(
+    tvProvider: provider,
+    tvVerifiedCustomerName: null,
+    tvVerifiedCurrentBouquet: null,
+    tvVerifiedDueDate: null,
+    tvSelectedSmartcardId: null,
+  );
+
+  void onTvSmartcardNumber(String v) => state = state.copyWith(
+    tvSmartcardNumber: v,
+    tvVerifiedCustomerName: null,
+    tvVerifiedCurrentBouquet: null,
+    tvVerifiedDueDate: null,
+    tvSelectedSmartcardId: null,
+  );
+
+  void onTvPhone(String v) => state = state.copyWith(tvPhone: v);
+  void onTvSubscriptionType(String v) => state = state.copyWith(tvSubscriptionType: v);
+
+  /// Pre-fills the form from a previously-saved, already-verified smartcard —
+  /// same idea as [useExistingMeter].
+  void useExistingSmartcard(TvSmartcard card) => state = state.copyWith(
+    tvProvider: card.provider,
+    tvSmartcardNumber: card.smartcardNumber,
+    tvVerifiedCustomerName: card.customerName ?? '',
+    tvVerifiedCurrentBouquet: card.currentBouquet,
+    tvVerifiedDueDate: card.dueDate,
+    tvSelectedSmartcardId: card.id,
+    utilityError: '',
+  );
+
+  Future<bool> verifyTvSmartcard() async {
+    if (state.tvProvider.isEmpty || state.tvSmartcardNumber.trim().isEmpty) {
+      state = state.copyWith(
+        utilityError: 'Select your TV provider and enter your smartcard number.',
+      );
+      return false;
+    }
+    state = state.copyWith(utilityLoading: true, utilityError: '');
+    try {
+      final json = await _api.verifySmartcard(
+        provider: state.tvProvider,
+        smartcardNumber: state.tvSmartcardNumber.trim(),
+      );
+      _analytics.track('smartcard_verified', {
+        'provider': state.tvProvider,
+        'success': true,
+      });
+      state = state.copyWith(
+        utilityLoading: false,
+        tvVerifiedCustomerName: json['customerName'] as String?,
+        tvVerifiedCurrentBouquet: json['currentBouquet'] as String?,
+        tvVerifiedDueDate: json['dueDate'] as String?,
+      );
+      return true;
+    } catch (e) {
+      _analytics.track('smartcard_verified', {
+        'provider': state.tvProvider,
+        'success': false,
+      });
+      state = state.copyWith(utilityLoading: false, utilityError: extractMessage(e));
+      return false;
+    }
+  }
+
+  /// Picking a provider fetches that provider's live bouquet list — same
+  /// not-worth-caching reasoning as [onDataNetwork].
+  Future<void> loadTvPackages(String provider) async {
+    state = state.copyWith(tvPackages: [], tvSelectedPackageCode: null, utilityLoading: true, utilityError: '');
+    try {
+      final json = await _api.utilityVariations(provider);
+      final packages = json
+          .map((e) => VariationCode.fromJson(e as Map<String, dynamic>))
+          .toList();
+      state = state.copyWith(utilityLoading: false, tvPackages: packages);
+    } catch (e) {
+      state = state.copyWith(utilityLoading: false, utilityError: extractMessage(e));
+    }
+  }
+
+  void selectTvPackage(String code) => state = state.copyWith(tvSelectedPackageCode: code);
+
+  Future<bool> buyTv() async {
+    final package = state.tvPackages.where((p) => p.code == state.tvSelectedPackageCode).firstOrNull;
+    final phone = state.tvPhone.trim().isNotEmpty
+        ? state.tvPhone.trim()
+        : (state.currentUser?.phone ?? '');
+    if (state.tvVerifiedCustomerName == null || phone.isEmpty || package == null) {
+      state = state.copyWith(
+        utilityError: 'Verify your smartcard, choose a bouquet and enter a valid phone number.',
+      );
+      return false;
+    }
+    final amount = package.amount;
+    final method = state.utilityPaymentMethod;
+    state = state.copyWith(utilityLoading: true, utilityError: '');
+    _analytics.track('tv_purchase_started', {
+      'amount': amount,
+      'provider': state.tvProvider,
+      'package': package.code,
+      'payment_method': method.toLowerCase(),
+    });
+    if (method == 'PAYSTACK') {
+      final funded = await _topUpForUtilityPurchase(amount);
+      if (!funded) {
+        _analytics.track('tv_purchase_failed', {
+          'amount': amount,
+          'provider': state.tvProvider,
+          'payment_method': 'paystack',
+          'failure_reason': 'payment_not_completed',
+        });
+        state = state.copyWith(
+          utilityLoading: false,
+          utilityError: _walletTopUpError.isNotEmpty ? _walletTopUpError : 'Payment was not completed.',
+        );
+        return false;
+      }
+    }
+    try {
+      final providerName = tvProviders.firstWhere((p) => p.$1 == state.tvProvider).$2;
+      final smartcardJson = await _api.saveSmartcard(
+        provider: state.tvProvider,
+        providerName: providerName,
+        smartcardNumber: state.tvSmartcardNumber.trim(),
+      );
+      final smartcard = TvSmartcard.fromJson(smartcardJson);
+      final purchaseJson = await _api.buyTv(
+        smartcardId: smartcard.id,
+        variationCode: package.code,
+        subscriptionType: state.tvSubscriptionType,
+        phone: phone,
+        amount: amount,
+      );
+      final purchase = UtilityPurchase.fromJson(purchaseJson);
+      final walletBalance = await _api.walletBalance();
+      final success =
+          purchase.status == UtilityPurchaseStatus.successful ||
+          purchase.status == UtilityPurchaseStatus.pending;
+      _analytics.track(
+        success ? 'tv_purchase_success' : 'tv_purchase_failed',
+        {
+          'amount': amount,
+          'provider': state.tvProvider,
+          'package': package.code,
+          'payment_method': method.toLowerCase(),
+          if (!success && purchase.failureReason != null)
+            'failure_reason': purchase.failureReason,
+        },
+      );
+      state = state.copyWith(
+        utilityLoading: false,
+        lastUtilityPurchase: purchase,
+        utilityPurchases: [purchase, ...state.utilityPurchases],
+        tvSmartcards: [
+          smartcard,
+          for (final c in state.tvSmartcards)
+            if (c.id != smartcard.id) c,
+        ],
+        walletBalance: walletBalance,
+      );
+      return true;
+    } catch (e) {
+      _analytics.track('tv_purchase_failed', {
+        'amount': amount,
+        'provider': state.tvProvider,
+        'payment_method': method.toLowerCase(),
+        'failure_reason': extractMessage(e),
+      });
+      state = state.copyWith(utilityLoading: false, utilityError: extractMessage(e));
+      return false;
+    }
+  }
+
+  // ── Utilities: education (WAEC) ──────────────────────────────────────
+
+  void resetEducationForm() {
+    state = state.copyWith(
+      educationPhone: '',
+      educationQuantity: 1,
+      educationVariations: [],
+      educationSelectedCode: null,
+      utilityError: '',
+      utilityPaymentMethod: 'PAYSTACK',
+    );
+  }
+
+  void onEducationPhone(String v) => state = state.copyWith(educationPhone: v);
+  void onEducationQuantity(int v) => state = state.copyWith(educationQuantity: v < 1 ? 1 : v);
+
+  /// WAEC has exactly one product today ("waecdirect") but this still goes
+  /// through the live variation-codes lookup rather than a hardcoded value,
+  /// so a price change on VTpass's side is reflected without an app update.
+  Future<void> loadEducationVariations() async {
+    state = state.copyWith(utilityLoading: true, utilityError: '');
+    try {
+      final json = await _api.utilityVariations('waec');
+      final variations = json
+          .map((e) => VariationCode.fromJson(e as Map<String, dynamic>))
+          .toList();
+      state = state.copyWith(
+        utilityLoading: false,
+        educationVariations: variations,
+        educationSelectedCode: variations.isEmpty ? null : variations.first.code,
+      );
+    } catch (e) {
+      state = state.copyWith(utilityLoading: false, utilityError: extractMessage(e));
+    }
+  }
+
+  Future<bool> buyEducation() async {
+    final variation = state.educationVariations
+        .where((v) => v.code == state.educationSelectedCode)
+        .firstOrNull;
+    if (state.educationPhone.trim().isEmpty || variation == null) {
+      state = state.copyWith(
+        utilityError: 'Enter a valid phone number.',
+      );
+      return false;
+    }
+    final amount = variation.amount * state.educationQuantity;
+    final method = state.utilityPaymentMethod;
+    state = state.copyWith(utilityLoading: true, utilityError: '');
+    _analytics.track('education_purchase_started', {
+      'amount': amount,
+      'quantity': state.educationQuantity,
+      'payment_method': method.toLowerCase(),
+    });
+    if (method == 'PAYSTACK') {
+      final funded = await _topUpForUtilityPurchase(amount);
+      if (!funded) {
+        _analytics.track('education_purchase_failed', {
+          'amount': amount,
+          'payment_method': 'paystack',
+          'failure_reason': 'payment_not_completed',
+        });
+        state = state.copyWith(
+          utilityLoading: false,
+          utilityError: _walletTopUpError.isNotEmpty ? _walletTopUpError : 'Payment was not completed.',
+        );
+        return false;
+      }
+    }
+    try {
+      final json = await _api.buyEducation(
+        serviceID: 'waec',
+        variationCode: variation.code,
+        quantity: state.educationQuantity,
+        phone: state.educationPhone.trim(),
+        amount: amount,
+      );
+      final purchase = UtilityPurchase.fromJson(json);
+      final walletBalance = await _api.walletBalance();
+      final success =
+          purchase.status == UtilityPurchaseStatus.successful ||
+          purchase.status == UtilityPurchaseStatus.pending;
+      _analytics.track(
+        success ? 'education_purchase_success' : 'education_purchase_failed',
+        {
+          'amount': amount,
+          'quantity': state.educationQuantity,
+          'payment_method': method.toLowerCase(),
+          if (!success && purchase.failureReason != null)
+            'failure_reason': purchase.failureReason,
+        },
+      );
+      state = state.copyWith(
+        utilityLoading: false,
+        lastUtilityPurchase: purchase,
+        utilityPurchases: [purchase, ...state.utilityPurchases],
+        walletBalance: walletBalance,
+      );
+      return true;
+    } catch (e) {
+      _analytics.track('education_purchase_failed', {
+        'amount': amount,
+        'quantity': state.educationQuantity,
         'payment_method': method.toLowerCase(),
         'failure_reason': extractMessage(e),
       });

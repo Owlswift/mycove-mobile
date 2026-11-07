@@ -10,9 +10,18 @@ import '../../../../core/widgets/mc_button.dart';
 import '../../../../state/app_notifier.dart';
 import '../../../../state/app_state.dart';
 
-/// Shared by the electricity and airtime flows — the purchase itself
-/// (token/units for electricity, nothing extra for airtime) already sits in
-/// [AppState.lastUtilityPurchase] by the time either flow pushes here.
+const _typeLabels = {
+  'ELECTRICITY': 'Electricity purchased',
+  'AIRTIME': 'Airtime purchased',
+  'DATA': 'Data bundle purchased',
+  'TV': 'TV subscription purchased',
+  'EDUCATION': 'WAEC PIN purchased',
+};
+
+/// Shared by every utility purchase flow — the purchase itself (token/units
+/// for electricity, PIN(s) for education, nothing extra for airtime/data/TV)
+/// already sits in [AppState.lastUtilityPurchase] by the time any flow
+/// pushes here.
 class UtilityPurchaseSuccessPage extends ConsumerWidget {
   const UtilityPurchaseSuccessPage({super.key});
 
@@ -20,6 +29,7 @@ class UtilityPurchaseSuccessPage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final purchase = ref.watch(appStateProvider).lastUtilityPurchase;
     final isElectricity = purchase?.type == 'ELECTRICITY';
+    final isEducation = purchase?.type == 'EDUCATION';
 
     return Padding(
       padding: EdgeInsets.fromLTRB(
@@ -38,7 +48,7 @@ class UtilityPurchaseSuccessPage extends ConsumerWidget {
           ),
           SizedBox(height: context.rs(18)),
           Text(
-            isElectricity ? 'Electricity purchased' : 'Airtime purchased',
+            _typeLabels[purchase?.type] ?? 'Purchase successful',
             style: McTextStyles.heading(fontSize: 18),
           ),
           SizedBox(height: context.rs(6)),
@@ -75,6 +85,38 @@ class UtilityPurchaseSuccessPage extends ConsumerWidget {
                       style: McTextStyles.body(fontSize: 12.5, color: McColors.bodyText),
                     ),
                   ],
+                ],
+              ),
+            ),
+          ],
+          if (isEducation &&
+              purchase?.purchasedCode != null &&
+              purchase!.purchasedCode!.isNotEmpty) ...[
+            SizedBox(height: context.rs(22)),
+            Container(
+              width: double.infinity,
+              padding: EdgeInsets.all(context.rs(16)),
+              decoration: BoxDecoration(
+                color: McColors.surfaceSunken,
+                borderRadius: BorderRadius.circular(McRadii.md),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'PIN(S)',
+                    style: McTextStyles.body(fontSize: 11, fontWeight: FontWeight.w700, color: McColors.bodyText)
+                        .copyWith(letterSpacing: 1),
+                  ),
+                  SizedBox(height: context.rs(6)),
+                  for (final line in purchase.purchasedCode!.split('||'))
+                    Padding(
+                      padding: EdgeInsets.only(bottom: context.rs(4)),
+                      child: SelectableText(
+                        line.trim(),
+                        style: McTextStyles.body(fontSize: 13, fontWeight: FontWeight.w600, color: McColors.accent2),
+                      ),
+                    ),
                 ],
               ),
             ),

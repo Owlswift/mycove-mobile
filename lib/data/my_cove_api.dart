@@ -460,6 +460,104 @@ class MyCoveApi {
   Future<List<dynamic>> utilityPurchases() async =>
       _list(await _dio.get('/utilities/purchases'));
 
+  /// Shared by Data/TV/Education — [serviceID] is whichever VTpass serviceID
+  /// the caller needs plans/bouquets for (e.g. "mtn-data", "dstv", "waec").
+  Future<List<dynamic>> utilityVariations(String serviceID) async => _list(
+    await _dio.get(
+      '/utilities/variations',
+      queryParameters: {'serviceID': serviceID},
+      options: _utilityRequestOptions,
+    ),
+  );
+
+  Future<Map<String, dynamic>> buyData({
+    required String network,
+    required String variationCode,
+    required String phone,
+    required int amount,
+  }) async => _map(
+    await _dio.post(
+      '/utilities/data/buy',
+      data: {
+        'network': network,
+        'variationCode': variationCode,
+        'phone': phone,
+        'amount': amount,
+      },
+      options: _utilityRequestOptions,
+    ),
+  );
+
+  Future<List<dynamic>> smartcards() async =>
+      _list(await _dio.get('/utilities/smartcards'));
+
+  Future<Map<String, dynamic>> verifySmartcard({
+    required String provider,
+    required String smartcardNumber,
+  }) async => _map(
+    await _dio.post(
+      '/utilities/smartcards/verify',
+      data: {'provider': provider, 'smartcardNumber': smartcardNumber},
+      options: _utilityRequestOptions,
+    ),
+  );
+
+  Future<Map<String, dynamic>> saveSmartcard({
+    required String provider,
+    required String providerName,
+    required String smartcardNumber,
+  }) async => _map(
+    await _dio.post(
+      '/utilities/smartcards',
+      data: {
+        'provider': provider,
+        'providerName': providerName,
+        'smartcardNumber': smartcardNumber,
+      },
+      options: _utilityRequestOptions,
+    ),
+  );
+
+  Future<Map<String, dynamic>> buyTv({
+    required String smartcardId,
+    required String variationCode,
+    required String subscriptionType,
+    required String phone,
+    required int amount,
+  }) async => _map(
+    await _dio.post(
+      '/utilities/tv/buy',
+      data: {
+        'smartcardId': smartcardId,
+        'variationCode': variationCode,
+        'subscriptionType': subscriptionType,
+        'phone': phone,
+        'amount': amount,
+      },
+      options: _utilityRequestOptions,
+    ),
+  );
+
+  Future<Map<String, dynamic>> buyEducation({
+    required String serviceID,
+    required String variationCode,
+    required int quantity,
+    required String phone,
+    required int amount,
+  }) async => _map(
+    await _dio.post(
+      '/utilities/education/buy',
+      data: {
+        'serviceID': serviceID,
+        'variationCode': variationCode,
+        'quantity': quantity,
+        'phone': phone,
+        'amount': amount,
+      },
+      options: _utilityRequestOptions,
+    ),
+  );
+
   // ── Household ────────────────────────────────────────────────────────
   Future<List<dynamic>> householdMembers() async =>
       _list(await _dio.get('/household/members'));

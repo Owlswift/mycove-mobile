@@ -57,7 +57,13 @@ class ResidentShell extends ConsumerWidget {
           await notifier.confirmPayment();
           return;
         }
-        final ok = kind == 'electricity' ? await notifier.buyElectricity() : await notifier.buyAirtime();
+        final ok = await switch (kind) {
+          'electricity' => notifier.buyElectricity(),
+          'data' => notifier.buyData(),
+          'tv' => notifier.buyTv(),
+          'education' => notifier.buyEducation(),
+          _ => notifier.buyAirtime(),
+        };
         if (ok && context.mounted) context.go('/resident/$kind/success');
       }
     });

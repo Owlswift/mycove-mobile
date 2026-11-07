@@ -48,28 +48,52 @@ class UtilityReceiptPage extends ConsumerWidget {
       );
     }
 
-    final isElectricity = purchase.type == 'ELECTRICITY';
     final (statusLabel, statusColor) = switch (purchase.status) {
       UtilityPurchaseStatus.successful => ('Successful', McColors.accent2),
       UtilityPurchaseStatus.failed => ('Failed', McColors.danger),
       UtilityPurchaseStatus.pending => ('Pending', McColors.warning),
     };
 
-    final detailRows = [
-      if (isElectricity) ...[
-        if (purchase.meter != null) ...[
-          receiptRow(context, 'DISCO', purchase.meter!.discoName),
-          receiptRow(context, 'Meter number', purchase.meter!.meterNumber),
-          receiptRow(context, 'Meter type',
-              purchase.meter!.meterType.replaceAll('_', ' ').toUpperCase()),
-        ],
-        if ((purchase.phone ?? '').isNotEmpty)
-          receiptRow(context, 'Contact phone', purchase.phone!),
-      ] else ...[
-        if ((purchase.network ?? '').isNotEmpty)
-          receiptRow(context, 'Network', purchase.network!.toUpperCase()),
-        receiptRow(context, 'Recipient', purchase.phone ?? ''),
-      ],
+    final detailRows = <Widget>[
+      ...switch (purchase.type) {
+        'ELECTRICITY' => [
+            if (purchase.meter != null) ...[
+              receiptRow(context, 'DISCO', purchase.meter!.discoName),
+              receiptRow(context, 'Meter number', purchase.meter!.meterNumber),
+              receiptRow(context, 'Meter type',
+                  purchase.meter!.meterType.replaceAll('_', ' ').toUpperCase()),
+            ],
+            if ((purchase.phone ?? '').isNotEmpty)
+              receiptRow(context, 'Contact phone', purchase.phone!),
+          ],
+        'DATA' => [
+            if ((purchase.network ?? '').isNotEmpty)
+              receiptRow(context, 'Network', purchase.network!.toUpperCase()),
+            if ((purchase.variationCode ?? '').isNotEmpty)
+              receiptRow(context, 'Plan', purchase.variationCode!),
+            receiptRow(context, 'Recipient', purchase.phone ?? ''),
+          ],
+        'TV' => [
+            if (purchase.smartcard != null) ...[
+              receiptRow(context, 'Provider', purchase.smartcard!.providerName),
+              receiptRow(context, 'Smartcard number', purchase.smartcard!.smartcardNumber),
+            ],
+            if ((purchase.variationCode ?? '').isNotEmpty)
+              receiptRow(context, 'Bouquet', purchase.variationCode!),
+          ],
+        'EDUCATION' => [
+            if ((purchase.variationCode ?? '').isNotEmpty)
+              receiptRow(context, 'Exam type', purchase.variationCode!.toUpperCase()),
+            if (purchase.quantity != null)
+              receiptRow(context, 'Quantity', '${purchase.quantity} PIN(s)'),
+            receiptRow(context, 'Recipient', purchase.phone ?? ''),
+          ],
+        _ => [
+            if ((purchase.network ?? '').isNotEmpty)
+              receiptRow(context, 'Network', purchase.network!.toUpperCase()),
+            receiptRow(context, 'Recipient', purchase.phone ?? ''),
+          ],
+      },
       receiptRow(context, 'Amount paid', formatNaira(purchase.amount), bold: true),
       if ((purchase.provider ?? '').isNotEmpty)
         receiptRow(context, 'Vend provider', purchase.provider!),
@@ -116,9 +140,13 @@ class UtilityReceiptPage extends ConsumerWidget {
                       ]),
                       SizedBox(height: context.rs(2)),
                       Text(
-                        isElectricity
-                            ? 'Electricity Purchase Receipt'
-                            : 'Airtime Purchase Receipt',
+                        switch (purchase.type) {
+                          'ELECTRICITY' => 'Electricity Purchase Receipt',
+                          'DATA' => 'Data Purchase Receipt',
+                          'TV' => 'TV Subscription Receipt',
+                          'EDUCATION' => 'WAEC PIN Purchase Receipt',
+                          _ => 'Airtime Purchase Receipt',
+                        },
                         style: McTextStyles.body(
                             fontSize: 12, color: McColors.bodyText),
                       ),
@@ -146,6 +174,15 @@ class UtilityReceiptPage extends ConsumerWidget {
                 if ((purchase.token ?? '').isNotEmpty) ...[
                   SizedBox(height: context.rs(14)),
                   tokenCard(context, purchase.token!),
+                ],
+                if (purchase.type == 'EDUCATION' &&
+                    (purchase.purchasedCode ?? '').isNotEmpty) ...[
+                  SizedBox(height: context.rs(14)),
+                  tokenCard(
+                    context,
+                    purchase.purchasedCode!.replaceAll('||', '\n'),
+                    label: 'PIN(S)',
+                  ),
                 ],
                 SizedBox(height: context.rs(20)),
                 McButton(

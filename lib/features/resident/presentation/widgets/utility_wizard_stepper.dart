@@ -31,12 +31,12 @@ class DiscoLogo extends StatelessWidget {
   }
 }
 
-/// Trailing header icon on every step of the electricity wizard — pushes to
-/// the purchase history list.
+/// Trailing header icon on every step of a utility wizard — pushes to the
+/// purchase history list.
 class UtilityHistoryButton extends StatelessWidget {
   const UtilityHistoryButton({super.key, required this.type});
 
-  final String type; // 'ELECTRICITY' | 'AIRTIME'
+  final String type; // 'ELECTRICITY' | 'AIRTIME' | 'DATA' | 'TV' | 'EDUCATION'
 
   @override
   Widget build(BuildContext context) {
@@ -47,32 +47,39 @@ class UtilityHistoryButton extends StatelessWidget {
   }
 }
 
-const _stepLabels = ['Select Provider', 'Enter Meter', 'Confirm Details', 'Enter Amount'];
+const _electricityStepLabels = ['Select Provider', 'Enter Meter', 'Confirm Details', 'Enter Amount'];
 
-/// 4-step progress indicator shared by the electricity purchase wizard —
-/// only the active step shows its label, matching the mockups.
+/// Progress indicator shared by multi-step utility purchase wizards (default
+/// labels match the electricity flow) — only the active step shows its
+/// label, matching the mockups.
 class UtilityWizardStepper extends StatelessWidget {
-  const UtilityWizardStepper({super.key, required this.currentStep});
+  const UtilityWizardStepper({
+    super.key,
+    required this.currentStep,
+    this.labels = _electricityStepLabels,
+  });
 
   final int currentStep;
+  final List<String> labels;
 
   @override
   Widget build(BuildContext context) {
+    final totalSteps = labels.length;
     return Padding(
       padding: EdgeInsets.fromLTRB(context.rs(20), 0, context.rs(20), context.rs(22)),
       child: Row(
         children: [
-          for (var step = 1; step <= 4; step++) ...[
+          for (var step = 1; step <= totalSteps; step++) ...[
             _StepCircle(step: step, currentStep: currentStep),
             if (step == currentStep)
               Padding(
                 padding: EdgeInsets.only(left: context.rs(6)),
                 child: Text(
-                  _stepLabels[step - 1],
+                  labels[step - 1],
                   style: McTextStyles.body(fontSize: 12.5, fontWeight: FontWeight.w700, color: McColors.accent2),
                 ),
               ),
-            if (step < 4)
+            if (step < totalSteps)
               Expanded(
                 child: Container(
                   height: 1.5,
