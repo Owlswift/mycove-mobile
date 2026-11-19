@@ -473,6 +473,7 @@ class MyCoveApi {
   Future<Map<String, dynamic>> buyData({
     required String network,
     required String variationCode,
+    required String vendor,
     required String phone,
     required int amount,
   }) async => _map(
@@ -481,6 +482,7 @@ class MyCoveApi {
       data: {
         'network': network,
         'variationCode': variationCode,
+        'vendor': vendor,
         'phone': phone,
         'amount': amount,
       },
@@ -522,6 +524,7 @@ class MyCoveApi {
     required String smartcardId,
     required String variationCode,
     required String subscriptionType,
+    required String vendor,
     required String phone,
     required int amount,
   }) async => _map(
@@ -531,6 +534,7 @@ class MyCoveApi {
         'smartcardId': smartcardId,
         'variationCode': variationCode,
         'subscriptionType': subscriptionType,
+        'vendor': vendor,
         'phone': phone,
         'amount': amount,
       },
@@ -541,6 +545,7 @@ class MyCoveApi {
   Future<Map<String, dynamic>> buyEducation({
     required String serviceID,
     required String variationCode,
+    required String vendor,
     required int quantity,
     required String phone,
     required int amount,
@@ -550,6 +555,7 @@ class MyCoveApi {
       data: {
         'serviceID': serviceID,
         'variationCode': variationCode,
+        'vendor': vendor,
         'quantity': quantity,
         'phone': phone,
         'amount': amount,

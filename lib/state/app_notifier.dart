@@ -2327,6 +2327,7 @@ class AppNotifier extends StateNotifier<AppState> {
       final json = await _api.buyData(
         network: state.dataNetwork,
         variationCode: plan.code,
+        vendor: plan.vendor,
         phone: state.dataPhone.trim(),
         amount: amount,
       );
@@ -2515,6 +2516,7 @@ class AppNotifier extends StateNotifier<AppState> {
         smartcardId: smartcard.id,
         variationCode: package.code,
         subscriptionType: state.tvSubscriptionType,
+        vendor: package.vendor,
         phone: phone,
         amount: amount,
       );
@@ -2631,6 +2633,7 @@ class AppNotifier extends StateNotifier<AppState> {
       final json = await _api.buyEducation(
         serviceID: 'waec',
         variationCode: variation.code,
+        vendor: variation.vendor,
         quantity: state.educationQuantity,
         phone: state.educationPhone.trim(),
         amount: amount,

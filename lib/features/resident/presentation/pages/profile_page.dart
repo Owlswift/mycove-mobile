@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:package_info_plus/package_info_plus.dart';
+import 'package:shorebird_code_push/shorebird_code_push.dart';
 
 import '../../../../core/theme/mc_colors.dart';
 import '../../../../core/theme/mc_responsive.dart';
@@ -270,6 +272,8 @@ class ProfilePage extends ConsumerWidget {
                       ),
                     ),
                   ),
+                  const SizedBox(height: 16),
+                  const _AppVersionFooter(),
                 ],
               ),
             ),
@@ -469,6 +473,51 @@ class ProfilePage extends ConsumerWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+/// Shows the installed app version plus the live Shorebird patch number —
+/// the only way to confirm an OTA patch actually applied on this device,
+/// since the App Store build number never changes when one does. Patches
+/// apply on cold start, so after publishing one, force-quit and reopen the
+/// app and check this number went up.
+class _AppVersionFooter extends StatefulWidget {
+  const _AppVersionFooter();
+
+  @override
+  State<_AppVersionFooter> createState() => _AppVersionFooterState();
+}
+
+class _AppVersionFooterState extends State<_AppVersionFooter> {
+  final _updater = ShorebirdUpdater();
+  String? _label;
+
+  @override
+  void initState() {
+    super.initState();
+    _load();
+  }
+
+  Future<void> _load() async {
+    final info = await PackageInfo.fromPlatform();
+    String patchLabel = 'not available';
+    if (_updater.isAvailable) {
+      final patch = await _updater.readCurrentPatch();
+      patchLabel = patch == null ? 'none' : '${patch.number}';
+    }
+    if (!mounted) return;
+    setState(() {
+      _label = 'v${info.version} (${info.buildNumber}) · Patch $patchLabel';
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(
+      _label ?? '',
+      textAlign: TextAlign.center,
+      style: McTextStyles.body(fontSize: 11, color: McColors.neutralN(500)),
     );
   }
 }
