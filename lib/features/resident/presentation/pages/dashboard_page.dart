@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../core/feature_flags.dart';
 import '../../../../core/network/spotlight_modal_storage.dart';
 import '../../../../core/theme/mc_colors.dart';
 import '../../../../core/theme/mc_responsive.dart';
@@ -379,6 +380,7 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
                 ],
               ],
             ),
+            if (s.featureEnabled(FeatureFlagKeys.utilityPayments)) ...[
             SizedBox(height: context.rs(18)),
 
             Row(
@@ -575,6 +577,7 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
               ],
             ),
             SizedBox(height: context.rs(10)),
+            ],
 
             // Stat tiles: next meeting, visitor passes, active poll, complaints
             Row(
